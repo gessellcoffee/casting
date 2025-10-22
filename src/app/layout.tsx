@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Sora, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import NavigationBar from "../components/NavigationBar";
 
-const geistSans = Geist({
+const sora = Sora({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -25,9 +27,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${sora.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          strategy="beforeInteractive"
+        />
+        <NavigationBar />
+        <main className="pt-8">{children}</main>
       </body>
     </html>
   );
