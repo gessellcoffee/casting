@@ -29,16 +29,16 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
 
   return (
     <Link href={`/auditions/${audition.audition_id}`}>
-      <div className="h-full p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:border-[#5a8ff5]/40 transition-all duration-300 cursor-pointer group">
+      <div className="h-full p-6 rounded-2xl bg-white/90 backdrop-blur-md border border-neu-border/60 shadow-[8px_8px_16px_rgba(163,177,198,0.4),-4px_-4px_12px_rgba(255,255,255,0.5)] hover:shadow-[12px_12px_20px_rgba(163,177,198,0.5),-6px_-6px_16px_rgba(255,255,255,0.6)] hover:transform hover:translate-y-[-2px] transition-all duration-300 cursor-pointer group">
         
         {/* Show Title */}
-        <h3 className="text-xl font-bold text-[#c5ddff] mb-2 group-hover:text-[#5a8ff5] transition-colors">
+        <h3 className="text-xl font-bold text-neu-text-primary mb-2 group-hover:text-neu-accent-primary transition-colors">
           {show?.title || 'Untitled Show'}
         </h3>
 
         {/* Show Author */}
         {show?.author && (
-          <p className="text-sm text-[#c5ddff]/60 mb-3">
+          <p className="text-sm text-neu-text-muted mb-3">
             by {show.author}
           </p>
         )}
@@ -63,33 +63,33 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
 
         {/* Audition Location */}
         {audition_location && (
-          <div className="mb-3 text-sm text-[#c5ddff]/70">
-            <span className="font-medium text-[#c5ddff]">📍 Audition Location:</span> {audition_location}
+          <div className="mb-3 text-sm text-neu-text-secondary">
+            <span className="font-medium text-neu-text-primary">📍 Audition Location:</span> {audition_location}
           </div>
         )}
 
         {/* Dates */}
         <div className="space-y-2 mb-4 text-sm">
           {rehearsal_dates && (
-            <div className="text-[#c5ddff]/70">
-              <span className="font-medium text-[#c5ddff]">Rehearsals:</span> {rehearsal_dates}
+            <div className="text-neu-text-secondary">
+              <span className="font-medium text-neu-text-primary">Rehearsals:</span> {rehearsal_dates}
             </div>
           )}
           {performance_dates && (
-            <div className="text-[#c5ddff]/70">
-              <span className="font-medium text-[#c5ddff]">Performances:</span> {performance_dates}
+            <div className="text-neu-text-secondary">
+              <span className="font-medium text-neu-text-primary">Performances:</span> {performance_dates}
             </div>
           )}
         </div>
 
         {/* Audition Slots Info */}
-        <div className="pt-4 border-t border-[#4a7bd9]/20">
+        <div className="pt-4 border-t border-neu-border">
           {earliestSlot ? (
             <div className="space-y-1">
-              <div className="text-sm text-[#c5ddff]">
+              <div className="text-sm text-neu-text-primary">
                 <span className="font-medium">Next Audition:</span>
               </div>
-              <div className="text-sm text-[#c5ddff]/70">
+              <div className="text-sm text-neu-text-secondary">
                 {new Date(earliestSlot.start_time).toLocaleDateString('en-US', {
                   weekday: 'short',
                   month: 'short',
@@ -99,16 +99,16 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
                 })}
               </div>
               {earliestSlot.location && (
-                <div className="text-xs text-[#c5ddff]/60">
+                <div className="text-xs text-neu-text-muted">
                   📍 {earliestSlot.location}
                 </div>
               )}
-              <div className="text-xs text-[#5a8ff5] mt-2">
+              <div className="text-xs text-neu-accent-primary mt-2">
                 {availableSlots} {availableSlots === 1 ? 'slot' : 'slots'} available
               </div>
             </div>
           ) : (
-            <div className="text-sm text-[#c5ddff]/50">
+            <div className="text-sm text-neu-text-muted">
               No audition slots scheduled
             </div>
           )}

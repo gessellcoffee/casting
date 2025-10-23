@@ -134,21 +134,21 @@ export default function CallbackSlotCreator({
 
   return (
     <div className="space-y-6">
-      <div className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-        <h2 className="text-2xl font-bold text-[#c5ddff] mb-2">Create Callback Slots</h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+      <div className="neu-card-raised">
+        <h2 className="text-2xl font-bold text-neu-text-primary mb-2">Create Callback Slots</h2>
+        <p className="text-neu-text-primary/70 mb-6">
           Set up time slots for callbacks. You can create multiple slots for different dates or times.
         </p>
 
         {/* Existing Slots Summary */}
         {existingSlots.length > 0 && (
-          <div className="mb-6 p-4 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
-            <h3 className="text-sm font-semibold text-[#c5ddff] mb-2">
+          <div className="mb-6 neu-inset">
+            <h3 className="text-sm font-semibold text-neu-text-primary mb-2">
               Existing Callback Slots ({existingSlots.length})
             </h3>
             <div className="space-y-2">
               {existingSlots.map((slot, index) => (
-                <div key={slot.callback_slot_id} className="text-sm text-[#c5ddff]/70">
+                <div key={slot.callback_slot_id} className="text-sm text-neu-text-primary/70">
                   {new Date(slot.start_time).toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
@@ -171,19 +171,19 @@ export default function CallbackSlotCreator({
         )}
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 shadow-[inset_2px_2px_5px_rgba(239,68,68,0.1)]">
+          <div className="mb-6 neu-error-box">
             <p className="text-red-400 text-sm">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="neu-inset">
           {slots.map((slot, index) => (
             <div
               key={index}
-              className="p-4 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 space-y-4 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="p-4 rounded-lg   space-y-4 "
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-[#c5ddff]">
+                <h3 className="text-lg font-semibold text-neu-text-primary">
                   Slot {index + 1}
                 </h3>
                 {slots.length > 1 && (
@@ -210,7 +210,7 @@ export default function CallbackSlotCreator({
                   placeholder="Click to select a date..."
                 />
                 {slot.dates.length > 0 && (
-                  <p className="text-xs text-[#c5ddff]/50 mt-1">
+                  <p className="text-xs text-neu-text-primary/50 mt-1">
                     Selected: {new Date(slot.dates[0]).toLocaleDateString('en-US', {
                       weekday: 'long',
                       month: 'long',
@@ -224,14 +224,14 @@ export default function CallbackSlotCreator({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Start Time */}
                 <div>
-                  <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     Start Time *
                   </label>
                   <select
                     value={slot.startTime}
                     onChange={(e) => updateSlot(index, 'startTime', e.target.value)}
                     required
-                    className="w-full px-4 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                    className="neu-input"
                   >
                     {Array.from({ length: 48 }, (_, i) => {
                       const hour = Math.floor(i / 2);
@@ -251,14 +251,14 @@ export default function CallbackSlotCreator({
 
                 {/* End Time */}
                 <div>
-                  <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     End Time *
                   </label>
                   <select
                     value={slot.endTime}
                     onChange={(e) => updateSlot(index, 'endTime', e.target.value)}
                     required
-                    className="w-full px-4 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                    className="neu-input"
                   >
                     {Array.from({ length: 48 }, (_, i) => {
                       const hour = Math.floor(i / 2);
@@ -290,7 +290,7 @@ export default function CallbackSlotCreator({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Max Signups */}
                 <div>
-                  <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     Max Actors per Slot *
                   </label>
                   <input
@@ -299,9 +299,9 @@ export default function CallbackSlotCreator({
                     onChange={(e) => updateSlot(index, 'maxSignups', parseInt(e.target.value) || 1)}
                     min="1"
                     required
-                    className="w-full px-4 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                    className="neu-input"
                   />
-                  <p className="text-xs text-[#c5ddff]/50 mt-1">
+                  <p className="text-xs text-neu-text-primary/50 mt-1">
                     How many actors can be invited to this slot
                   </p>
                 </div>
@@ -309,7 +309,7 @@ export default function CallbackSlotCreator({
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary mb-2">
                   Notes (Optional)
                 </label>
                 <textarea
@@ -317,7 +317,7 @@ export default function CallbackSlotCreator({
                   onChange={(e) => updateSlot(index, 'notes', e.target.value)}
                   placeholder="e.g., Bring sheet music, Wear comfortable clothing for movement"
                   rows={2}
-                  className="w-full px-4 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/30 focus:outline-none focus:border-[#5a8ff5] resize-none shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                  className="neu-input resize-none"
                 />
               </div>
             </div>
@@ -327,7 +327,7 @@ export default function CallbackSlotCreator({
           <button
             type="button"
             onClick={addSlot}
-            className="w-full py-3 rounded-lg border-2 border-dashed border-[#4a7bd9]/30 text-[#5a8ff5] hover:border-[#5a8ff5]/50 hover:bg-[#2e3e5e]/30 transition-all hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+            className="neu-btn-dashed py-3"
           >
             + Add Another Slot
           </button>
@@ -338,14 +338,14 @@ export default function CallbackSlotCreator({
               type="button"
               onClick={onCancel}
               disabled={saving}
-              className="n-button-secondary flex-1 px-6 py-3 rounded-lg border border-[#4a7bd9]/20 text-[#c5ddff] hover:bg-[#2e3e5e]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="n-button-secondary w-full"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="n-button-primary flex-1 px-6 py-3 rounded-lg bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]"
+              className="n-button-primary w-full"
             >
               {saving ? 'Creating Slots...' : `Create ${slots.length} Slot${slots.length !== 1 ? 's' : ''}`}
             </button>

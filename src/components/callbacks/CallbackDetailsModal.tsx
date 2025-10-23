@@ -57,9 +57,9 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="mt-4 sm:mt-20 bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#9b87f5]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#9b87f5]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border-b border-[#9b87f5]/20 p-4 sm:p-6 flex items-start justify-between">
+        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-[#9b87f5]/20 p-4 sm:p-6 flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl sm:text-2xl">📋</span>
@@ -67,16 +67,16 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
                 Callback
               </h2>
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-[#c5ddff] mb-1">
+            <h3 className="text-lg sm:text-xl font-semibold text-neu-text-primary mb-1">
               {show?.title || 'Unknown Show'}
             </h3>
             {show?.author && (
-              <p className="text-[#c5ddff]/70">by {show.author}</p>
+              <p className="text-neu-text-primary/70">by {show.author}</p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg bg-[#2e3e5e]/50 border border-[#9b87f5]/20 text-[#c5ddff] hover:text-[#9b87f5] hover:border-[#9b87f5]/40 transition-all duration-200"
+            className="p-2 rounded-lg bg-neu-surface/50 border border-[#9b87f5]/20 text-neu-text-primary hover:text-[#9b87f5] hover:border-[#9b87f5]/40 transition-all duration-200"
           >
             <MdClose className="w-5 h-5" />
           </button>
@@ -89,8 +89,8 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
             <div className="flex items-start gap-3">
               <MdCalendarToday className="w-5 h-5 text-[#9b87f5] mt-1" />
               <div>
-                <div className="text-sm text-[#c5ddff]/70 mb-1">Date</div>
-                <div className="text-[#c5ddff] font-medium">
+                <div className="text-sm text-neu-text-primary/70 mb-1">Date</div>
+                <div className="text-neu-text-primary font-medium">
                   {startTime.toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -104,8 +104,8 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
             <div className="flex items-start gap-3">
               <MdAccessTime className="w-5 h-5 text-[#9b87f5] mt-1" />
               <div>
-                <div className="text-sm text-[#c5ddff]/70 mb-1">Time</div>
-                <div className="text-[#c5ddff] font-medium">
+                <div className="text-sm text-neu-text-primary/70 mb-1">Time</div>
+                <div className="text-neu-text-primary font-medium">
                   {startTime.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
@@ -121,8 +121,8 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
               <div className="flex items-start gap-3">
                 <MdLocationOn className="w-5 h-5 text-[#9b87f5] mt-1" />
                 <div>
-                  <div className="text-sm text-[#c5ddff]/70 mb-1">Location</div>
-                  <div className="text-[#c5ddff] font-medium">
+                  <div className="text-sm text-neu-text-primary/70 mb-1">Location</div>
+                  <div className="text-neu-text-primary font-medium">
                     {slot.location}
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
           {slot.notes && (
             <div className="p-4 rounded-lg bg-[#9b87f5]/10 border border-[#9b87f5]/30 shadow-[inset_2px_2px_5px_rgba(155,135,245,0.1)]">
               <h4 className="text-sm font-semibold text-[#9b87f5] mb-2">Callback Notes</h4>
-              <p className="text-[#c5ddff] text-sm whitespace-pre-wrap">
+              <p className="text-neu-text-primary text-sm whitespace-pre-wrap">
                 {slot.notes}
               </p>
             </div>
@@ -142,9 +142,9 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
           {/* Your Comment */}
           {callback.actor_comment && (
-            <div className="p-4 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark)]">
-              <h4 className="text-sm font-semibold text-[#c5ddff]/70 mb-2">Your Comment</h4>
-              <p className="text-[#c5ddff] text-sm whitespace-pre-wrap">
+            <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+              <h4 className="text-sm font-semibold text-neu-text-primary/70 mb-2">Your Comment</h4>
+              <p className="text-neu-text-primary text-sm whitespace-pre-wrap">
                 {callback.actor_comment}
               </p>
             </div>
@@ -156,16 +156,16 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
               <div className="flex items-start gap-3 mb-4">
                 <MdTheaters className="w-5 h-5 text-[#9b87f5] mt-1" />
                 <div>
-                  <div className="text-sm text-[#c5ddff]/70 mb-1">Production</div>
-                  <div className="text-[#c5ddff] font-medium">
+                  <div className="text-sm text-neu-text-primary/70 mb-1">Production</div>
+                  <div className="text-neu-text-primary font-medium">
                     {show.title}
-                    {show.author && <span className="text-[#c5ddff]/70"> by {show.author}</span>}
+                    {show.author && <span className="text-neu-text-primary/70"> by {show.author}</span>}
                   </div>
                 </div>
               </div>
 
               {show.description && (
-                <div className="text-sm text-[#c5ddff]/80 mt-3">
+                <div className="text-sm text-neu-text-primary/80 mt-3">
                   {show.description}
                 </div>
               )}
@@ -181,7 +181,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
             {/* Change Response Button */}
             <button
               onClick={() => setShowChangeModal(true)}
-              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff]/70 hover:text-[#c5ddff] hover:border-[#4a7bd9]/40 transition-all text-sm shadow-[2px_2px_5px_var(--cosmic-shadow-dark),-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-neu-surface/50 border border-neu-border text-neu-text-primary/70 hover:text-neu-text-primary hover:border-[#4a7bd9]/40 transition-all text-sm shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]"
             >
               Change Response to Declined
             </button>
@@ -192,11 +192,11 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
       {/* Change Response Confirmation Modal */}
       {showChangeModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/30 rounded-xl shadow-2xl max-w-md w-full p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-bold text-[#c5ddff] mb-2">
+          <div className="bg-neu-surface border border-neu-border rounded-xl shadow-2xl max-w-md w-full p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-bold text-neu-text-primary mb-2">
               Decline Callback?
             </h3>
-            <p className="text-[#c5ddff]/70 mb-4 text-sm">
+            <p className="text-neu-text-primary/70 mb-4 text-sm">
               Are you sure you want to change your response to declined? The casting director will be notified.
             </p>
 
@@ -208,7 +208,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
             {/* Comment Field */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+              <label className="block text-sm font-medium text-neu-text-primary mb-2">
                 Reason for declining (optional)
               </label>
               <textarea
@@ -216,7 +216,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="e.g., I have a scheduling conflict. Thank you for considering me."
                 rows={3}
-                className="w-full px-4 py-3 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/30 focus:outline-none focus:border-[#5a8ff5] resize-none shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                className="neu-form-input resize-none"
               />
             </div>
 
@@ -229,14 +229,14 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
                   setError(null);
                 }}
                 disabled={isUpdating}
-                className="flex-1 px-4 py-2 rounded-lg border border-[#4a7bd9]/20 text-[#c5ddff] hover:bg-[#2e3e5e]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark)]"
+                className="neu-btn-secondary flex-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDecline}
                 disabled={isUpdating}
-                className="flex-1 px-4 py-2 rounded-lg bg-[#2e3e5e] border border-[#4a7bd9]/30 text-[#c5ddff] hover:bg-[#26364e] transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark)]"
+                className="neu-btn-secondary flex-1"
               >
                 {isUpdating ? 'Declining...' : 'Confirm Decline'}
               </button>

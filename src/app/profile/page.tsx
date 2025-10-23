@@ -206,7 +206,7 @@ export default function ProfilePage() {
             )}
 
             {loading ? (
-              <div className="text-[#c5ddff]/90">Loading profile...</div>
+              <div className="text-neu-text-primary/90">Loading profile...</div>
             ) : user ? (
               <div className="space-y-6">
                 {/* Profile Photo */}
@@ -216,10 +216,10 @@ export default function ProfilePage() {
                       <img
                         src={formData.profile_photo_url}
                         alt="Profile"
-                        className="w-32 h-32 rounded-full border-4 border-[#4a7bd9]/30 object-cover"
+                        className="w-32 h-32 rounded-full border-4 border-neu-border object-cover"
                       />
                     ) : (
-                      <div className="w-32 h-32 rounded-full border-4 border-[#4a7bd9]/30 bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 flex items-center justify-center">
+                      <div className="w-32 h-32 rounded-full border-4 border-neu-border bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 flex items-center justify-center">
                         <svg className="w-16 h-16 text-[#4a7bd9]/50" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                         </svg>
@@ -236,38 +236,37 @@ export default function ProfilePage() {
                         onChange={handlePhotoUpload}
                         className="hidden"
                       />
-                      <div className="nav-buttons">
                         <Button
                           onClick={() => photoInputRef.current?.click()}
                           disabled={uploadingPhoto}
                           text={uploadingPhoto ? 'Uploading...' : 'Change Photo'}
+                          className="neu-button-primary"
                         />
-                      </div>
                     </div>
                   )}
                 </div>
 
                 {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                    <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <div className="justify-center items-center grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="card w-full">
+                    <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       First Name
                     </label>
                     {isEditing ? (
                       <input
-                        type="text"
+                        type="text" 
                         name="first_name"
                         value={formData.first_name}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                        className="neu-input"
                       />
                     ) : (
-                      <p className="text-[#c5ddff]">{formData.first_name || 'Not set'}</p>
+                      <p className="text-neu-text-primary">{formData.first_name || 'Not set'}</p>
                     )}
                   </div>
 
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                    <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                  <div className="card w-full">
+                    <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       Middle Name
                     </label>
                     {isEditing ? (
@@ -276,15 +275,15 @@ export default function ProfilePage() {
                         name="middle_name"
                         value={formData.middle_name}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                        className="neu-input"
                       />
                     ) : (
-                      <p className="text-[#c5ddff]">{formData.middle_name || 'Not set'}</p>
+                      <p className="text-neu-text-primary">{formData.middle_name || 'Not set'}</p>
                     )}
                   </div>
 
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                    <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                  <div className="card p-4 w-full">
+                    <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       Last Name
                     </label>
                     {isEditing ? (
@@ -293,15 +292,15 @@ export default function ProfilePage() {
                         name="last_name"
                         value={formData.last_name}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                        className="neu-input"
                       />
                     ) : (
-                      <p className="text-[#c5ddff]">{formData.last_name || 'Not set'}</p>
+                      <p className="text-neu-text-primary">{formData.last_name || 'Not set'}</p>
                     )}
                   </div>
 
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                    <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                  <div className="card w-full">
+                    <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       Username
                     </label>
                     {isEditing ? (
@@ -310,25 +309,25 @@ export default function ProfilePage() {
                         name="username"
                         value={formData.username}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                        className="neu-input"
                       />
                     ) : (
-                      <p className="text-[#c5ddff]">{formData.username || 'Not set'}</p>
+                      <p className="text-neu-text-primary">{formData.username || 'Not set'}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Email (Read-only) */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                  <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <div className="card w-full">
+                  <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                     Email
                   </label>
-                  <p className="text-[#c5ddff]">{user.email}</p>
+                  <p className="text-neu-text-primary">{user.email}</p>
                 </div>
 
                 {/* Description */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                  <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <div className="card w-full">
+                  <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                     Bio / Description
                   </label>
                   {isEditing ? (
@@ -337,18 +336,18 @@ export default function ProfilePage() {
                       value={formData.description}
                       onChange={handleInputChange}
                       rows={4}
-                      className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors resize-none"
+                      className="neu-input"
                       placeholder="Tell us about yourself..."
                     />
                   ) : (
-                    <p className="text-[#c5ddff] whitespace-pre-wrap">{formData.description || 'Not set'}</p>
+                    <p className="text-neu-text-primary whitespace-pre-wrap">{formData.description || 'Not set'}</p>
                   )}
                 </div>
 
 
                 {/* Image Gallery */}
                 {isEditing && user?.id && (
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
+                  <div className="card w-full">
                     <ImageGalleryUpload
                       userId={user.id}
                       images={formData.image_gallery}
@@ -358,13 +357,13 @@ export default function ProfilePage() {
                 )}
 
                 {!isEditing && formData.image_gallery.length > 0 && (
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                    <label className="block text-sm font-medium text-[#b5ccff]/70 mb-4">
+                  <div className="card w-full">
+                    <label className="block text-sm font-medium text-neu-text-primary/70 mb-4">
                       Image Gallery
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {formData.image_gallery.map((url, index) => (
-                        <div key={index} className="aspect-square rounded-lg overflow-hidden border border-[#4a7bd9]/20">
+                        <div key={index} className="aspect-square rounded-lg overflow-hidden border border-neu-border">
                           <img
                             src={url}
                             alt={`Gallery image ${index + 1}`}
@@ -377,14 +376,14 @@ export default function ProfilePage() {
                 )}
                 {/*Skills Section*/}
                 {isEditing && user?.id && (
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
+                  <div className="card w-full">
                     <SkillsSection userId={user.id} isEditing={isEditing} />
                   </div>
                 )}
 
                 {/* Resume Section */}
                 {user?.id && (
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
+                  <div className="card w-full">
                     <ResumeSection 
                       userId={user.id} 
                       isEditing={isEditing}
@@ -395,7 +394,7 @@ export default function ProfilePage() {
                 )}
               </div>
             ) : (
-              <div className="text-[#c5ddff]/90">No user data available</div>
+              <div className="text-neu-text-primary/90">No user data available</div>
             )}
           </div>
         </StarryContainer>

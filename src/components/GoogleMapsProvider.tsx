@@ -36,7 +36,7 @@ export default function GoogleMapsProvider({ children }: GoogleMapsProviderProps
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a2332] to-[#0f1419]">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#5a8ff5] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#c5ddff]">Loading...</p>
+          <p className="text-neu-text-primary">Loading...</p>
         </div>
       </div>
     );

@@ -203,14 +203,14 @@ export default function AddressInput({
   return (
     <div className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+        <label className="block text-sm font-medium text-neu-text-primary mb-2">
           {label}
           {required && <span className="text-red-400 ml-1">*</span>}
         </label>
       )}
       
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a8ff5]">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neu-accent-primary">
           <MdLocationOn className="w-5 h-5" />
         </div>
         
@@ -226,7 +226,7 @@ export default function AddressInput({
           }}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full pl-10 pr-10 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full pl-10 pr-10 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         />
         
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -246,7 +246,7 @@ export default function AddressInput({
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-50 w-full mt-2 bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/30 rounded-xl shadow-2xl max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-2 bg-neu-surface border border-neu-border rounded-xl shadow-2xl max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion) => (
             <button
@@ -255,12 +255,12 @@ export default function AddressInput({
               onClick={() => selectSuggestion(suggestion)}
               className="w-full px-4 py-3 text-left hover:bg-[#5a8ff5]/10 transition-colors border-b border-[#4a7bd9]/10 last:border-b-0 flex items-start gap-3"
             >
-              <MdLocationOn className="w-5 h-5 text-[#5a8ff5] mt-0.5 flex-shrink-0" />
+              <MdLocationOn className="w-5 h-5 mt-0.5 flex-shrink-0 " />
               <div className="flex-1 min-w-0">
-                <div className="text-[#c5ddff] text-sm font-medium truncate">
+                <div className="text-sm font-medium truncate">
                   {suggestion.structured_formatting.main_text}
                 </div>
-                <div className="text-[#c5ddff]/60 text-xs truncate">
+                <div className="text-xs truncate">
                   {suggestion.structured_formatting.secondary_text}
                 </div>
               </div>
@@ -279,7 +279,7 @@ export default function AddressInput({
 
       {/* Helper Text */}
       {!error && !isVerified && inputValue && (
-        <div className="mt-2 text-xs text-[#c5ddff]/60">
+        <div className="mt-2 text-xs text-neu-text-primary/60">
           Start typing to see address suggestions
         </div>
       )}

@@ -51,18 +51,18 @@ export default function AuditionDetailsForm({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Audition Details
         </h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+        <p className="text-neu-text-primary/70 mb-6">
           Provide additional information about auditions, rehearsals, performances, and production details.
         </p>
       </div>
 
       <div className="space-y-4">
         {/* Audition Information */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
-          <h3 className="text-lg font-medium text-[#c5ddff]">Audition Information</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+          <h3 className="text-lg font-medium text-neu-text-primary">Audition Information</h3>
           
           <DateArrayInput
             label="Audition Dates"
@@ -80,8 +80,8 @@ export default function AuditionDetailsForm({
         </div>
 
         {/* Rehearsal Information */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
-          <h3 className="text-lg font-medium text-[#c5ddff]">Rehearsal Information</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+          <h3 className="text-lg font-medium text-neu-text-primary">Rehearsal Information</h3>
           
           <DateArrayInput
             label="Rehearsal Dates"
@@ -99,8 +99,8 @@ export default function AuditionDetailsForm({
         </div>
 
         {/* Performance Information */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
-          <h3 className="text-lg font-medium text-[#c5ddff]">Performance Information</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+          <h3 className="text-lg font-medium text-neu-text-primary">Performance Information</h3>
           
           <DateArrayInput
             label="Performance Dates"
@@ -118,8 +118,8 @@ export default function AuditionDetailsForm({
         </div>
 
         {/* Production Details */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
-          <h3 className="text-lg font-medium text-[#c5ddff]">Production Details</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+          <h3 className="text-lg font-medium text-neu-text-primary">Production Details</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput

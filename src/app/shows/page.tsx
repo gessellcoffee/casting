@@ -105,7 +105,7 @@ export default function ShowsPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-4xl font-bold text-[#c5ddff]">Show Management</h1>
+            <h1 className="text-4xl font-bold text-neu-text-primary">Show Management</h1>
             <Link
               href="/cast/new"
               className="n-button-primary px-6 py-3 rounded-lg"
@@ -124,7 +124,7 @@ export default function ShowsPage() {
               className="pr-12"
             />
             <svg
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#c5ddff]/40 pointer-events-none"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neu-text-primary/40 pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -173,27 +173,27 @@ export default function ShowsPage() {
             {shows.map((show) => (
               <div
                 key={show.show_id}
-                className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:border-[#5a8ff5]/40 transition-all duration-300"
+                className="p-6 rounded-xl bg-neu-surface border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:border-neu-border-focus transition-all duration-300"
               >
                 {/* Show Header */}
                 <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-[#c5ddff] mb-2">
+                  <h3 className="text-xl font-semibold text-neu-text-primary mb-2">
                     {show.title}
                   </h3>
                   {show.author && (
-                    <p className="text-sm text-[#c5ddff]/60">by {show.author}</p>
+                    <p className="text-sm text-neu-text-primary/60">by {show.author}</p>
                   )}
                 </div>
 
                 {/* Show Description */}
                 {show.description && (
-                  <p className="text-[#c5ddff]/70 text-sm mb-4 line-clamp-3">
+                  <p className="text-neu-text-primary/70 text-sm mb-4 line-clamp-3">
                     {show.description}
                   </p>
                 )}
 
                 {/* Show Stats */}
-                <div className="flex items-center gap-4 mb-4 text-sm text-[#c5ddff]/60">
+                <div className="flex items-center gap-4 mb-4 text-sm text-neu-text-primary/60">
                   <div className="flex items-center gap-1">
                     <svg
                       className="w-4 h-4"

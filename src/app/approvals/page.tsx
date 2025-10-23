@@ -136,13 +136,13 @@ export default function ApprovalsPage() {
             )}
 
             {loading ? (
-              <div className="text-[#c5ddff]/90">Loading approval requests...</div>
+              <div className="text-neu-text-primary/90">Loading approval requests...</div>
             ) : (
               <div className="space-y-6">
                 {requests.length === 0 ? (
-                  <div className="text-center py-12 text-[#c5ddff]/70">
+                  <div className="text-center py-12 text-neu-text-primary/70">
                     <p className="text-lg mb-2">No pending approval requests</p>
-                    <p className="text-sm text-[#b5ccff]/50">
+                    <p className="text-sm text-neu-text-primary/50">
                       When users add your company to their resume, you'll see requests here.
                     </p>
                   </div>
@@ -151,7 +151,7 @@ export default function ApprovalsPage() {
                     {requests.map((request) => (
                       <div
                         key={request.request_id}
-                        className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20"
+                        className="p-6 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-start gap-4">
@@ -161,10 +161,10 @@ export default function ApprovalsPage() {
                                 <img
                                   src={request.profiles.profile_photo_url}
                                   alt="Profile"
-                                  className="w-12 h-12 rounded-full border-2 border-[#4a7bd9]/30 object-cover"
+                                  className="w-12 h-12 rounded-full border-2 border-neu-border object-cover"
                                 />
                               ) : (
-                                <div className="w-12 h-12 rounded-full border-2 border-[#4a7bd9]/30 bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-full border-2 border-neu-border bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 flex items-center justify-center">
                                   <svg className="w-6 h-6 text-[#4a7bd9]/50" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                   </svg>
@@ -175,40 +175,40 @@ export default function ApprovalsPage() {
                             {/* Request Details */}
                             <div className="flex-1">
                               <div className="mb-2">
-                                <span className="text-[#c5ddff] font-semibold">
+                                <span className="text-neu-text-primary font-semibold">
                                   {request.profiles.first_name && request.profiles.last_name
                                     ? `${request.profiles.first_name} ${request.profiles.last_name}`
                                     : request.profiles.username}
                                 </span>
-                                <span className="text-[#b5ccff]/70"> wants to add </span>
-                                <span className="text-[#5a8ff5] font-semibold">{request.companies.name}</span>
-                                <span className="text-[#b5ccff]/70"> to their resume</span>
+                                <span className="text-neu-text-primary/70"> wants to add </span>
+                                <span className="text-neu-accent-primary font-semibold">{request.companies.name}</span>
+                                <span className="text-neu-text-primary/70"> to their resume</span>
                               </div>
 
                               {/* Production Details */}
-                              <div className="space-y-1 text-sm text-[#b5ccff]/80">
+                              <div className="space-y-1 text-sm text-neu-text-primary/80">
                                 {request.user_resume.show_name && (
                                   <p>
-                                    <span className="text-[#b5ccff]/60">Show: </span>
+                                    <span className="text-neu-text-primary/60">Show: </span>
                                     {request.user_resume.show_name}
                                   </p>
                                 )}
                                 {request.user_resume.role && (
                                   <p>
-                                    <span className="text-[#b5ccff]/60">Role: </span>
+                                    <span className="text-neu-text-primary/60">Role: </span>
                                     {request.user_resume.role}
                                   </p>
                                 )}
                                 {request.user_resume.date_of_production && (
                                   <p>
-                                    <span className="text-[#b5ccff]/60">Date: </span>
+                                    <span className="text-neu-text-primary/60">Date: </span>
                                     {request.user_resume.date_of_production}
                                   </p>
                                 )}
                               </div>
 
                               {/* Request Date */}
-                              <p className="text-xs text-[#b5ccff]/50 mt-2">
+                              <p className="text-xs text-neu-text-primary/50 mt-2">
                                 Requested {new Date(request.created_at).toLocaleDateString()}
                               </p>
                             </div>

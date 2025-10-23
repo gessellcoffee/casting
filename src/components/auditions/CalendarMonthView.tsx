@@ -98,12 +98,13 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
 
   return (
     <>
-      <div className="grid grid-cols-7 gap-1 sm:gap-2">
+      <div className="overflow-x-auto -mx-6 px-6">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 min-w-[600px]">
         {/* Day headers */}
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div
             key={day}
-            className="text-center text-xs sm:text-sm font-semibold text-[#c5ddff]/70 py-1 sm:py-2"
+            className="text-center text-xs sm:text-sm font-semibold text-neu-text-primary/70 py-1 sm:py-2"
           >
             <span className="hidden sm:inline">{day}</span>
             <span className="sm:hidden">{day.charAt(0)}</span>
@@ -122,14 +123,14 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
               key={index}
               className={`min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 rounded-lg border transition-all duration-200 ${
                 day.isCurrentMonth
-                  ? 'bg-[#2e3e5e]/30 border-[#4a7bd9]/20'
-                  : 'bg-[#2e3e5e]/10 border-[#4a7bd9]/10'
+                  ? 'bg-neu-surface/30 border-neu-border'
+                  : 'bg-neu-surface/10 border-[#4a7bd9]/10'
               } ${today ? 'ring-1 sm:ring-2 ring-[#5a8ff5]/50' : ''}`}
             >
               <div
                 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${
-                  day.isCurrentMonth ? 'text-[#c5ddff]' : 'text-[#c5ddff]/40'
-                } ${today ? 'text-[#5a8ff5] font-bold' : ''}`}
+                  day.isCurrentMonth ? 'text-neu-text-primary' : 'text-neu-text-primary/40'
+                } ${today ? 'text-neu-accent-primary font-bold' : ''}`}
               >
                 {day.date}
               </div>
@@ -145,10 +146,10 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                     <button
                       key={signup.signup_id}
                       onClick={() => setSelectedEvent(signup)}
-                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-[#5a8ff5]/20 border border-[#5a8ff5]/30 text-[#c5ddff] hover:bg-[#5a8ff5]/30 transition-all duration-200 truncate"
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-neu-accent-primary/30 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
                     >
                       <div className="font-medium truncate">{showTitle}</div>
-                      <div className="text-[#c5ddff]/70 hidden sm:block">
+                      <div className="text-neu-text-primary/70 hidden sm:block">
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -167,13 +168,13 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                     <button
                       key={callback.invitation_id}
                       onClick={() => setSelectedEvent({ ...callback, isCallback: true })}
-                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-[#9b87f5]/20 border border-[#9b87f5]/30 text-[#c5ddff] hover:bg-[#9b87f5]/30 transition-all duration-200 truncate"
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-purple-400/30 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
                     >
                       <div className="font-medium truncate flex items-center gap-1">
                         <span className="hidden sm:inline">📋</span>
                         {showTitle}
                       </div>
-                      <div className="text-[#c5ddff]/70 hidden sm:block">
+                      <div className="text-neu-text-primary/70 hidden sm:block">
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -184,7 +185,7 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                 })}
 
                 {totalEvents > 3 && (
-                  <div className="text-[10px] sm:text-xs text-[#c5ddff]/60 px-1 sm:px-2">
+                  <div className="text-[10px] sm:text-xs text-neu-text-primary/60 px-1 sm:px-2">
                     +{totalEvents - 3}
                   </div>
                 )}
@@ -192,6 +193,7 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Event Modals */}

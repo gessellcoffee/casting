@@ -315,15 +315,15 @@ export default function SlotScheduler({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Schedule Audition Slots
         </h2>
-        <p className="text-[#c5ddff]/70 mb-2">
+        <p className="text-neu-text-primary/70 mb-2">
           Drag to select time blocks on the calendar below. You can create single slots or generate multiple slots automatically.
         </p>
         {availableDates.length > 0 && (
-          <div className="mt-3 p-3 rounded-lg bg-[#5a8ff5]/10 border border-[#5a8ff5]/30">
-            <p className="text-sm text-[#c5ddff]">
+          <div className="mt-3 p-3 rounded-lg bg-[#5a8ff5]/10 border border-neu-border-focus">
+            <p className="text-sm text-neu-text-primary">
               📅 Only showing dates from your selected audition dates ({availableDates.length} {availableDates.length === 1 ? 'day' : 'days'} available)
             </p>
           </div>
@@ -331,8 +331,8 @@ export default function SlotScheduler({
       </div>
 
       {/* Default Settings */}
-      <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
-        <h3 className="text-lg font-medium text-[#c5ddff]">Default Settings</h3>
+      <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+        <h3 className="text-lg font-medium text-neu-text-primary">Default Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <AddressInput
             label="Location"
@@ -341,7 +341,7 @@ export default function SlotScheduler({
             placeholder="e.g., Studio A"
           />
           <div>
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Max Signups
             </label>
             <input
@@ -349,17 +349,17 @@ export default function SlotScheduler({
               value={defaultMaxSignups}
               onChange={(e) => setDefaultMaxSignups(parseInt(e.target.value) || 1)}
               min="1"
-              className="w-full px-4 py-2 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+              className="w-full px-4 py-2 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Slot Duration
             </label>
             <select
               value={slotDuration}
               onChange={(e) => setSlotDuration(parseInt(e.target.value))}
-              className="w-full px-4 py-2 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+              className="w-full px-4 py-2 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             >
               <option value={15}>15 minutes</option>
               <option value={30}>30 minutes</option>
@@ -370,13 +370,13 @@ export default function SlotScheduler({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Buffer Time
             </label>
             <select
               value={bufferTime}
               onChange={(e) => setBufferTime(parseInt(e.target.value))}
-              className="w-full px-4 py-2 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+              className="w-full px-4 py-2 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             >
               <option value={0}>No buffer</option>
               <option value={5}>5 minutes</option>
@@ -387,7 +387,7 @@ export default function SlotScheduler({
             </select>
           </div>
         </div>
-        <p className="text-xs text-[#c5ddff]/60">
+        <p className="text-xs text-neu-text-primary/60">
           Buffer time adds a gap between consecutive slots when generating multiple slots.
         </p>
       </div>
@@ -396,16 +396,16 @@ export default function SlotScheduler({
       <div className="flex items-center justify-between">
         <button
           onClick={() => changeWeek(-1)}
-          className="px-4 py-2 rounded-xl bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors"
+          className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors"
         >
           ← Previous Week
         </button>
-        <div className="text-[#c5ddff] font-medium">
+        <div className="text-neu-text-primary font-medium">
           {currentWeekStart.toLocaleDateString()} - {getDayDate(6).toLocaleDateString()}
         </div>
         <button
           onClick={() => changeWeek(1)}
-          className="px-4 py-2 rounded-xl bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors"
+          className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors"
         >
           Next Week →
         </button>
@@ -416,8 +416,8 @@ export default function SlotScheduler({
         <div className="inline-block min-w-full">
           {/* Sticky Header Row */}
           <div className="sticky top-0 z-30 bg-[#1a2332]">
-            <div className="grid grid-cols-8 gap-px bg-[#4a7bd9]/20 border-t border-x border-[#4a7bd9]/20 rounded-t-xl overflow-hidden">
-              <div className="bg-[#2e3e5e] p-2 text-center text-sm font-medium text-[#c5ddff]">
+            <div className="grid grid-cols-8 gap-px bg-[#4a7bd9]/20 border-t border-x border-neu-border rounded-t-xl overflow-hidden">
+              <div className="bg-neu-surface p-2 text-center text-sm font-medium text-neu-text-primary">
                 <div>Time</div>
                 {localSlots.length > 0 && (
                   <button
@@ -436,10 +436,10 @@ export default function SlotScheduler({
                 return (
                   <div 
                     key={day} 
-                    className={`bg-[#2e3e5e] p-2 text-center ${!isAvailable ? 'opacity-40' : ''}`}
+                    className={`bg-neu-surface p-2 text-center ${!isAvailable ? 'opacity-40' : ''}`}
                   >
-                    <div className="text-sm font-medium text-[#c5ddff]">{day}</div>
-                    <div className="text-xs text-[#c5ddff]/60">
+                    <div className="text-sm font-medium text-neu-text-primary">{day}</div>
+                    <div className="text-xs text-neu-text-primary/60">
                       {dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
                     {!isAvailable && (
@@ -452,14 +452,14 @@ export default function SlotScheduler({
           </div>
           
           {/* Scrollable Grid Body */}
-          <div className="grid grid-cols-8 gap-px bg-[#4a7bd9]/20 border-b border-x border-[#4a7bd9]/20 rounded-b-xl overflow-hidden">
+          <div className="grid grid-cols-8 gap-px bg-[#4a7bd9]/20 border-b border-x border-neu-border rounded-b-xl overflow-hidden">
             {/* Time Rows */}
             {hours.map((hour) =>
               minutes.map((minute) => (
                 <>
                   {/* Time Label */}
-                  <div key={`time-${hour}-${minute}`} className="bg-[#2e3e5e]/50 relative flex items-start justify-end pr-2">
-                    <span className="absolute -top-2 right-2 text-xs text-[#c5ddff]/60 bg-[#1a2332] px-1">
+                  <div key={`time-${hour}-${minute}`} className="bg-neu-surface/50 relative flex items-start justify-end pr-2">
+                    <span className="absolute -top-2 right-2 text-xs text-neu-text-primary/60 bg-[#1a2332] px-1">
                       {formatTime(hour, minute)}
                     </span>
                   </div>
@@ -485,13 +485,13 @@ export default function SlotScheduler({
                             : hasSlot && !slotAtBlock
                             ? 'bg-transparent cursor-pointer'
                             : isSelected
-                            ? 'bg-[#5a8ff5]/20 border border-[#5a8ff5]/50 cursor-pointer'
-                            : 'bg-[#2e3e5e]/30 hover:bg-[#2e3e5e]/60 cursor-pointer'
+                            ? 'bg-[#5a8ff5]/20 border border-neu-border-focus cursor-pointer'
+                            : 'bg-neu-surface/30 hover:bg-neu-surface/60 cursor-pointer'
                         }`}
                       >
                         {slotAtBlock && (
                           <div
-                            className="absolute inset-0 bg-gradient-to-br from-[#2e3e5e] to-[#26364e] rounded-md border border-[#4a7bd9]/30 overflow-hidden group cursor-pointer transition-all z-10 shadow-[2px_2px_4px_var(--cosmic-shadow-dark),-2px_-2px_4px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_4px_var(--cosmic-shadow-dark),inset_-2px_-2px_4px_var(--cosmic-shadow-light)]"
+                            className="absolute inset-0 bg-neu-surface rounded-md border border-neu-border overflow-hidden group cursor-pointer transition-all z-10 shadow-[2px_2px_4px_var(--neu-shadow-dark),-2px_-2px_4px_var(--neu-shadow-light)] hover:shadow-[inset_2px_2px_4px_var(--neu-shadow-dark),inset_-2px_-2px_4px_var(--neu-shadow-light)]"
                             style={{ height: `${getSlotHeight(slotAtBlock)}px` }}
                           >
                             <button
@@ -507,15 +507,15 @@ export default function SlotScheduler({
                             >
                               ×
                             </button>
-                            <div className="p-1 text-[#c5ddff] text-[10px] leading-tight">
-                              <div className="font-semibold text-[#5a8ff5]">
+                            <div className="p-1 text-neu-text-primary text-[10px] leading-tight">
+                              <div className="font-semibold text-neu-accent-primary">
                                 {new Date(slotAtBlock.start_time).toLocaleTimeString('en-US', { 
                                   hour: 'numeric', 
                                   minute: '2-digit',
                                   hour12: true 
                                 })}
                               </div>
-                              <div className="text-[9px] text-[#c5ddff]/70">
+                              <div className="text-[9px] text-neu-text-primary/70">
                                 {(() => {
                                   const start = new Date(slotAtBlock.start_time);
                                   const end = new Date(slotAtBlock.end_time);
@@ -524,7 +524,7 @@ export default function SlotScheduler({
                                 })()}
                               </div>
                               {slotAtBlock.location && (
-                                <div className="text-[9px] text-[#c5ddff]/60 truncate">
+                                <div className="text-[9px] text-neu-text-primary/60 truncate">
                                   📍 {slotAtBlock.location}
                                 </div>
                               )}
@@ -544,24 +544,24 @@ export default function SlotScheduler({
 
       {/* Scheduled Slots List */}
       {localSlots.length > 0 && (
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-medium text-[#c5ddff] mb-3">
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+          <h3 className="text-lg font-medium text-neu-text-primary mb-3">
             Scheduled Slots ({localSlots.length})
           </h3>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {localSlots.map((slot, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 rounded-lg bg-[#2e3e5e]/50 text-sm"
+                className="flex items-center justify-between p-3 rounded-lg bg-neu-surface/50 text-sm"
               >
-                <div className="text-[#c5ddff]">
+                <div className="text-neu-text-primary">
                   <div className="font-medium">
                     {new Date(slot.start_time).toLocaleString()} - {new Date(slot.end_time).toLocaleTimeString()}
                   </div>
                   {slot.location && (
-                    <div className="text-[#c5ddff]/60 text-xs">{slot.location}</div>
+                    <div className="text-neu-text-primary/60 text-xs">{slot.location}</div>
                   )}
-                  <div className="text-[#c5ddff]/60 text-xs">Max: {slot.max_signups}</div>
+                  <div className="text-neu-text-primary/60 text-xs">Max: {slot.max_signups}</div>
                 </div>
                 <button
                   onClick={() => removeSlot(index)}
@@ -580,14 +580,14 @@ export default function SlotScheduler({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div 
             data-modal="slot-modal"
-            className="bg-[#1e2e4e] p-6 rounded-xl border border-[#4a7bd9]/20 max-w-md w-full mx-4"
+            className="bg-[#1e2e4e] p-6 rounded-xl border border-neu-border max-w-md w-full mx-4"
           >
-            <h3 className="text-xl font-semibold text-[#c5ddff] mb-4">Add Time Slot</h3>
+            <h3 className="text-xl font-semibold text-neu-text-primary mb-4">Add Time Slot</h3>
             <div className="p-4">
               {selectionStart && selectionEnd && (
                 <div className="mb-4">
-                  <div className="text-sm text-[#c5ddff]/70 mb-3">
-                    <span className="font-medium text-[#c5ddff]">Date:</span> {getDayDate(selectionStart.day).toLocaleDateString('en-US', { 
+                  <div className="text-sm text-neu-text-primary/70 mb-3">
+                    <span className="font-medium text-neu-text-primary">Date:</span> {getDayDate(selectionStart.day).toLocaleDateString('en-US', { 
                       weekday: 'short', 
                       month: 'short', 
                       day: 'numeric' 
@@ -597,12 +597,12 @@ export default function SlotScheduler({
                   {/* Time Range Selectors */}
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff] mb-2">Start Time</label>
+                      <label className="block text-sm font-medium text-neu-text-primary mb-2">Start Time</label>
                       <div className="grid grid-cols-2 gap-2">
                         <select
                           value={selectionStart.hour}
                           onChange={(e) => setSelectionStart({ ...selectionStart, hour: parseInt(e.target.value) })}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                          className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                         >
                           {hours.map(h => (
                             <option key={h} value={h}>{formatTime(h, 0).split(':')[0] + (h >= 12 ? ' PM' : ' AM')}</option>
@@ -611,7 +611,7 @@ export default function SlotScheduler({
                         <select
                           value={selectionStart.minute}
                           onChange={(e) => setSelectionStart({ ...selectionStart, minute: parseInt(e.target.value) })}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                          className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                         >
                           {minutes.map(m => (
                             <option key={m} value={m}>:{m.toString().padStart(2, '0')}</option>
@@ -621,12 +621,12 @@ export default function SlotScheduler({
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff] mb-2">End Time</label>
+                      <label className="block text-sm font-medium text-neu-text-primary mb-2">End Time</label>
                       <div className="grid grid-cols-2 gap-2">
                         <select
                           value={selectionEnd.hour}
                           onChange={(e) => setSelectionEnd({ ...selectionEnd, hour: parseInt(e.target.value) })}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                          className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                         >
                           {hours.map(h => (
                             <option key={h} value={h}>{formatTime(h, 0).split(':')[0] + (h >= 12 ? ' PM' : ' AM')}</option>
@@ -635,7 +635,7 @@ export default function SlotScheduler({
                         <select
                           value={selectionEnd.minute}
                           onChange={(e) => setSelectionEnd({ ...selectionEnd, minute: parseInt(e.target.value) })}
-                          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                          className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                         >
                           {minutes.map(m => (
                             <option key={m} value={m}>:{m.toString().padStart(2, '0')}</option>
@@ -658,7 +658,7 @@ export default function SlotScheduler({
                     setShowSlotModal(false);
                     setShowMultiSlotModal(true);
                   }}
-                  className="w-full px-4 py-2 rounded-lg bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors text-sm"
+                  className="w-full px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors text-sm"
                 >
                   Generate Multiple Slots
                 </button>
@@ -667,7 +667,7 @@ export default function SlotScheduler({
                     setShowSlotModal(false);
                     clearSelection();
                   }}
-                  className="w-full px-4 py-2 rounded-lg bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors text-sm"
+                  className="w-full px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors text-sm"
                 >
                   Cancel
                 </button>
@@ -680,24 +680,24 @@ export default function SlotScheduler({
       {/* Multi-Slot Modal */}
       {showMultiSlotModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#1e2e4e] p-6 rounded-xl border border-[#4a7bd9]/20 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold text-[#c5ddff] mb-4">Generate Multiple Slots</h3>
+          <div className="bg-[#1e2e4e] p-6 rounded-xl border border-neu-border max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-neu-text-primary mb-4">Generate Multiple Slots</h3>
             
             {/* Time Range Selectors */}
             {selectionStart && selectionEnd && (
               <div className="mb-4">
-                <div className="text-sm text-[#c5ddff]/70 mb-3">
-                  <span className="font-medium text-[#c5ddff]">Date:</span> {getDayDate(selectionStart.day).toLocaleDateString()}
+                <div className="text-sm text-neu-text-primary/70 mb-3">
+                  <span className="font-medium text-neu-text-primary">Date:</span> {getDayDate(selectionStart.day).toLocaleDateString()}
                 </div>
                 
                 <div className="space-y-3 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#b5ccff] mb-2">Start Time</label>
+                    <label className="block text-sm font-medium text-neu-text-primary mb-2">Start Time</label>
                     <div className="grid grid-cols-2 gap-2">
                       <select
                         value={selectionStart.hour}
                         onChange={(e) => setSelectionStart({ ...selectionStart, hour: parseInt(e.target.value) })}
-                        className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                        className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                       >
                         {hours.map(h => (
                           <option key={h} value={h}>{formatTime(h, 0).split(':')[0] + (h >= 12 ? ' PM' : ' AM')}</option>
@@ -706,7 +706,7 @@ export default function SlotScheduler({
                       <select
                         value={selectionStart.minute}
                         onChange={(e) => setSelectionStart({ ...selectionStart, minute: parseInt(e.target.value) })}
-                        className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                        className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                       >
                         {minutes.map(m => (
                           <option key={m} value={m}>:{m.toString().padStart(2, '0')}</option>
@@ -716,12 +716,12 @@ export default function SlotScheduler({
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-[#b5ccff] mb-2">End Time</label>
+                    <label className="block text-sm font-medium text-neu-text-primary mb-2">End Time</label>
                     <div className="grid grid-cols-2 gap-2">
                       <select
                         value={selectionEnd.hour}
                         onChange={(e) => setSelectionEnd({ ...selectionEnd, hour: parseInt(e.target.value) })}
-                        className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                        className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                       >
                         {hours.map(h => (
                           <option key={h} value={h}>{formatTime(h, 0).split(':')[0] + (h >= 12 ? ' PM' : ' AM')}</option>
@@ -730,7 +730,7 @@ export default function SlotScheduler({
                       <select
                         value={selectionEnd.minute}
                         onChange={(e) => setSelectionEnd({ ...selectionEnd, minute: parseInt(e.target.value) })}
-                        className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all text-sm"
+                        className="px-3 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all text-sm"
                       >
                         {minutes.map(m => (
                           <option key={m} value={m}>:{m.toString().padStart(2, '0')}</option>
@@ -745,7 +745,7 @@ export default function SlotScheduler({
             {/* Editable Inputs */}
             <div className="space-y-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary mb-2">
                   Slot Duration (minutes)
                 </label>
                 <input
@@ -753,12 +753,12 @@ export default function SlotScheduler({
                   value={slotDuration}
                   onChange={(e) => setSlotDuration(Math.max(1, parseInt(e.target.value) || 1))}
                   min="1"
-                  className="w-full px-4 py-2 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                  className="w-full px-4 py-2 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary mb-2">
                   Buffer Time (minutes)
                 </label>
                 <input
@@ -766,23 +766,23 @@ export default function SlotScheduler({
                   value={bufferTime}
                   onChange={(e) => setBufferTime(Math.max(0, parseInt(e.target.value) || 0))}
                   min="0"
-                  className="w-full px-4 py-2 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                  className="w-full px-4 py-2 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                 />
               </div>
             </div>
 
             {/* Preview */}
-            <div className="mb-4 p-3 rounded-lg bg-[#5a8ff5]/10 border border-[#5a8ff5]/30">
+            <div className="mb-4 p-3 rounded-lg bg-[#5a8ff5]/10 border border-neu-border-focus">
               {selectionStart && selectionEnd && (
                 <>
-                  <div className="text-sm text-[#c5ddff]">
-                    <span className="font-semibold text-[#5a8ff5]">
+                  <div className="text-sm text-neu-text-primary">
+                    <span className="font-semibold text-neu-accent-primary">
                       {Math.floor(((timeBlockToDate(selectionEnd).getTime() - timeBlockToDate(selectionStart).getTime()) / (1000 * 60)) / (slotDuration + bufferTime))} slots
                     </span>
                     {' '}will be created
                   </div>
                   {bufferTime > 0 && (
-                    <div className="text-xs text-[#c5ddff]/70 mt-1">
+                    <div className="text-xs text-neu-text-primary/70 mt-1">
                       {slotDuration}min slot + {bufferTime}min buffer = {slotDuration + bufferTime}min per slot
                     </div>
                   )}
@@ -801,7 +801,7 @@ export default function SlotScheduler({
                   setShowMultiSlotModal(false);
                   clearSelection();
                 }}
-                className="px-4 py-2 rounded-xl bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors"
+                className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors"
               >
                 Cancel
               </button>
@@ -821,13 +821,13 @@ export default function SlotScheduler({
       <div className="flex justify-between pt-6">
         <button
           onClick={onBack}
-          className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] hover:border-[#5a8ff5]/40 transition-all duration-300 font-medium"
+          className="px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium"
         >
           Back
         </button>
         <button
           onClick={handleNext}
-          className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] hover:border-[#5a8ff5]/40 transition-all duration-300 font-medium"
+          className="px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium"
         >
           Next
         </button>

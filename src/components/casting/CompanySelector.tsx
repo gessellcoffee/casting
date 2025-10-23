@@ -79,16 +79,16 @@ export default function CompanySelector({
   };
 
   if (loading) {
-    return <div className="text-[#c5ddff]">Loading companies...</div>;
+    return <div className="text-neu-text-primary">Loading companies...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Who is hosting this audition?
         </h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+        <p className="text-neu-text-primary/70 mb-6">
           Choose whether to post this audition as yourself or under a company.
         </p>
       </div>
@@ -119,7 +119,7 @@ export default function CompanySelector({
       {/* Company Selection (shown when company option is selected) */}
       {isCompanyAudition && (
         <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-medium text-[#c5ddff]">Select a Company</h3>
+          <h3 className="text-lg font-medium text-neu-text-primary">Select a Company</h3>
 
           {companies.length > 0 ? (
             <div className="space-y-2">
@@ -136,7 +136,7 @@ export default function CompanySelector({
               ))}
             </div>
           ) : (
-            <div className="text-[#c5ddff]/60 text-sm">
+            <div className="text-neu-text-primary/60 text-sm">
               You don't have any companies yet. Create one below.
             </div>
           )}
@@ -145,12 +145,12 @@ export default function CompanySelector({
           {!showCreateForm ? (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors text-sm font-medium"
+              className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-sm font-medium"
             >
               + Create New Company
             </button>
           ) : (
-            <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
+            <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
               <FormInput
                 label="Company Name"
                 value={newCompanyName}
@@ -173,7 +173,7 @@ export default function CompanySelector({
                     setError(null);
                   }}
                   disabled={creating}
-                  className="px-4 py-2 rounded-xl bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors"
+                  className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors"
                 >
                   Cancel
                 </button>

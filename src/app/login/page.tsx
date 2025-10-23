@@ -82,7 +82,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
               {isSignUp ? 'Create Account' : 'Welcome Back'}
             </h1>
-            <p className="mt-2 text-[#c5ddff]/90">
+            <p className="mt-2 text-neu-text-primary/90">
               {isSignUp ? 'Sign up to get started' : 'Sign in to your account'}
             </p>
           </div>
@@ -102,7 +102,7 @@ export default function LoginPage() {
           {/* Auth Form */}
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#b5ccff] mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-neu-text-primary mb-2">
                 Email
               </label>
               <input
@@ -111,14 +111,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                className="neu-input"
                 placeholder="you@example.com"
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#b5ccff] mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-neu-text-primary mb-2">
                 Password
               </label>
               <input
@@ -128,25 +128,27 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                className="neu-input"
                 placeholder="••••••••"
                 disabled={loading}
               />
             </div>
 
+           <div className="flex justify-center">
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] hover:border-[#5a8ff5]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="n-button-primary"
             >
               {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
             </button>
+           </div>
 
             {!isSignUp && (
               <div className="text-center">
                 <a
                   href="/forgot-password"
-                  className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors text-sm"
+                  className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-sm"
                 >
                   Forgot password?
                 </a>
@@ -156,11 +158,9 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#4a7bd9]/20"></div>
-            </div>
+            <hr className="w-full border-neutral-200 mb-2" />
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#c5ddff]/60">
+              <span className="px-2 bg-neu-surface text-neu-text-primary/60">
                 Or continue with
               </span>
             </div>
@@ -171,7 +171,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] hover:border-[#5a8ff5]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+            className="w-full px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -203,7 +203,7 @@ export default function LoginPage() {
                 setError(null);
                 setMessage(null);
               }}
-              className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors text-sm"
+              className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-sm"
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>

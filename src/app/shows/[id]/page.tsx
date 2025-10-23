@@ -199,7 +199,7 @@ export default function ShowDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-[#1a2332] via-[#243447] to-[#2e3e5e] p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#5a8ff5]"></div>
-          <p className="mt-4 text-[#c5ddff]/70">Loading show...</p>
+          <p className="mt-4 text-neu-text-primary/70">Loading show...</p>
         </div>
       </div>
     );
@@ -216,7 +216,7 @@ export default function ShowDetailPage() {
         <div className="mb-8">
           <Link
             href="/shows"
-            className="inline-flex items-center gap-2 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors mb-4"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -226,15 +226,15 @@ export default function ShowDetailPage() {
 
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-4xl font-bold text-[#c5ddff] mb-2">{show.title}</h1>
+              <h1 className="text-4xl font-bold text-neu-text-primary mb-2">{show.title}</h1>
               {show.author && (
-                <p className="text-lg text-[#c5ddff]/60">by {show.author}</p>
+                <p className="text-lg text-neu-text-primary/60">by {show.author}</p>
               )}
             </div>
             {canManageShow() && !editMode && (
               <button
                 onClick={() => setEditMode(true)}
-                className="n-button-primary px-6 py-3 rounded-xl bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white border border-[#5a8ff5]/30 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] transition-all duration-300 font-medium"
+                className="n-button-primary px-6 py-3 rounded-xl bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white border border-neu-border-focus shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] transition-all duration-300 font-medium"
               >
                 Edit Show
               </button>
@@ -243,44 +243,44 @@ export default function ShowDetailPage() {
         </div>
 
         {/* Show Details Section */}
-        <div className="mb-8 p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-          <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">Show Information</h2>
+        <div className="mb-8 p-6 rounded-xl bg-neu-surface border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)]">
+          <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">Show Information</h2>
           
           {editMode ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary mb-2">
                   Title <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary mb-2">
                   Author
                 </label>
                 <input
                   type="text"
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary mb-2">
                   Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
                 />
               </div>
               
@@ -288,7 +288,7 @@ export default function ShowDetailPage() {
                 <button
                   onClick={handleSaveShow}
                   disabled={saving || !title.trim()}
-                  className="n-button-primary px-6 py-3 rounded-xl bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white border border-[#5a8ff5]/30 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="n-button-primary px-6 py-3 rounded-xl bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white border border-neu-border-focus shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -300,7 +300,7 @@ export default function ShowDetailPage() {
                     setDescription(show.description || '');
                   }}
                   disabled={saving}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
@@ -310,11 +310,11 @@ export default function ShowDetailPage() {
             <div className="space-y-3">
               {show.description && (
                 <div>
-                  <h3 className="text-sm font-medium text-[#b5ccff] mb-1">Description</h3>
-                  <p className="text-[#c5ddff]/80">{show.description}</p>
+                  <h3 className="text-sm font-medium text-neu-text-primary mb-1">Description</h3>
+                  <p className="text-neu-text-primary/80">{show.description}</p>
                 </div>
               )}
-              <div className="flex gap-6 text-sm text-[#c5ddff]/60">
+              <div className="flex gap-6 text-sm text-neu-text-primary/60">
                 <div>
                   <span className="font-medium">Created:</span>{' '}
                   {new Date(show.created_at).toLocaleDateString()}
@@ -328,9 +328,9 @@ export default function ShowDetailPage() {
         </div>
 
         {/* Roles Section */}
-        <div className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
+        <div className="p-6 rounded-xl bg-neu-surface border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)]">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-[#c5ddff]">Roles</h2>
+            <h2 className="text-2xl font-semibold text-neu-text-primary">Roles</h2>
             {canManageShow() && !newRole && (
               <div className="flex gap-2">
                 {!selectMode ? (
@@ -380,11 +380,11 @@ export default function ShowDetailPage() {
 
           {/* New Role Form */}
           {newRole && (
-            <div className="mb-6 p-4 rounded-xl bg-[#1a2332]/50 border border-[#4a7bd9]/30">
-              <h3 className="text-lg font-medium text-[#c5ddff] mb-4">New Role</h3>
+            <div className="mb-6 p-4 rounded-xl bg-[#1a2332]/50 border border-neu-border">
+              <h3 className="text-lg font-medium text-neu-text-primary mb-4">New Role</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     Role Name <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -392,18 +392,18 @@ export default function ShowDetailPage() {
                     value={newRole.role_name}
                     onChange={(e) => setNewRole({ ...newRole, role_name: e.target.value })}
                     placeholder="e.g., Eliza Hamilton"
-                    className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     Role Type
                   </label>
                   <select
                     value={newRole.role_type || ''}
                     onChange={(e) => setNewRole({ ...newRole, role_type: (e.target.value as RoleType) || null })}
-                    className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   >
                     <option value="">Select type...</option>
                     {roleTypes.map((type) => (
@@ -413,13 +413,13 @@ export default function ShowDetailPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     Gender
                   </label>
                   <select
                     value={newRole.gender || ''}
                     onChange={(e) => setNewRole({ ...newRole, gender: (e.target.value as RoleGender) || null })}
-                    className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   >
                     <option value="">Select gender...</option>
                     {genderOptions.map((gender) => (
@@ -436,16 +436,16 @@ export default function ShowDetailPage() {
                       type="checkbox"
                       checked={newRole.needs_understudy || false}
                       onChange={(e) => setNewRole({ ...newRole, needs_understudy: e.target.checked })}
-                      className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-[#2e3e5e] checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                      className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                     />
-                    <span className="text-sm font-medium text-[#b5ccff]">
+                    <span className="text-sm font-medium text-neu-text-primary">
                       This role needs an understudy
                     </span>
                   </label>
                 </div>
                 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+                  <label className="block text-sm font-medium text-neu-text-primary mb-2">
                     Description
                   </label>
                   <textarea
@@ -453,7 +453,7 @@ export default function ShowDetailPage() {
                     onChange={(e) => setNewRole({ ...newRole, description: e.target.value || null })}
                     placeholder="Describe the role..."
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -462,14 +462,14 @@ export default function ShowDetailPage() {
                 <button
                   onClick={handleSaveNewRole}
                   disabled={saving || !newRole.role_name.trim()}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-[#5a8ff5]/30 hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-neu-border-focus hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save Role'}
                 </button>
                 <button
                   onClick={() => setNewRole(null)}
                   disabled={saving}
-                  className="px-4 py-2 rounded-lg bg-[#2e3e5e] text-[#c5ddff] text-sm font-medium border border-[#4a7bd9]/20 hover:border-[#5a8ff5]/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary text-sm font-medium border border-neu-border hover:border-neu-border-focus transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
@@ -481,9 +481,9 @@ export default function ShowDetailPage() {
           {roles.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">🎭</div>
-              <p className="text-[#c5ddff]/70">No roles added yet</p>
+              <p className="text-neu-text-primary/70">No roles added yet</p>
               {canManageShow() && (
-                <p className="text-[#c5ddff]/50 text-sm mt-2">
+                <p className="text-neu-text-primary/50 text-sm mt-2">
                   Click "Add Role" to create your first role
                 </p>
               )}
@@ -570,28 +570,28 @@ function RoleCard({
 
   if (isEditing) {
     return (
-      <div className="p-4 rounded-xl bg-[#1a2332]/50 border border-[#4a7bd9]/30">
+      <div className="p-4 rounded-xl bg-[#1a2332]/50 border border-neu-border">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Role Name <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={editData.role_name}
               onChange={(e) => setEditData({ ...editData, role_name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Role Type
             </label>
             <select
               value={editData.role_type || ''}
               onChange={(e) => setEditData({ ...editData, role_type: (e.target.value as RoleType) || null })}
-              className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             >
               <option value="">Select type...</option>
               {roleTypes.map((type) => (
@@ -601,13 +601,13 @@ function RoleCard({
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Gender
             </label>
             <select
               value={editData.gender || ''}
               onChange={(e) => setEditData({ ...editData, gender: (e.target.value as RoleGender) || null })}
-              className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             >
               <option value="">Select gender...</option>
               {genderOptions.map((gender) => (
@@ -624,23 +624,23 @@ function RoleCard({
                 type="checkbox"
                 checked={editData.needs_understudy || false}
                 onChange={(e) => setEditData({ ...editData, needs_understudy: e.target.checked })}
-                className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-[#2e3e5e] checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
               />
-              <span className="text-sm font-medium text-[#b5ccff]">
+              <span className="text-sm font-medium text-neu-text-primary">
                 This role needs an understudy
               </span>
             </label>
           </div>
           
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Description
             </label>
             <textarea
               value={editData.description || ''}
               onChange={(e) => setEditData({ ...editData, description: e.target.value || null })}
               rows={3}
-              className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all resize-none"
+              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
             />
           </div>
         </div>
@@ -649,14 +649,14 @@ function RoleCard({
           <button
             onClick={() => onSave(editData)}
             disabled={saving || !editData.role_name?.trim()}
-            className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-[#5a8ff5]/30 hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-neu-border-focus hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving...' : 'Save'}
           </button>
           <button
             onClick={onCancelEdit}
             disabled={saving}
-            className="px-4 py-2 rounded-lg bg-[#2e3e5e] text-[#c5ddff] text-sm font-medium border border-[#4a7bd9]/20 hover:border-[#5a8ff5]/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary text-sm font-medium border border-neu-border hover:border-neu-border-focus transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -669,7 +669,7 @@ function RoleCard({
     <div className={`p-4 rounded-xl bg-[#1a2332]/30 border transition-all ${
       selectMode && isSelected 
         ? 'border-[#5a8ff5] bg-[#5a8ff5]/10' 
-        : 'border-[#4a7bd9]/20 hover:border-[#5a8ff5]/30'
+        : 'border-neu-border hover:border-neu-border-focus'
     }`}>
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-start gap-3 flex-1">
@@ -679,20 +679,20 @@ function RoleCard({
                 type="checkbox"
                 checked={isSelected}
                 onChange={onToggleSelect}
-                className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-[#2e3e5e] checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
               />
             </label>
           )}
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-[#c5ddff]">{role.role_name}</h3>
+              <h3 className="text-lg font-semibold text-neu-text-primary">{role.role_name}</h3>
               {role.needs_understudy && (
-                <span className="px-2 py-0.5 rounded-md bg-[#5a8ff5]/20 border border-[#5a8ff5]/40 text-[#5a8ff5] text-xs font-medium">
+                <span className="px-2 py-0.5 rounded-md bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-accent-primary text-xs font-medium">
                   + Understudy
                 </span>
               )}
             </div>
-            <div className="flex gap-3 mt-1 text-sm text-[#c5ddff]/60">
+            <div className="flex gap-3 mt-1 text-sm text-neu-text-primary/60">
               {role.role_type && <span className="capitalize">{role.role_type}</span>}
               {role.gender && <span className="capitalize">{role.gender}</span>}
             </div>
@@ -702,7 +702,7 @@ function RoleCard({
           <div className="flex gap-2">
             <button
               onClick={onEdit}
-              className="px-3 py-1 rounded-lg text-[#5a8ff5] hover:bg-[#5a8ff5]/10 transition-all text-sm"
+              className="px-3 py-1 rounded-lg text-neu-accent-primary hover:bg-[#5a8ff5]/10 transition-all text-sm"
             >
               Edit
             </button>
@@ -716,7 +716,7 @@ function RoleCard({
         )}
       </div>
       {role.description && (
-        <p className="text-[#c5ddff]/70 text-sm">{role.description}</p>
+        <p className="text-neu-text-primary/70 text-sm">{role.description}</p>
       )}
     </div>
   );

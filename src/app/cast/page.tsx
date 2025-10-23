@@ -8,6 +8,7 @@ import { deleteAudition } from '@/lib/supabase/auditions';
 import StarryContainer from '@/components/StarryContainer';
 import Link from 'next/link';
 import Button from '@/components/Button';
+import { MdEdit, MdDelete, MdVisibility, MdAssignment } from 'react-icons/md';
 
 export default function CastDashboard() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function CastDashboard() {
     return (
       <StarryContainer>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-[#c5ddff]">Loading your auditions...</div>
+          <div className="text-neu-text-primary">Loading your auditions...</div>
         </div>
       </StarryContainer>
     );
@@ -74,10 +75,10 @@ export default function CastDashboard() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-[#c5ddff] mb-2">
+              <h1 className="text-4xl font-bold text-neu-text-primary mb-2">
                 My Auditions
               </h1>
-              <p className="text-[#c5ddff]/70">
+              <p className="text-neu-text-primary/70">
                 Manage your audition postings
               </p>
             </div>
@@ -88,8 +89,8 @@ export default function CastDashboard() {
 
           {/* Auditions List */}
           {auditions.length === 0 ? (
-            <div className="text-center py-12 p-8 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-              <div className="text-[#c5ddff]/70 mb-4">
+            <div className="text-center py-12 p-8 rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60">
+              <div className="text-neu-text-primary/70 mb-4">
                 You haven't posted any auditions yet
               </div>
               <div className="nav-buttons inline-block">
@@ -101,52 +102,66 @@ export default function CastDashboard() {
               {auditions.map((audition) => (
                 <div
                   key={audition.audition_id}
-                  className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]"
+                  className="p-6 rounded-xl bg-white/90 backdrop-blur-md border-white border-neu-border/60 shadow-neu-raised hover:shadow-neu-raised-lg transition-all duration-300"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-[#c5ddff] mb-2">
+                      <h3 className="text-2xl font-bold text-neu-text-primary mb-2">
                         {audition.show?.title || 'Untitled Show'}
                       </h3>
                       {audition.show?.author && (
-                        <p className="text-[#c5ddff]/60 mb-3">
+                        <p className="text-neu-text-primary/60 mb-3">
                           by {audition.show.author}
                         </p>
                       )}
                       
                       <div className="flex flex-wrap gap-2 mb-4">
                         {audition.company && (
-                          <span className="px-3 py-1 rounded-lg bg-[#2e3e5e]/80 border border-[#5a8ff5]/30 text-[#c5ddff] text-sm shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
+                          <span className="px-3 py-1 rounded-lg bg-neu-surface/80 border border-neu-border-focus text-neu-text-primary text-sm shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
                             {audition.company.name}
                           </span>
                         )}
                         {audition.equity_status && (
-                          <span className="px-3 py-1 rounded-lg bg-[#2e3e5e]/80 border border-[#4a7bd9]/30 text-[#94b0f6] text-sm shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
+                          <span className="px-3 py-1 rounded-lg bg-neu-surface/80 border border-neu-border text-neu-accent-secondary text-sm shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
                             {audition.equity_status}
                           </span>
                         )}
                         {audition.slots && (
-                          <span className="px-3 py-1 rounded-lg bg-[#2e3e5e]/80 border border-[#5a8ff5]/30 text-[#5a8ff5] text-sm shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
+                          <span className="px-3 py-1 rounded-lg bg-neu-surface/80 border border-neu-border-focus text-neu-accent-primary text-sm shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
                             {audition.slots.length} slots
                           </span>
                         )}
                       </div>
 
-                      <div className="text-sm text-[#c5ddff]/70">
+                      <div className="text-sm text-neu-text-primary/70">
                         Posted {new Date(audition.created_at).toLocaleDateString()}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 ml-4">
-                      <Button text="Edit" href={`/cast/edit/${audition.audition_id}`} className="n-button-primary" />
+                    <div className="flex flex-row gap-2 lg:flex-shrink-0">
+                      <Link href={`/cast/edit/${audition.audition_id}`}>
+                        <button className="neu-icon-btn" title="Edit Audition">
+                          <MdEdit className="w-5 h-5" />
+                        </button>
+                      </Link>
+                      <Link href={`/auditions/${audition.audition_id}/callbacks`}>
+                        <button className="neu-icon-btn" title="Manage Callbacks">
+                          <MdAssignment className="w-5 h-5" />
+                        </button>
+                      </Link>
+                      <Link href={`/auditions/${audition.audition_id}`}>
+                        <button className="neu-icon-btn" title="View Audition">
+                          <MdVisibility className="w-5 h-5" />
+                        </button>
+                      </Link>
                       <button
                         onClick={() => handleDelete(audition.audition_id)}
                         disabled={deleting === audition.audition_id}
-                        className="n-button-danger"
+                        className="neu-icon-btn hover:text-neu-accent-danger disabled:opacity-50"
+                        title="Delete Audition"
                       >
-                        {deleting === audition.audition_id ? 'Deleting...' : 'Delete'}
+                        <MdDelete className="w-5 h-5" />
                       </button>
-                      <Button text="View" href={`/auditions/${audition.audition_id}`} className='n-button-secondary' />
                     </div>
                   </div>
                 </div>

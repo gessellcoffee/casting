@@ -215,8 +215,8 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
 
   if (loading) {
     return (
-      <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-        <p className="text-[#c5ddff]/70">Loading resume entries...</p>
+      <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+        <p className="text-neu-text-primary/70">Loading resume entries...</p>
       </div>
     );
   }
@@ -250,8 +250,8 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
       )}
 
       {/* Resume File Upload */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-        <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+      <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+        <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
           Resume File
         </label>
         {resumeUrl ? (
@@ -260,7 +260,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
               href={resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#5a8ff5] hover:text-[#6a9fff] underline"
+              className="text-neu-accent-primary hover:text-[#6a9fff] underline"
             >
               View Resume
             </a>
@@ -303,19 +303,19 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                 </div>
               </div>
             ) : (
-              <p className="text-[#c5ddff]/50">No resume uploaded</p>
+              <p className="text-neu-text-primary/50">No resume uploaded</p>
             )}
           </div>
         )}
       </div>
 
       {isAddingNew && (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-semibold text-[#c5ddff] mb-4">New Resume Entry</h3>
+        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+          <h3 className="text-lg font-semibold text-neu-text-primary mb-4">New Resume Entry</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                   Show/Production Name
                 </label>
                 <input
@@ -323,13 +323,13 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                   name="show_name"
                   value={newEntry.show_name}
                   onChange={handleNewEntryChange}
-                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                   placeholder="Hamlet"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                   Role
                 </label>
                 <input
@@ -337,20 +337,20 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                   name="role"
                   value={newEntry.role}
                   onChange={handleNewEntryChange}
-                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                   placeholder="Ophelia"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-[#b5ccff]/70">
+                  <label className="block text-sm font-medium text-neu-text-primary/70">
                     Company/Theater
                   </label>
                   <button
                     type="button"
                     onClick={handleCompanyToggle}
-                    className="text-xs text-[#5a8ff5] hover:text-[#6a9fff] underline"
+                    className="text-xs text-neu-accent-primary hover:text-[#6a9fff] underline"
                   >
                     {useCompanyDropdown ? 'Enter manually' : 'Select from list'}
                   </button>
@@ -360,7 +360,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                     name="company_id"
                     value={newEntry.company_id}
                     onChange={handleNewEntryChange}
-                    className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                   >
                     <option value="">Select a company...</option>
                     {companies.map((company) => (
@@ -375,19 +375,19 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                     name="company_name"
                     value={newEntry.company_name}
                     onChange={handleNewEntryChange}
-                    className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                    className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                     placeholder="Shakespeare Theater Company"
                   />
                 )}
                 {useCompanyDropdown && newEntry.company_id && (
-                  <p className="text-xs text-[#b5ccff]/60 mt-1">
+                  <p className="text-xs text-neu-text-primary/60 mt-1">
                     ⓘ Company owner will be notified for approval
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                   Date
                 </label>
                 <input
@@ -395,7 +395,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                   name="date_of_production"
                   value={newEntry.date_of_production}
                   onChange={handleNewEntryChange}
-                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                   placeholder="2024"
                 />
               </div>
@@ -419,10 +419,10 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
       )}
 
       {resumes.length === 0 && !isAddingNew ? (
-        <div className="p-8 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20 text-center">
-          <p className="text-[#c5ddff]/70">No resume entries yet.</p>
+        <div className="p-8 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-center">
+          <p className="text-neu-text-primary/70">No resume entries yet.</p>
           {isEditing && (
-            <p className="text-[#b5ccff]/50 text-sm mt-2">
+            <p className="text-neu-text-primary/50 text-sm mt-2">
               Click &quot;Add Entry&quot; to create your first resume entry.
             </p>
           )}

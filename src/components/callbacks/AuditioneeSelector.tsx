@@ -171,14 +171,14 @@ export default function AuditioneeSelector({
 
   if (callbackSlots.length === 0) {
     return (
-      <div className="p-6 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-        <h2 className="text-2xl font-bold text-[#c5ddff] mb-4">Select Auditionees</h2>
-        <p className="text-[#c5ddff]/70 mb-4">
+      <div className="neu-inset p-6">
+        <h2 className="text-2xl font-bold text-neu-text-primary mb-4">Select Auditionees</h2>
+        <p className="text-neu-text-primary/70 mb-4">
           You need to create callback slots before you can invite auditionees.
         </p>
         <button
           onClick={onCancel}
-          className="px-6 py-3 rounded-lg bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-all font-semibold shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]"
+          className="neu-btn-action"
         >
           Go Back
         </button>
@@ -188,14 +188,14 @@ export default function AuditioneeSelector({
 
   return (
     <div className="space-y-6">
-      <div className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-        <h2 className="text-2xl font-bold text-[#c5ddff] mb-2">Select Auditionees for Callbacks</h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+      <div className="neu-card-raised">
+        <h2 className="text-2xl font-bold text-neu-text-primary mb-2">Select Auditionees for Callbacks</h2>
+        <p className="text-neu-text-primary/70 mb-6">
           Choose which actors to invite and assign them to callback slots.
         </p>
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 shadow-[inset_2px_2px_5px_rgba(239,68,68,0.1)]">
+          <div className="mb-6 neu-error-box">
             <p className="text-red-400 text-sm">{error}</p>
           </div>
         )}
@@ -204,7 +204,7 @@ export default function AuditioneeSelector({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Search by Name
             </label>
             <input
@@ -212,19 +212,19 @@ export default function AuditioneeSelector({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search auditionees..."
-              className="w-full px-4 py-2 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/30 focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="neu-input"
             />
           </div>
 
           {/* Role Filter */}
           <div>
-            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Filter by Role
             </label>
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="neu-input"
             >
               <option value="all">All Roles</option>
               {roles.map(role => (
@@ -236,8 +236,8 @@ export default function AuditioneeSelector({
 
         {/* Selection Summary */}
         {selectedInvitations.length > 0 && (
-          <div className="mb-6 p-4 rounded-lg bg-[#5a8ff5]/10 border border-[#5a8ff5]/30 shadow-[inset_2px_2px_5px_rgba(90,143,245,0.1)]">
-            <p className="text-[#c5ddff] font-semibold">
+          <div className="mb-6 neu-info-box">
+            <p className="text-neu-text-primary font-semibold">
               {selectedInvitations.length} auditionee{selectedInvitations.length !== 1 ? 's' : ''} selected
             </p>
           </div>
@@ -246,7 +246,7 @@ export default function AuditioneeSelector({
         {/* Auditionees List */}
         <div className="space-y-3 max-h-[600px] overflow-y-auto">
           {filteredAuditionees.length === 0 ? (
-            <div className="text-center py-8 text-[#c5ddff]/50">
+            <div className="text-center py-8 text-neu-text-primary/50">
               No auditionees found
             </div>
           ) : (
@@ -260,12 +260,12 @@ export default function AuditioneeSelector({
               return (
                 <div
                   key={auditionee.signup_id}
-                  className={`p-4 rounded-lg border transition-all ${
+                  className={`transition-all ${
                     selected
-                      ? 'bg-[#5a8ff5]/10 border-[#5a8ff5]/50 shadow-[inset_2px_2px_5px_rgba(90,143,245,0.2)]'
+                      ? 'neu-item-card-selected'
                       : alreadyInvited
-                      ? 'bg-[#1e2e4e]/30 border-[#4a7bd9]/10 opacity-60'
-                      : 'bg-[#1e2e4e]/50 border-[#4a7bd9]/10 hover:border-[#4a7bd9]/30 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]'
+                      ? 'neu-item-card-disabled'
+                      : 'neu-item-card'
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -276,7 +276,7 @@ export default function AuditioneeSelector({
                         checked={selected}
                         disabled={alreadyInvited}
                         onChange={() => toggleAuditionee(auditionee, callbackSlots[0]?.callback_slot_id || '')}
-                        className="w-5 h-5 rounded border-[#4a7bd9]/30 bg-[#2e3e5e]/50 text-[#5a8ff5] focus:ring-[#5a8ff5] focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark)]"
+                        className="neu-checkbox"
                       />
                     </div>
 
@@ -284,16 +284,16 @@ export default function AuditioneeSelector({
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className="text-lg font-semibold text-[#c5ddff]">
+                          <h3 className="text-lg font-semibold text-neu-text-primary">
                             {profile?.first_name} {profile?.last_name}
                           </h3>
                           {profile?.username && (
-                            <p className="text-sm text-[#c5ddff]/50 mb-1">
+                            <p className="text-sm text-neu-text-primary/50 mb-1">
                               @{profile.username}
                             </p>
                           )}
                           {auditionee.roles && (
-                            <p className="text-sm text-[#c5ddff]/70">
+                            <p className="text-sm text-neu-text-primary/70">
                               Role: {auditionee.roles.role_name}
                             </p>
                           )}
@@ -312,7 +312,7 @@ export default function AuditioneeSelector({
                       </div>
 
                       {alreadyInvited && existingInvitation && (
-                        <div className="text-sm text-[#c5ddff]/50 mb-2">
+                        <div className="text-sm text-neu-text-primary/50 mb-2">
                           Already invited to:{' '}
                           {new Date(existingInvitation.slot.start_time).toLocaleDateString('en-US', {
                             month: 'short',
@@ -330,13 +330,13 @@ export default function AuditioneeSelector({
                       {selected && (
                         <div className="mt-3 space-y-3">
                           <div>
-                            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+                            <label className="block text-sm font-medium text-neu-text-primary mb-2">
                               Callback Slot *
                             </label>
                             <select
                               value={selectedSlot}
                               onChange={(e) => updateSlotForAuditionee(auditionee.signup_id, e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] text-sm focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                              className="neu-input text-sm"
                             >
                               <option value="">Select a callback slot...</option>
                               {callbackSlots.map(slot => {
@@ -367,7 +367,7 @@ export default function AuditioneeSelector({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+                            <label className="block text-sm font-medium text-neu-text-primary mb-2">
                               Casting Notes (Optional)
                             </label>
                             <textarea
@@ -375,7 +375,7 @@ export default function AuditioneeSelector({
                               onChange={(e) => updateNotesForAuditionee(auditionee.signup_id, e.target.value)}
                               placeholder="Private notes about this callback..."
                               rows={2}
-                              className="w-full px-3 py-2 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/30 text-sm focus:outline-none focus:border-[#5a8ff5] resize-none shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+                              className="neu-input text-sm resize-none"
                             />
                           </div>
                         </div>
@@ -394,7 +394,7 @@ export default function AuditioneeSelector({
             type="button"
             onClick={onCancel}
             disabled={sending}
-            className="flex-1 px-6 py-3 rounded-lg border border-[#4a7bd9]/20 text-[#c5ddff] hover:bg-[#2e3e5e]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+            className="neu-btn-secondary flex-1"
           >
             Cancel
           </button>
@@ -402,7 +402,7 @@ export default function AuditioneeSelector({
             type="button"
             onClick={handleSendInvitations}
             disabled={sending || selectedInvitations.length === 0}
-            className="flex-1 px-6 py-3 rounded-lg bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]"
+            className="neu-btn-action flex-1"
           >
             {sending
               ? 'Sending Invitations...'

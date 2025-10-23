@@ -69,29 +69,30 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
 
   return (
     <>
-      <div className="grid grid-cols-7 gap-3">
-        {weekDays.map((date, index) => {
-          const daySignups = getSignupsForDate(date);
-          const dayCallbacks = getCallbacksForDate(date);
-          const today = isToday(date);
+      <div className="overflow-x-auto -mx-6 px-6">
+        <div className="grid grid-cols-7 gap-3 min-w-[800px]">
+          {weekDays.map((date, index) => {
+            const daySignups = getSignupsForDate(date);
+            const dayCallbacks = getCallbacksForDate(date);
+            const today = isToday(date);
 
-          return (
-            <div
-              key={index}
-              className={`rounded-lg border p-3 ${
-                today
-                  ? 'bg-[#5a8ff5]/10 border-[#5a8ff5]/50 ring-2 ring-[#5a8ff5]/30'
-                  : 'bg-[#2e3e5e]/30 border-[#4a7bd9]/20'
-              }`}
-            >
+            return (
+              <div
+                key={index}
+                className={`rounded-lg border p-3 min-w-[100px] ${
+                  today
+                    ? 'bg-[#5a8ff5]/10 border-neu-border-focus ring-2 ring-[#5a8ff5]/30'
+                    : 'bg-neu-surface/30 border-neu-border'
+                }`}
+              >
               {/* Day header */}
-              <div className="text-center mb-3 pb-2 border-b border-[#4a7bd9]/20">
-                <div className="text-xs text-[#c5ddff]/70 font-medium">
+              <div className="text-center mb-3 pb-2 border-b border-neu-border">
+                <div className="text-xs text-neu-text-primary/70 font-medium">
                   {date.toLocaleDateString('en-US', { weekday: 'short' })}
                 </div>
                 <div
                   className={`text-2xl font-bold ${
-                    today ? 'text-[#5a8ff5]' : 'text-[#c5ddff]'
+                    today ? 'text-neu-accent-primary' : 'text-neu-text-primary'
                   }`}
                 >
                   {date.getDate()}
@@ -101,7 +102,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
               {/* Events for this day */}
               <div className="space-y-2">
                 {daySignups.length === 0 && dayCallbacks.length === 0 ? (
-                  <div className="text-xs text-[#c5ddff]/40 text-center py-4">
+                  <div className="text-xs text-neu-text-primary/40 text-center py-4">
                     No events
                   </div>
                 ) : (
@@ -117,9 +118,9 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                       <button
                         key={signup.signup_id}
                         onClick={() => setSelectedEvent(signup)}
-                        className="w-full text-left p-2 rounded-lg bg-[#5a8ff5]/20 border border-[#5a8ff5]/30 hover:bg-[#5a8ff5]/30 transition-all duration-200"
+                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-neu-accent-primary/30 hover:bg-white/90 transition-all duration-200"
                       >
-                        <div className="text-xs font-semibold text-[#5a8ff5] mb-1">
+                        <div className="text-xs font-semibold text-neu-accent-primary mb-1">
                           {startTime.toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',
@@ -128,16 +129,16 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                             minute: '2-digit',
                           })}
                         </div>
-                        <div className="text-sm font-medium text-[#c5ddff] truncate">
+                        <div className="text-sm font-medium text-neu-text-primary truncate">
                           {showTitle}
                         </div>
                         {roleName && (
-                          <div className="text-xs text-[#c5ddff]/70 truncate">
+                          <div className="text-xs text-neu-text-primary/70 truncate">
                             {roleName}
                           </div>
                         )}
                         {signup.audition_slots.location && (
-                          <div className="text-xs text-[#c5ddff]/60 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
                             📍 {signup.audition_slots.location}
                           </div>
                         )}
@@ -155,7 +156,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                       <button
                         key={callback.invitation_id}
                         onClick={() => setSelectedEvent({ ...callback, isCallback: true })}
-                        className="w-full text-left p-2 rounded-lg bg-[#9b87f5]/20 border border-[#9b87f5]/30 hover:bg-[#9b87f5]/30 transition-all duration-200"
+                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-purple-400/30 hover:bg-white/90 transition-all duration-200"
                       >
                         <div className="text-xs font-semibold text-[#9b87f5] mb-1">
                           {startTime.toLocaleTimeString('en-US', {
@@ -166,12 +167,12 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                             minute: '2-digit',
                           })}
                         </div>
-                        <div className="text-sm font-medium text-[#c5ddff] truncate flex items-center gap-1">
+                        <div className="text-sm font-medium text-neu-text-primary truncate flex items-center gap-1">
                           <span>📋</span>
                           {showTitle}
                         </div>
                         {callback.callback_slots.location && (
-                          <div className="text-xs text-[#c5ddff]/60 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
                             📍 {callback.callback_slots.location}
                           </div>
                         )}
@@ -184,6 +185,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Event Modals */}

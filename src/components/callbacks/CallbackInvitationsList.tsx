@@ -101,11 +101,11 @@ export default function CallbackInvitationsList({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'accepted':
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#5a8ff5]/20 text-[#94b0f6] border border-[#5a8ff5]/30 shadow-[inset_1px_1px_3px_rgba(90,143,245,0.1)]">Accepted</span>;
+        return <span className="neu-badge-accepted">Accepted</span>;
       case 'rejected':
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#2e3e5e]/80 text-[#c5ddff]/50 border border-[#4a7bd9]/20 shadow-[inset_1px_1px_3px_var(--cosmic-shadow-dark)]">Declined</span>;
+        return <span className="neu-badge-rejected">Declined</span>;
       case 'pending':
-        return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#4a7bd9]/20 text-[#c5ddff]/70 border border-[#4a7bd9]/30 shadow-[inset_1px_1px_3px_rgba(74,123,217,0.1)]">Pending</span>;
+        return <span className="neu-badge-pending">Pending</span>;
       default:
         return null;
     }
@@ -113,9 +113,9 @@ export default function CallbackInvitationsList({
 
   if (allInvitations.length === 0) {
     return (
-      <div className="p-6 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-        <h2 className="text-2xl font-bold text-[#c5ddff] mb-4">Manage Invitations</h2>
-        <p className="text-[#c5ddff]/70 mb-4">
+      <div className="neu-inset p-6">
+        <h2 className="text-2xl font-bold text-neu-text-primary mb-4">Manage Invitations</h2>
+        <p className="text-neu-text-primary/70 mb-4">
           No callback invitations have been sent yet. Select auditionees and send invitations to get started.
         </p>
       </div>
@@ -124,28 +124,28 @@ export default function CallbackInvitationsList({
 
   return (
     <div className="space-y-6">
-      <div className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-        <h2 className="text-2xl font-bold text-[#c5ddff] mb-2">Manage Callback Invitations</h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+      <div className="neu-card-raised">
+        <h2 className="text-2xl font-bold text-neu-text-primary mb-2">Manage Callback Invitations</h2>
+        <p className="text-neu-text-primary/70 mb-6">
           View and manage callback invitation responses from actors.
         </p>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="p-3 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/10 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
-            <div className="text-xs text-[#c5ddff]/70 mb-1">Total</div>
-            <div className="text-xl font-bold text-[#c5ddff]">{stats.total}</div>
+          <div className="neu-stat-box">
+            <div className="text-xs text-neu-text-primary/70 mb-1">Total</div>
+            <div className="text-xl font-bold text-neu-text-primary">{stats.total}</div>
           </div>
-          <div className="p-3 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/10 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
-            <div className="text-xs text-[#c5ddff]/70 mb-1">Pending</div>
+          <div className="neu-stat-box">
+            <div className="text-xs text-neu-text-primary/70 mb-1">Pending</div>
             <div className="text-xl font-bold text-yellow-400">{stats.pending}</div>
           </div>
-          <div className="p-3 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/10 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
-            <div className="text-xs text-[#c5ddff]/70 mb-1">Accepted</div>
+          <div className="neu-stat-box">
+            <div className="text-xs text-neu-text-primary/70 mb-1">Accepted</div>
             <div className="text-xl font-bold text-green-400">{stats.accepted}</div>
           </div>
-          <div className="p-3 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/10 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
-            <div className="text-xs text-[#c5ddff]/70 mb-1">Rejected</div>
+          <div className="neu-stat-box">
+            <div className="text-xs text-neu-text-primary/70 mb-1">Rejected</div>
             <div className="text-xl font-bold text-red-400">{stats.rejected}</div>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function CallbackInvitationsList({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Search by Name
             </label>
             <input
@@ -162,19 +162,19 @@ export default function CallbackInvitationsList({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search actors..."
-              className="w-full px-4 py-2 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/30 focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="neu-form-input"
             />
           </div>
 
           {/* Status Filter */}
           <div>
-            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Filter by Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-              className="w-full px-4 py-2 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="neu-form-input"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -185,13 +185,13 @@ export default function CallbackInvitationsList({
 
           {/* Slot Filter */}
           <div>
-            <label className="block text-sm font-medium text-[#c5ddff] mb-2">
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Filter by Slot
             </label>
             <select
               value={slotFilter}
               onChange={(e) => setSlotFilter(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+              className="neu-form-input"
             >
               <option value="all">All Slots</option>
               {callbackSlots.map(slot => (
@@ -213,7 +213,7 @@ export default function CallbackInvitationsList({
 
         {/* Invitations by Slot */}
         {filteredInvitations.length === 0 ? (
-          <div className="text-center py-8 text-[#c5ddff]/50">
+          <div className="text-center py-8 text-neu-text-primary/50">
             No invitations match your filters
           </div>
         ) : (
@@ -226,10 +226,10 @@ export default function CallbackInvitationsList({
               const pendingCount = invitations.filter(inv => inv.status === 'pending').length;
 
               return (
-                <div key={slotId} className="p-4 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/10 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
+                <div key={slotId} className="neu-inset">
                   {/* Slot Header */}
                   <div className="mb-4 pb-3 border-b border-[#4a7bd9]/10">
-                    <h3 className="text-lg font-semibold text-[#c5ddff] mb-1">
+                    <h3 className="text-lg font-semibold text-neu-text-primary mb-1">
                       {new Date(slot.start_time).toLocaleDateString('en-US', {
                         weekday: 'long',
                         month: 'long',
@@ -237,7 +237,7 @@ export default function CallbackInvitationsList({
                         year: 'numeric',
                       })}
                     </h3>
-                    <div className="flex items-center gap-4 text-sm text-[#c5ddff]/70">
+                    <div className="flex items-center gap-4 text-sm text-neu-text-primary/70">
                       <span>
                         ⏰ {new Date(slot.start_time).toLocaleTimeString('en-US', {
                           hour: 'numeric',
@@ -255,7 +255,7 @@ export default function CallbackInvitationsList({
                       </span>
                     </div>
                     {slot.notes && (
-                      <div className="mt-2 text-sm text-[#c5ddff]/60 italic">
+                      <div className="mt-2 text-sm text-neu-text-primary/60 italic">
                         Note: {slot.notes}
                       </div>
                     )}
@@ -270,15 +270,15 @@ export default function CallbackInvitationsList({
                       return (
                         <div
                           key={invitation.invitation_id}
-                          className="p-4 rounded-lg bg-[#2e3e5e]/30 border border-[#4a7bd9]/10 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]"
+                          className="neu-item-card"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
-                              <h4 className="text-base font-semibold text-[#c5ddff] mb-1">
+                              <h4 className="text-base font-semibold text-neu-text-primary mb-1">
                                 {profile?.first_name} {profile?.last_name}
                               </h4>
                               {role && (
-                                <p className="text-sm text-[#c5ddff]/70 mb-2">
+                                <p className="text-sm text-neu-text-primary/70 mb-2">
                                   Role: {role.role_name}
                                 </p>
                               )}
@@ -288,7 +288,7 @@ export default function CallbackInvitationsList({
                               <button
                                 onClick={() => handleDeleteInvitation(invitation.invitation_id)}
                                 disabled={deletingId === invitation.invitation_id}
-                                className="px-3 py-1 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 text-[#c5ddff]/60 hover:bg-[#2e3e5e]/80 hover:text-[#c5ddff] hover:border-[#4a7bd9]/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[2px_2px_5px_var(--cosmic-shadow-dark),-2px_-2px_5px_var(--cosmic-shadow-light)] hover:shadow-[inset_1px_1px_3px_var(--cosmic-shadow-dark)] text-sm"
+                                className="neu-btn-small"
                                 title="Delete invitation"
                               >
                                 {deletingId === invitation.invitation_id ? '⏳' : '🗑️'}
@@ -298,22 +298,22 @@ export default function CallbackInvitationsList({
 
                           {/* Casting Notes */}
                           {invitation.casting_notes && (
-                            <div className="mb-2 p-3 rounded-lg bg-[#1e2e4e]/50 border border-[#4a7bd9]/20 shadow-[inset_1px_1px_3px_var(--cosmic-shadow-dark)]">
-                              <p className="text-xs font-semibold text-[#c5ddff]/70 mb-1">Your Notes:</p>
-                              <p className="text-sm text-[#c5ddff]/90">{invitation.casting_notes}</p>
+                            <div className="mb-2 neu-inset p-3">
+                              <p className="text-xs font-semibold text-neu-text-primary/70 mb-1">Your Notes:</p>
+                              <p className="text-sm text-neu-text-primary/90">{invitation.casting_notes}</p>
                             </div>
                           )}
 
                           {/* Actor Comment */}
                           {invitation.actor_comment && (
-                            <div className="mb-2 p-3 rounded-lg bg-[#5a8ff5]/10 border border-[#5a8ff5]/30 shadow-[inset_1px_1px_3px_rgba(90,143,245,0.15)]">
-                              <p className="text-xs font-semibold text-[#c5ddff]/70 mb-1">Actor's Comment:</p>
-                              <p className="text-sm text-[#c5ddff]">{invitation.actor_comment}</p>
+                            <div className="mb-2 neu-info-box p-3">
+                              <p className="text-xs font-semibold text-neu-text-primary/70 mb-1">Actor's Comment:</p>
+                              <p className="text-sm text-neu-text-primary">{invitation.actor_comment}</p>
                             </div>
                           )}
 
                           {/* Timestamps */}
-                          <div className="flex items-center gap-4 text-xs text-[#c5ddff]/50">
+                          <div className="flex items-center gap-4 text-xs text-neu-text-primary/50">
                             <span>
                               Invited: {new Date(invitation.invited_at).toLocaleDateString('en-US', {
                                 month: 'short',

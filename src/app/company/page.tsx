@@ -231,14 +231,14 @@ export default function CompanyPage() {
             )}
 
             {loading ? (
-              <div className="text-[#c5ddff]/90">Loading companies...</div>
+              <div className="text-neu-text-primary/90">Loading companies...</div>
             ) : (
               <div className="space-y-6">
                 {/* Create/Edit Form */}
                 {(isCreating || editingCompanyId) && (
-                  <div className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20 space-y-4">
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border space-y-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-2xl font-semibold text-[#c5ddff]">
+                      <h2 className="text-2xl font-semibold text-neu-text-primary">
                         {isCreating ? 'Create New Company' : 'Edit Company'}
                       </h2>
                       <div className="nav-buttons">
@@ -257,7 +257,7 @@ export default function CompanyPage() {
 
                     {/* Company Name */}
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                      <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                         Company Name *
                       </label>
                       <input
@@ -265,7 +265,7 @@ export default function CompanyPage() {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                        className="neu-input"
                         placeholder="Enter company name"
                         required
                       />
@@ -273,7 +273,7 @@ export default function CompanyPage() {
 
                     {/* Description */}
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                      <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                         Description
                       </label>
                       <textarea
@@ -281,7 +281,7 @@ export default function CompanyPage() {
                         value={formData.description}
                         onChange={handleInputChange}
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors resize-none"
+                        className="neu-input"
                         placeholder="Brief description of your company"
                       />
                     </div>
@@ -296,7 +296,7 @@ export default function CompanyPage() {
 
                     {/* Vision */}
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                      <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                         Vision
                       </label>
                       <textarea
@@ -304,14 +304,14 @@ export default function CompanyPage() {
                         value={formData.vision}
                         onChange={handleInputChange}
                         rows={2}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors resize-none"
+                        className="neu-input"
                         placeholder="Your company's vision"
                       />
                     </div>
 
                     {/* Mission */}
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                      <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                         Mission
                       </label>
                       <textarea
@@ -319,14 +319,14 @@ export default function CompanyPage() {
                         value={formData.mission}
                         onChange={handleInputChange}
                         rows={2}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors resize-none"
+                        className="neu-input"
                         placeholder="Your company's mission"
                       />
                     </div>
 
                     {/* Values */}
                     <div>
-                      <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                      <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                         Values
                       </label>
                       <textarea
@@ -334,7 +334,7 @@ export default function CompanyPage() {
                         value={formData.values}
                         onChange={handleInputChange}
                         rows={2}
-                        className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors resize-none"
+                        className=" neu-input"
                         placeholder="Your company's core values"
                       />
                     </div>
@@ -356,7 +356,7 @@ export default function CompanyPage() {
                 {!isCreating && !editingCompanyId && (
                   <div className="space-y-4">
                     {companies.length === 0 ? (
-                      <div className="text-center py-12 text-[#c5ddff]/70">
+                      <div className="text-center py-12 text-neu-text-primary/70">
                         <p className="text-lg mb-4">You haven't created any companies yet.</p>
                         <Button onClick={handleCreate} text="Create Your First Company" />
                       </div>
@@ -364,15 +364,15 @@ export default function CompanyPage() {
                       companies.map((company) => (
                         <div
                           key={company.company_id}
-                          className="p-6 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20"
+                          className="p-6 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border"
                         >
                           <div className="flex items-start justify-between mb-4">
                             <div>
-                              <h3 className="text-2xl font-semibold text-[#c5ddff] mb-2">
+                              <h3 className="text-2xl font-semibold text-neu-text-primary mb-2">
                                 {company.name}
                               </h3>
                               {company.description && (
-                                <p className="text-[#b5ccff]/80">{company.description}</p>
+                                <p className="text-neu-text-primary/80">{company.description}</p>
                               )}
                             </div>
                             <div className="nav-buttons">
@@ -390,40 +390,40 @@ export default function CompanyPage() {
 
                           {company.address && (
                             <div className="mb-3">
-                              <span className="text-sm font-medium text-[#b5ccff]/70">Address: </span>
-                              <span className="text-[#c5ddff]">{company.address}</span>
+                              <span className="text-sm font-medium text-neu-text-primary/70">Address: </span>
+                              <span className="text-neu-text-primary">{company.address}</span>
                             </div>
                           )}
 
                           {company.vision && (
                             <div className="mb-3">
-                              <span className="text-sm font-medium text-[#b5ccff]/70">Vision: </span>
-                              <span className="text-[#c5ddff]">{company.vision}</span>
+                              <span className="text-sm font-medium text-neu-text-primary/70">Vision: </span>
+                              <span className="text-neu-text-primary">{company.vision}</span>
                             </div>
                           )}
 
                           {company.mission && (
                             <div className="mb-3">
-                              <span className="text-sm font-medium text-[#b5ccff]/70">Mission: </span>
-                              <span className="text-[#c5ddff]">{company.mission}</span>
+                              <span className="text-sm font-medium text-neu-text-primary/70">Mission: </span>
+                              <span className="text-neu-text-primary">{company.mission}</span>
                             </div>
                           )}
 
                           {company.values && (
                             <div className="mb-3">
-                              <span className="text-sm font-medium text-[#b5ccff]/70">Values: </span>
-                              <span className="text-[#c5ddff]">{company.values}</span>
+                              <span className="text-sm font-medium text-neu-text-primary/70">Values: </span>
+                              <span className="text-neu-text-primary">{company.values}</span>
                             </div>
                           )}
 
                           {company.image_gallery && Array.isArray(company.image_gallery) && company.image_gallery.length > 0 && (
                             <div className="mt-4">
-                              <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                              <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                                 Gallery
                               </label>
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {company.image_gallery.map((url, index) => (
-                                  <div key={index} className="aspect-square rounded-lg overflow-hidden border border-[#4a7bd9]/20">
+                                  <div key={index} className="aspect-square rounded-lg overflow-hidden border border-neu-border">
                                     <img
                                       src={url}
                                       alt={`${company.name} gallery image ${index + 1}`}

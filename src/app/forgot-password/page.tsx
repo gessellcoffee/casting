@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
             <h1 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
               Reset Password
             </h1>
-            <p className="mt-2 text-[#c5ddff]/90">
+            <p className="mt-2 text-neu-text-primary/90">
               Enter your email to receive a password reset link
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
           {/* Reset Form */}
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#b5ccff] mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-neu-text-primary mb-2">
                 Email
               </label>
               <input
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] placeholder-[#c5ddff]/40 focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                 placeholder="you@example.com"
                 disabled={loading}
               />
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] hover:border-[#5a8ff5]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="w-full px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors text-sm"
+              className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-sm"
             >
               Back to login
             </Link>

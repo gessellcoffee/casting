@@ -57,7 +57,7 @@ export default function AuditionDetailPage() {
     return (
       <StarryContainer>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-[#c5ddff]/70">Loading audition details...</div>
+          <div className="text-neu-text-primary/70">Loading audition details...</div>
         </div>
       </StarryContainer>
     );
@@ -76,7 +76,7 @@ export default function AuditionDetailPage() {
           {/* Back Button */}
           <button
             onClick={() => router.push('/auditions')}
-            className="mb-6 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors flex items-center gap-2"
+            className="mb-6 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-2"
           >
             ← Back to Auditions
           </button>
@@ -89,7 +89,7 @@ export default function AuditionDetailPage() {
             <div className="mt-6">
               <button
                 onClick={() => router.push(`/auditions/${audition.audition_id}/callbacks`)}
-                className="px-6 py-3 rounded-lg bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-all font-semibold shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]"
+                className="px-6 py-3 rounded-lg bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-all font-semibold shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]"
               >
                 📋 Manage Callbacks
               </button>

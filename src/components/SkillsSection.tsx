@@ -224,8 +224,8 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
 
   if (loading) {
     return (
-      <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-        <p className="text-[#c5ddff]/70">Loading skills...</p>
+      <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+        <p className="text-neu-text-primary/70">Loading skills...</p>
       </div>
     );
   }
@@ -253,26 +253,26 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
       )}
 
       {isAddingNew && (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-semibold text-[#c5ddff] mb-4">Add New Skill</h3>
+        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+          <h3 className="text-lg font-semibold text-neu-text-primary mb-4">Add New Skill</h3>
           <div className="space-y-4">
             <div className="relative">
-              <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+              <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                 Skill Name (separate with commas)
               </label>
               
               {/* Pending skills badges */}
               {pendingSkills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2 p-2 rounded-lg bg-[#1a2332]/50 border border-[#4a7bd9]/20">
+                <div className="flex flex-wrap gap-2 mb-2 p-2 rounded-lg bg-[#1a2332]/50 border border-neu-border">
                   {pendingSkills.map((skill, index) => (
                     <div
                       key={index}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4a7bd9]/30 border border-[#4a7bd9]/40 text-[#c5ddff] text-sm"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#4a7bd9]/30 border border-[#4a7bd9]/40 text-neu-text-primary text-sm"
                     >
                       <span>{skill}</span>
                       <button
                         onClick={() => setPendingSkills(pendingSkills.filter((_, i) => i !== index))}
-                        className="text-[#b5ccff]/50 hover:text-red-400 transition-colors"
+                        className="text-neu-text-primary/50 hover:text-red-400 transition-colors"
                         aria-label={`Remove ${skill}`}
                       >
                         <svg
@@ -306,7 +306,7 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
                     setShowSuggestions(true);
                   }
                 }}
-                className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-[#4a7bd9]/30 text-[#c5ddff] focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                 placeholder="e.g., Acting, Singing, Dancing"
                 autoFocus
               />
@@ -314,16 +314,16 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
               {showSuggestions && suggestions.length > 0 && (
                 <div
                   ref={suggestionsRef}
-                  className="absolute z-10 w-full mt-1 bg-[#1a2332] border border-[#4a7bd9]/30 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                  className="absolute z-10 w-full mt-1 bg-[#1a2332] border border-neu-border rounded-lg shadow-lg max-h-60 overflow-y-auto"
                 >
                   {suggestions.map((suggestion, index) => (
                     <button
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion.skill_name)}
-                      className="w-full px-4 py-2 text-left hover:bg-[#2e3e5e] transition-colors flex items-center justify-between group"
+                      className="w-full px-4 py-2 text-left hover:bg-neu-surface transition-colors flex items-center justify-between group"
                     >
-                      <span className="text-[#c5ddff]">{suggestion.skill_name}</span>
-                      <span className="text-xs text-[#b5ccff]/50 group-hover:text-[#b5ccff]/70">
+                      <span className="text-neu-text-primary">{suggestion.skill_name}</span>
+                      <span className="text-xs text-neu-text-primary/50 group-hover:text-neu-text-primary/70">
                         {suggestion.usage_count} {suggestion.usage_count === 1 ? 'user' : 'users'}
                       </span>
                     </button>
@@ -349,27 +349,27 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
       )}
 
       {skills.length === 0 && !isAddingNew ? (
-        <div className="p-8 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20 text-center">
-          <p className="text-[#c5ddff]/70">No skills added yet.</p>
+        <div className="p-8 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-center">
+          <p className="text-neu-text-primary/70">No skills added yet.</p>
           {isEditing && (
-            <p className="text-[#b5ccff]/50 text-sm mt-2">
+            <p className="text-neu-text-primary/50 text-sm mt-2">
               Click &quot;Add Skill&quot; to add your first skill.
             </p>
           )}
         </div>
       ) : (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, index) => (
               <div
                 key={`${skill}-${index}`}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4a7bd9]/20 border border-[#4a7bd9]/30 text-[#c5ddff]"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4a7bd9]/20 border border-neu-border text-neu-text-primary"
               >
                 <span>{skill}</span>
                 {isEditing && (
                   <button
                     onClick={() => handleDeleteSkill(skill)}
-                    className="text-[#b5ccff]/50 hover:text-red-400 transition-colors"
+                    className="text-neu-text-primary/50 hover:text-red-400 transition-colors"
                     aria-label={`Delete ${skill}`}
                   >
                     <svg

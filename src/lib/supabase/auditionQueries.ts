@@ -1,4 +1,10 @@
 import { supabase } from './client';
+import type { AuditionSlot, Role } from './types';
+
+// Type for audition slot with signup count from the query
+type AuditionSlotWithSignups = AuditionSlot & {
+  current_signups: Array<{ count: number }>;
+};
 
 /**
  * Fetch all auditions with related show, company, and slot data
@@ -27,7 +33,7 @@ export async function getAuditionsWithDetails() {
     ...audition,
     show: audition.shows,
     company: audition.companies,
-    slots: audition.audition_slots?.map((slot: any) => ({
+    slots: audition.audition_slots?.map((slot: AuditionSlotWithSignups) => ({
       ...slot,
       current_signups: slot.current_signups?.[0]?.count || 0,
     })),
@@ -65,7 +71,7 @@ export async function getAuditionById(auditionId: string) {
   }
 
   // Fetch roles separately using the show_id (no direct FK between auditions and roles)
-  let roles: any[] = [];
+  let roles: Role[] = [];
   if (data.show_id) {
     const { data: rolesData, error: rolesError } = await supabase
       .from('roles')
@@ -84,7 +90,7 @@ export async function getAuditionById(auditionId: string) {
     ...data,
     show: data.shows,
     company: data.companies,
-    slots: data.audition_slots?.map((slot: any) => ({
+    slots: data.audition_slots?.map((slot: AuditionSlotWithSignups) => ({
       ...slot,
       current_signups: slot.current_signups?.[0]?.count || 0,
     })),

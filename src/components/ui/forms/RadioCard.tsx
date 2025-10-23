@@ -26,7 +26,7 @@ export default function RadioCard({
       className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${
         checked
           ? 'border-[#5a8ff5] bg-[#5a8ff5]/10'
-          : 'border-[#4a7bd9]/20 hover:border-[#4a7bd9]/40'
+          : 'border-neu-border hover:border-[#4a7bd9]/40'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <div className="flex items-center">
@@ -37,12 +37,12 @@ export default function RadioCard({
           checked={checked}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className="w-4 h-4 text-[#5a8ff5] focus:ring-[#5a8ff5]"
+          className="w-4 h-4 text-neu-accent-primary focus:ring-[#5a8ff5]"
         />
         <div className="ml-3 flex-1">
-          <div className="text-[#c5ddff] font-medium">{title}</div>
+          <div className="text-neu-text-primary font-medium">{title}</div>
           {description && (
-            <div className="text-[#c5ddff]/60 text-sm">{description}</div>
+            <div className="text-neu-text-primary/60 text-sm">{description}</div>
           )}
           {children}
         </div>

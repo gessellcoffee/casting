@@ -114,8 +114,8 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
           onClick={() => setFilter('upcoming')}
           className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
             filter === 'upcoming'
-              ? 'bg-[#5a8ff5]/20 border border-[#5a8ff5]/50 text-[#5a8ff5] shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)]'
-              : 'bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#5a8ff5]/30 text-[#c5ddff] shadow-[3px_3px_6px_var(--cosmic-shadow-dark),-3px_-3px_6px_var(--cosmic-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5]'
+              ? 'bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-accent-primary shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)]'
+              : 'bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary'
           }`}
         >
           Upcoming
@@ -124,8 +124,8 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
           onClick={() => setFilter('past')}
           className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
             filter === 'past'
-              ? 'bg-[#5a8ff5]/20 border border-[#5a8ff5]/50 text-[#5a8ff5] shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)]'
-              : 'bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#5a8ff5]/30 text-[#c5ddff] shadow-[3px_3px_6px_var(--cosmic-shadow-dark),-3px_-3px_6px_var(--cosmic-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5]'
+              ? 'bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-accent-primary shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)]'
+              : 'bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary'
           }`}
         >
           Past
@@ -134,8 +134,8 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
           onClick={() => setFilter('all')}
           className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
             filter === 'all'
-              ? 'bg-[#5a8ff5]/20 border border-[#5a8ff5]/50 text-[#5a8ff5] shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)]'
-              : 'bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#5a8ff5]/30 text-[#c5ddff] shadow-[3px_3px_6px_var(--cosmic-shadow-dark),-3px_-3px_6px_var(--cosmic-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5]'
+              ? 'bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-accent-primary shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)]'
+              : 'bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary'
           }`}
         >
           All
@@ -145,7 +145,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
       {/* List of events */}
       {Object.keys(groupedEvents).length === 0 ? (
         <EmptyState
-          icon={<MdCalendarToday className="w-16 h-16 text-[#c5ddff]/30 mx-auto" />}
+          icon={<MdCalendarToday className="w-16 h-16 text-neu-text-primary/30 mx-auto" />}
           title="No events found"
           description={`No ${filter === 'upcoming' ? 'upcoming' : filter === 'past' ? 'past' : ''} events found`}
         />
@@ -153,7 +153,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
         <div className="space-y-6 sm:space-y-8">
           {Object.entries(groupedEvents).map(([month, monthEvents]) => (
             <div key={month}>
-              <h3 className="text-lg sm:text-xl font-semibold text-[#c5ddff] mb-3 sm:mb-4 pb-2 border-b border-[#4a7bd9]/20">
+              <h3 className="text-lg sm:text-xl font-semibold text-neu-text-primary mb-3 sm:mb-4 pb-2 border-b border-neu-border">
                 {month}
               </h3>
               <div className="space-y-3">
@@ -173,31 +173,31 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                     <button
                       key={isCallback ? event.invitation_id : event.signup_id}
                       onClick={() => setSelectedEvent(isCallback ? { ...event, isCallback: true } : event)}
-                      className="w-full text-left p-3 sm:p-4 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 hover:border-[#5a8ff5]/40 hover:bg-[#2e3e5e]/70 transition-all duration-200"
+                      className="w-full text-left p-3 sm:p-4 rounded-lg bg-white/70 backdrop-blur-sm border border-neu-border/40 hover:border-neu-border-focus hover:bg-white/85 transition-all duration-200"
                     >
                       <div className="flex items-start justify-between gap-2 sm:gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 sm:gap-3 mb-2">
                             <div className="text-center min-w-[50px] sm:min-w-[60px]">
-                              <div className="text-xl sm:text-2xl font-bold text-[#5a8ff5]">
+                              <div className="text-xl sm:text-2xl font-bold text-neu-accent-primary">
                                 {startTime.getDate()}
                               </div>
-                              <div className="text-[10px] sm:text-xs text-[#c5ddff]/70 uppercase">
+                              <div className="text-[10px] sm:text-xs text-neu-text-primary/70 uppercase">
                                 {startTime.toLocaleDateString('en-US', { month: 'short' })}
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-[#9b87f5]' : 'text-[#c5ddff]'}`}>
+                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-[#9b87f5]' : 'text-neu-text-primary'}`}>
                                 {isCallback && <span className="flex-shrink-0">📋</span>}
                                 <span className="truncate">{showTitle}</span>
                               </h4>
                               {showAuthor && (
-                                <p className="text-xs sm:text-sm text-[#c5ddff]/60 truncate">
+                                <p className="text-xs sm:text-sm text-neu-text-primary/60 truncate">
                                   by {showAuthor}
                                 </p>
                               )}
                               {roleName && (
-                                <p className="text-xs sm:text-sm text-[#5a8ff5] font-medium mt-1 truncate">
+                                <p className="text-xs sm:text-sm text-neu-accent-primary font-medium mt-1 truncate">
                                   Role: {roleName}
                                 </p>
                               )}
@@ -209,7 +209,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[#c5ddff]/70 ml-[54px] sm:ml-[72px]">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neu-text-primary/70 ml-[54px] sm:ml-[72px]">
                             <div className="flex items-center gap-1">
                               <MdAccessTime className="w-3 h-3 sm:w-4 sm:h-4" />
                               {startTime.toLocaleTimeString('en-US', {

@@ -96,16 +96,16 @@ export default function AuditionsPage() {
           <div className="mb-8">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-4xl font-bold text-[#c5ddff] mb-2">
+                <h1 className="text-4xl font-bold text-neu-text-primary mb-2">
                   Browse Auditions
                 </h1>
-                <p className="text-[#c5ddff]/70">
+                <p className="text-neu-text-secondary">
                   Find your next role and sign up for audition slots
                 </p>
               </div>
               <Link
                 href="/my-auditions"
-                className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#5a8ff5]/30 text-[#c5ddff] shadow-[3px_3px_6px_var(--cosmic-shadow-dark),-3px_-3px_6px_var(--cosmic-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] transition-all duration-200 font-medium flex items-center gap-2 whitespace-nowrap"
+                className="n-button-primary flex items-center gap-2 whitespace-nowrap"
               >
                 <MdCalendarToday className="w-5 h-5" />
                 My Calendar
@@ -124,7 +124,7 @@ export default function AuditionsPage() {
           {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
-              <div className="text-[#c5ddff]/70">Loading auditions...</div>
+              <div className="text-neu-text-secondary">Loading auditions...</div>
             </div>
           )}
 
@@ -140,7 +140,7 @@ export default function AuditionsPage() {
           {/* Empty State */}
           {!loading && filteredAuditions.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-[#c5ddff]/70 mb-4">
+              <div className="text-neu-text-secondary mb-4">
                 {searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all'
                   ? 'No auditions match your filters'
                   : 'No auditions posted yet'}
@@ -151,7 +151,7 @@ export default function AuditionsPage() {
                     setSearchQuery('');
                     setFilters({ equityStatus: 'all', dateRange: 'all' });
                   }}
-                  className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors"
+                  className="n-button-secondary"
                 >
                   Clear filters
                 </button>

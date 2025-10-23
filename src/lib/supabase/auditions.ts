@@ -1,5 +1,17 @@
 import { supabase } from './client';
-import type { Audition, AuditionInsert, AuditionUpdate } from './types';
+import type { Audition, AuditionInsert, AuditionUpdate, Show, Company } from './types';
+import type { PostgrestError } from '@supabase/supabase-js';
+
+// Type for audition with nested show and company data
+type AuditionWithDetails = Audition & {
+  shows: Pick<Show, 'show_id' | 'title' | 'author' | 'description'> | null;
+  companies: Pick<Company, 'company_id' | 'name'> | null;
+};
+
+// Type for audition with nested show data (for search results)
+type AuditionWithShow = Audition & {
+  shows: Pick<Show, 'show_id' | 'title' | 'author' | 'description'> | null;
+};
 
 /**
  * Get an audition by ID
@@ -22,7 +34,7 @@ export async function getAudition(auditionId: string): Promise<Audition | null> 
 /**
  * Get audition with related show and company data
  */
-export async function getAuditionWithDetails(auditionId: string): Promise<any | null> {
+export async function getAuditionWithDetails(auditionId: string): Promise<AuditionWithDetails | null> {
   const { data, error } = await supabase
     .from('auditions')
     .select(`
@@ -126,7 +138,7 @@ export async function getAllAuditions(limit: number = 50): Promise<Audition[]> {
  */
 export async function createAudition(
   auditionData: AuditionInsert
-): Promise<{ data: Audition | null; error: any }> {
+): Promise<{ data: Audition | null; error: PostgrestError | Error | null }> {
   // Verify the authenticated user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -161,7 +173,7 @@ export async function createAudition(
 export async function updateAudition(
   auditionId: string,
   updates: AuditionUpdate
-): Promise<{ data: Audition | null; error: any }> {
+): Promise<{ data: Audition | null; error: PostgrestError | Error | null }> {
   // Verify the authenticated user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -209,7 +221,7 @@ export async function updateAudition(
  */
 export async function deleteAudition(
   auditionId: string
-): Promise<{ error: any }> {
+): Promise<{ error: PostgrestError | Error | null }> {
   // Verify the authenticated user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -256,7 +268,7 @@ export async function deleteAudition(
 export async function markAuditionSlotsFilled(
   auditionId: string,
   filled: boolean
-): Promise<{ error: any }> {
+): Promise<{ error: PostgrestError | Error | null }> {
   const { error } = await updateAudition(auditionId, { show_filled_slots: filled });
   
   if (error) {
@@ -269,7 +281,7 @@ export async function markAuditionSlotsFilled(
 /**
  * Search auditions by show title
  */
-export async function searchAuditions(searchTerm: string, limit: number = 20): Promise<any[]> {
+export async function searchAuditions(searchTerm: string, limit: number = 20): Promise<AuditionWithShow[]> {
   const { data, error } = await supabase
     .from('auditions')
     .select(`

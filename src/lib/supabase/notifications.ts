@@ -45,10 +45,45 @@ export async function getUserNotifications(
 
   if (error) {
     console.error('Error fetching notifications:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return [];
   }
 
-  return data || [];
+  // For callback invitation notifications, fetch the invitation details
+  const notificationsWithDetails = await Promise.all(
+    (data || []).map(async (notification) => {
+      if (notification.reference_type === 'callback_invitation' && notification.reference_id) {
+        const { data: invitationData } = await supabase
+          .from('callback_invitations')
+          .select(`
+            invitation_id,
+            callback_slots (
+              callback_slot_id,
+              start_time,
+              end_time,
+              location,
+              auditions (
+                audition_id,
+                shows (
+                  show_id,
+                  title
+                )
+              )
+            )
+          `)
+          .eq('invitation_id', notification.reference_id)
+          .single();
+        
+        return {
+          ...notification,
+          callback_invitations: invitationData
+        };
+      }
+      return notification;
+    })
+  );
+
+  return notificationsWithDetails;
 }
 
 /**

@@ -44,7 +44,7 @@ export default function ProtectedRoute({
   if (isAuthenticated === null) {
     return loadingComponent || (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[#c5ddff]/90">Loading...</div>
+        <div className="text-neu-text-primary/90">Loading...</div>
       </div>
     );
   }

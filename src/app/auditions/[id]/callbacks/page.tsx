@@ -62,7 +62,7 @@ export default function CallbackManagementPage() {
     return (
       <StarryContainer>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-[#c5ddff]/70">Loading callback management...</div>
+          <div className="text-neu-text-primary/70">Loading callback management...</div>
         </div>
       </StarryContainer>
     );
@@ -75,13 +75,13 @@ export default function CallbackManagementPage() {
           <div className="max-w-6xl mx-auto">
             <button
               onClick={() => router.push(`/auditions/${params.id}`)}
-              className="mb-6 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors flex items-center gap-2"
+              className="mb-6 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-2"
             >
               ← Back to Audition
             </button>
             <div className="p-6 rounded-xl bg-red-500/10 border border-red-500/30">
               <h2 className="text-xl font-semibold text-red-400 mb-2">Error</h2>
-              <p className="text-[#c5ddff]/70">{error}</p>
+              <p className="text-neu-text-primary/70">{error}</p>
             </div>
           </div>
         </div>
@@ -100,17 +100,17 @@ export default function CallbackManagementPage() {
           {/* Back Button */}
           <button
             onClick={() => router.push(`/auditions/${params.id}`)}
-            className="mb-6 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors flex items-center gap-2"
+            className="mb-6 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-2"
           >
             ← Back to Audition
           </button>
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#c5ddff] mb-2">
+            <h1 className="text-3xl font-bold text-neu-text-primary mb-2">
               Callback Management
             </h1>
-            <p className="text-[#c5ddff]/70">
+            <p className="text-neu-text-primary/70">
               {audition.shows?.title || 'Untitled Show'}
             </p>
           </div>

@@ -90,16 +90,16 @@ export default function RoleManager({
   const genderOptions: RoleGender[] = ['masculine', 'feminine', 'ungendered'];
 
   if (loading) {
-    return <div className="text-[#c5ddff]">Loading roles...</div>;
+    return <div className="text-neu-text-primary">Loading roles...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Manage Roles
         </h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+        <p className="text-neu-text-primary/70 mb-6">
           Add the roles you need to cast for this show. At least one role is required.
         </p>
       </div>
@@ -109,10 +109,10 @@ export default function RoleManager({
         {localRoles.map((role, index) => (
           <div
             key={index}
-            className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4"
+            className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4"
           >
             <div className="flex justify-between items-start">
-              <h3 className="text-lg font-medium text-[#c5ddff]">
+              <h3 className="text-lg font-medium text-neu-text-primary">
                 Role {index + 1}
               </h3>
               {localRoles.length > 1 && (
@@ -174,9 +174,9 @@ export default function RoleManager({
                     type="checkbox"
                     checked={role.needs_understudy || false}
                     onChange={(e) => updateRole(index, 'needs_understudy', e.target.checked)}
-                    className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-[#2e3e5e] checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                    className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                   />
-                  <span className="text-sm font-medium text-[#b5ccff]">
+                  <span className="text-sm font-medium text-neu-text-primary">
                     This role needs an understudy
                   </span>
                 </label>
@@ -200,7 +200,7 @@ export default function RoleManager({
       {/* Add Role Button */}
       <button
         onClick={addRole}
-        className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors text-sm font-medium"
+        className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-sm font-medium"
       >
         + Add Another Role
       </button>

@@ -15,15 +15,15 @@ export default function RolesList({ roles, showId }: RolesListProps) {
   }
 
   return (
-    <div className="p-6 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
+    <div className="p-6 rounded-xl bg-neu-surface/50 border border-neu-border">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between mb-4 group"
       >
-        <h2 className="text-2xl font-semibold text-[#c5ddff] group-hover:text-[#5a8ff5] transition-colors">
+        <h2 className="text-2xl font-semibold text-neu-text-primary group-hover:text-neu-accent-primary transition-colors">
           Roles {roles.length > 0 && `(${roles.length})`}
         </h2>
-        <span className="text-[#c5ddff] group-hover:text-[#5a8ff5] transition-all duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+        <span className="text-neu-text-primary group-hover:text-neu-accent-primary transition-all duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           ▼
         </span>
       </button>
@@ -33,20 +33,20 @@ export default function RolesList({ roles, showId }: RolesListProps) {
         {roles.map((role) => (
           <div
             key={role.role_id}
-            className="p-4 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/10"
+            className="p-4 rounded-lg bg-neu-surface/50 border border-[#4a7bd9]/10"
           >
             <div className="flex items-start justify-between mb-2">
-              <h3 className="text-lg font-semibold text-[#c5ddff]">
+              <h3 className="text-lg font-semibold text-neu-text-primary">
                 {role.role_name}
               </h3>
               <div className="flex gap-2">
                 {role.role_type && (
-                  <span className="px-2 py-1 rounded text-xs bg-[#2e3e5e]/80 border border-[#5a8ff5]/30 text-[#c5ddff] shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
+                  <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border-focus text-neu-text-primary shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
                     {role.role_type}
                   </span>
                 )}
                 {role.gender && (
-                  <span className="px-2 py-1 rounded text-xs bg-[#2e3e5e]/80 border border-[#4a7bd9]/30 text-[#94b0f6] capitalize shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
+                  <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border text-neu-accent-secondary capitalize shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
                     {role.gender}
                   </span>
                 )}
@@ -54,7 +54,7 @@ export default function RolesList({ roles, showId }: RolesListProps) {
             </div>
 
             {role.description && (
-              <p className="text-[#c5ddff]/70 text-sm">
+              <p className="text-neu-text-primary/70 text-sm">
                 {role.description}
               </p>
             )}

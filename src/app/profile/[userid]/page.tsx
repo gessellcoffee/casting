@@ -51,7 +51,7 @@ export default function UserProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <StarryContainer starCount={15} className="card w-full max-w-4xl">
-          <div className="p-8 text-center text-[#c5ddff]/90">
+          <div className="p-8 text-center text-neu-text-primary/90">
             Loading profile...
           </div>
         </StarryContainer>
@@ -64,10 +64,10 @@ export default function UserProfilePage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <StarryContainer starCount={15} className="card w-full max-w-4xl">
           <div className="p-8 text-center">
-            <p className="text-[#c5ddff]/90 mb-4">{error || 'User not found'}</p>
+            <p className="text-neu-text-primary/90 mb-4">{error || 'User not found'}</p>
             <Link 
               href="/"
-              className="text-[#5a8ff5] hover:text-[#6a9fff] underline"
+              className="text-neu-accent-primary hover:text-[#6a9fff] underline"
             >
               Return to Home
             </Link>
@@ -100,10 +100,10 @@ export default function UserProfilePage() {
                   <img
                     src={profile.profile_photo_url}
                     alt={fullName}
-                    className="w-32 h-32 rounded-full border-4 border-[#4a7bd9]/30 object-cover"
+                    className="w-32 h-32 rounded-full border-4 border-neu-border object-cover"
                   />
                 ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-[#4a7bd9]/30 bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full border-4 border-neu-border bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 flex items-center justify-center">
                     <svg className="w-16 h-16 text-[#4a7bd9]/50" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                     </svg>
@@ -115,36 +115,36 @@ export default function UserProfilePage() {
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {profile.username && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                  <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+                  <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                     Username
                   </label>
-                  <p className="text-[#c5ddff]">{profile.username}</p>
+                  <p className="text-neu-text-primary">{profile.username}</p>
                 </div>
               )}
             </div>
 
             {/* Description */}
             {profile.description && (
-              <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                <label className="block text-sm font-medium text-[#b5ccff]/70 mb-2">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+                <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                   Bio
                 </label>
-                <p className="text-[#c5ddff] whitespace-pre-wrap">{profile.description}</p>
+                <p className="text-neu-text-primary whitespace-pre-wrap">{profile.description}</p>
               </div>
             )}
 
             {/* Skills */}
             {profile.skills && profile.skills.length > 0 && (
-              <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                <label className="block text-sm font-medium text-[#b5ccff]/70 mb-3">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+                <label className="block text-sm font-medium text-neu-text-primary/70 mb-3">
                   Skills
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {profile.skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 rounded-full bg-[#4a7bd9]/20 border border-[#4a7bd9]/30 text-[#c5ddff] text-sm"
+                      className="px-3 py-1 rounded-full bg-[#4a7bd9]/20 border border-neu-border text-neu-text-primary text-sm"
                     >
                       {skill}
                     </span>
@@ -155,13 +155,13 @@ export default function UserProfilePage() {
 
             {/* Image Gallery */}
             {profile.image_gallery && Array.isArray(profile.image_gallery) && profile.image_gallery.length > 0 && (
-              <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
-                <label className="block text-sm font-medium text-[#b5ccff]/70 mb-4">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+                <label className="block text-sm font-medium text-neu-text-primary/70 mb-4">
                   Gallery
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {profile.image_gallery.map((url, index) => (
-                    <div key={index} className="aspect-square rounded-lg overflow-hidden border border-[#4a7bd9]/20">
+                    <div key={index} className="aspect-square rounded-lg overflow-hidden border border-neu-border">
                       <img
                         src={url}
                         alt={`Gallery image ${index + 1}`}
@@ -175,7 +175,7 @@ export default function UserProfilePage() {
 
             {/* Resume Section */}
             {resumes.length > 0 && (
-              <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                 <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] mb-4">
                   Resume
                 </h2>
@@ -187,7 +187,7 @@ export default function UserProfilePage() {
                       href={profile.resume_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#5a8ff5] hover:text-[#6a9fff] underline"
+                      className="text-neu-accent-primary hover:text-[#6a9fff] underline"
                     >
                       View Resume File
                     </a>
@@ -199,12 +199,12 @@ export default function UserProfilePage() {
                   {resumes.map((resume) => (
                     <div
                       key={resume.resume_entry_id}
-                      className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20"
+                      className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-[#c5ddff] mb-1">
+                            <h3 className="text-lg font-semibold text-neu-text-primary mb-1">
                               {resume.show_name || 'Untitled Production'}
                             </h3>
                             {(resume.source === 'application' || resume.company_approved) && (
@@ -240,22 +240,22 @@ export default function UserProfilePage() {
                               </svg>
                             )}
                           </div>
-                          <p className="text-[#5a8ff5] font-medium">
+                          <p className="text-neu-accent-primary font-medium">
                             {resume.role || 'Role not specified'}
                           </p>
                         </div>
                       </div>
 
-                      <div className="space-y-1 text-sm text-[#b5ccff]/80">
+                      <div className="space-y-1 text-sm text-neu-text-primary/80">
                         {resume.company_name && (
                           <p>
-                            <span className="text-[#b5ccff]/60">Company: </span>
+                            <span className="text-neu-text-primary/60">Company: </span>
                             {resume.company_name}
                           </p>
                         )}
                         {resume.date_of_production && (
                           <p>
-                            <span className="text-[#b5ccff]/60">Date: </span>
+                            <span className="text-neu-text-primary/60">Date: </span>
                             {resume.date_of_production}
                           </p>
                         )}

@@ -1,5 +1,6 @@
+import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from './client';
-import type { AuditionSignup, AuditionSignupInsert, AuditionSignupUpdate } from './types';
+import type { AuditionSignup, AuditionSignupInsert, AuditionSignupUpdate, AuditionSignupWithDetails, UserSignupsWithDetails } from './types';
 
 /**
  * Get an audition signup by ID
@@ -22,7 +23,7 @@ export async function getAuditionSignup(signupId: string): Promise<AuditionSignu
 /**
  * Get signup with related user, slot, and role data
  */
-export async function getAuditionSignupWithDetails(signupId: string): Promise<any | null> {
+export async function getAuditionSignupWithDetails(signupId: string): Promise<AuditionSignupWithDetails | null> {
   const { data, error } = await supabase
     .from('audition_signups')
     .select(`
@@ -95,7 +96,7 @@ export async function getUserSignups(userId: string): Promise<AuditionSignup[]> 
 /**
  * Get all signups for a specific user with full details (slot, audition, show, role)
  */
-export async function getUserSignupsWithDetails(userId: string): Promise<any[]> {
+export async function getUserSignupsWithDetails(userId: string): Promise<UserSignupsWithDetails[]> {
   const { data, error } = await supabase
     .from('audition_signups')
     .select(`
@@ -159,7 +160,7 @@ export async function getRoleSignups(roleId: string): Promise<AuditionSignup[]> 
 /**
  * Get all signups for an audition (via slots)
  */
-export async function getAuditionSignups(auditionId: string): Promise<any[]> {
+export async function getAuditionSignups(auditionId: string): Promise<AuditionSignup[]> {
   const { data, error } = await supabase
     .from('audition_signups')
     .select(`

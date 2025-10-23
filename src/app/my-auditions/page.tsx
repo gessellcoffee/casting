@@ -46,9 +46,7 @@ export default function MyAuditionsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1a2332] via-[#2e3e5e] to-[#1a2332] p-6 flex items-center justify-center">
-        <div className="text-[#c5ddff]/70">Loading your auditions...</div>
-      </div>
+      <div className="text-neu-text-primary/70">Loading your auditions...</div>
     );
   }
 
@@ -57,13 +55,13 @@ export default function MyAuditionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a2332] via-[#2e3e5e] to-[#1a2332] p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#c5ddff] mb-2">
+          <h1 className="text-4xl font-bold text-neu-text-primary mb-2">
             My Audition Calendar
           </h1>
-          <p className="text-[#c5ddff]/70">
+          <p className="text-neu-text-primary/70">
             View, update, and manage your audition signups
           </p>
         </div>

@@ -73,7 +73,7 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-[#c5ddff]/70">Loading callback data...</div>
+        <div className="text-neu-text-primary/70">Loading callback data...</div>
       </div>
     );
   }
@@ -83,25 +83,25 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
     return (
       <div className="space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="p-4 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-            <div className="text-sm text-[#c5ddff]/70 mb-1">Total Auditionees</div>
-            <div className="text-2xl font-bold text-[#c5ddff]">{stats.totalAuditionees}</div>
+        <div className="card grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="neu-card-raised m-12">
+            <div className="text-sm text-neu-text-primary/70 mb-1">Total Auditionees</div>
+            <div className="text-2xl font-bold text-neu-text-primary">{stats.totalAuditionees}</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-            <div className="text-sm text-[#c5ddff]/70 mb-1">Callback Slots</div>
-            <div className="text-2xl font-bold text-[#c5ddff]">{stats.totalSlots}</div>
+          <div className="neu-card-raised m-1">
+            <div className="text-sm text-neu-text-primary/70 mb-1">Callback Slots</div>
+            <div className="text-2xl font-bold text-neu-text-primary">{stats.totalSlots}</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-            <div className="text-sm text-[#c5ddff]/70 mb-1">Pending</div>
+          <div className="neu-card-raised m-1">
+            <div className="text-sm text-neu-text-primary/70 mb-1">Pending</div>
             <div className="text-2xl font-bold text-yellow-400">{stats.pendingInvitations}</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-            <div className="text-sm text-[#c5ddff]/70 mb-1">Accepted</div>
+          <div className="neu-card-raised m-1">
+            <div className="text-sm text-neu-text-primary/70 mb-1">Accepted</div>
             <div className="text-2xl font-bold text-green-400">{stats.acceptedInvitations}</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)]">
-            <div className="text-sm text-[#c5ddff]/70 mb-1">Rejected</div>
+          <div className="neu-card-raised m-1">
+            <div className="text-sm text-neu-text-primary/70 mb-1">Rejected</div>
             <div className="text-2xl font-bold text-red-400">{stats.rejectedInvitations}</div>
           </div>
         </div>
@@ -111,17 +111,17 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
           {/* Step 1: Create Callback Slots */}
           <button
             onClick={() => setViewMode('create-slots')}
-            className="p-6 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 hover:border-[#5a8ff5]/50 transition-all text-left group shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+            className="neu-card-raised p-6 text-left group cursor-pointer hover:shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]"
           >
             <div className="text-3xl mb-3">📅</div>
-            <h3 className="text-lg font-semibold text-[#c5ddff] mb-2 group-hover:text-[#5a8ff5] transition-colors">
+            <h3 className="text-lg font-semibold text-neu-text-primary mb-2 group-hover:text-neu-accent-primary transition-colors">
               1. Create Callback Slots
             </h3>
-            <p className="text-sm text-[#c5ddff]/70">
+            <p className="text-sm text-neu-text-primary/70">
               Set up dates, times, and locations for callbacks
             </p>
             {stats.totalSlots > 0 && (
-              <div className="mt-3 text-xs text-[#5a8ff5]">
+              <div className="mt-3 text-xs text-neu-accent-primary">
                 {stats.totalSlots} slot{stats.totalSlots !== 1 ? 's' : ''} created
               </div>
             )}
@@ -131,13 +131,13 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
           <button
             onClick={() => setViewMode('select-auditionees')}
             disabled={stats.totalSlots === 0}
-            className="p-6 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 hover:border-[#5a8ff5]/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+            className="neu-card-raised p-6 text-left group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]"
           >
             <div className="text-3xl mb-3">👥</div>
-            <h3 className="text-lg font-semibold text-[#c5ddff] mb-2 group-hover:text-[#5a8ff5] transition-colors">
-              2. Select Auditionees
+            <h3 className="text-lg font-semibold text-neu-text-primary mb-2 group-hover:text-neu-accent-primary transition-colors">
+              2. Select Auditionees {stats.totalSlots === 0 ? '(disabled)' : ''}
             </h3>
-            <p className="text-sm text-[#c5ddff]/70">
+            <p className="text-sm text-neu-text-primary/70">
               Choose which actors to invite to callbacks
             </p>
             {stats.totalSlots === 0 && (
@@ -150,17 +150,17 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
           {/* Step 3: Manage Invitations */}
           <button
             onClick={() => setViewMode('manage-invitations')}
-            className="p-6 rounded-xl bg-[#2e3e5e]/80 border border-[#4a7bd9]/20 hover:border-[#5a8ff5]/50 transition-all text-left group shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]"
+            className="neu-card-raised p-6 text-left group cursor-pointer hover:shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]"
           >
             <div className="text-3xl mb-3">📧</div>
-            <h3 className="text-lg font-semibold text-[#c5ddff] mb-2 group-hover:text-[#5a8ff5] transition-colors">
+            <h3 className="text-lg font-semibold text-neu-text-primary mb-2 group-hover:text-neu-accent-primary transition-colors">
               3. Manage Invitations
             </h3>
-            <p className="text-sm text-[#c5ddff]/70">
+            <p className="text-sm text-neu-text-primary/70">
               View and manage callback invitation responses
             </p>
             {(stats.pendingInvitations + stats.acceptedInvitations + stats.rejectedInvitations) > 0 && (
-              <div className="mt-3 text-xs text-[#5a8ff5]">
+              <div className="mt-3 text-xs text-neu-accent-primary">
                 {stats.pendingInvitations + stats.acceptedInvitations + stats.rejectedInvitations} invitation{(stats.pendingInvitations + stats.acceptedInvitations + stats.rejectedInvitations) !== 1 ? 's' : ''} sent
               </div>
             )}
@@ -168,23 +168,23 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
         </div>
 
         {/* Quick Info */}
-        <div className="p-6 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 shadow-[inset_2px_2px_5px_var(--cosmic-shadow-dark),inset_-2px_-2px_5px_var(--cosmic-shadow-light)]">
-          <h3 className="text-lg font-semibold text-[#c5ddff] mb-3">Getting Started</h3>
-          <ol className="space-y-2 text-sm text-[#c5ddff]/70">
+        <div className="neu-inset p-6">
+          <h3 className="text-lg font-semibold text-neu-text-primary mb-3">Getting Started</h3>
+          <ol className="space-y-2 text-sm text-neu-text-primary/70">
             <li className="flex items-start gap-2">
-              <span className="text-[#5a8ff5] font-semibold">1.</span>
+              <span className="text-neu-accent-primary font-semibold">1.</span>
               <span>Create callback time slots with dates, times, and locations</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#5a8ff5] font-semibold">2.</span>
+              <span className="text-neu-accent-primary font-semibold">2.</span>
               <span>Review auditionees and select who to invite to each callback slot</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#5a8ff5] font-semibold">3.</span>
+              <span className="text-neu-accent-primary font-semibold">3.</span>
               <span>Send callback invitations - actors will receive notifications and can accept or decline</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#5a8ff5] font-semibold">4.</span>
+              <span className="text-neu-accent-primary font-semibold">4.</span>
               <span>Monitor responses and manage your callback schedule</span>
             </li>
           </ol>
@@ -199,7 +199,7 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
       <div>
         <button
           onClick={() => setViewMode('overview')}
-          className="mb-6 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors flex items-center gap-2"
+          className="mb-6 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-2"
         >
           ← Back to Overview
         </button>
@@ -219,7 +219,7 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
       <div>
         <button
           onClick={() => setViewMode('overview')}
-          className="mb-6 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors flex items-center gap-2"
+          className="mb-6 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-2"
         >
           ← Back to Overview
         </button>
@@ -240,7 +240,7 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
       <div>
         <button
           onClick={() => setViewMode('overview')}
-          className="mb-6 text-[#5a8ff5] hover:text-[#94b0f6] transition-colors flex items-center gap-2"
+          className="mb-6 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-2"
         >
           ← Back to Overview
         </button>

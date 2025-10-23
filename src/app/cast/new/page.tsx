@@ -104,7 +104,7 @@ export default function NewCastingPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[#c5ddff]">Loading...</div>
+        <div className="text-neu-text-primary">Loading...</div>
       </div>
     );
   }
@@ -118,7 +118,7 @@ export default function NewCastingPage() {
             <h1 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
               Post an Audition
             </h1>
-            <p className="text-[#c5ddff]/90 mt-2">
+            <p className="text-neu-text-primary/90 mt-2">
               Create a new audition posting for your show
             </p>
           </div>
@@ -133,14 +133,14 @@ export default function NewCastingPage() {
                       className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
                         index <= currentStepIndex
                           ? 'bg-[#5a8ff5] border-[#5a8ff5] text-white'
-                          : 'bg-[#2e3e5e] border-[#4a7bd9]/20 text-[#c5ddff]/50'
+                          : 'bg-neu-surface border-neu-border text-neu-text-primary/50'
                       }`}
                     >
                       {index + 1}
                     </div>
                     <span
                       className={`text-xs mt-2 ${
-                        index <= currentStepIndex ? 'text-[#5a8ff5]' : 'text-[#c5ddff]/50'
+                        index <= currentStepIndex ? 'text-neu-accent-primary' : 'text-neu-text-primary/50'
                       }`}
                     >
                       {step.label}

@@ -95,10 +95,10 @@ export default function ReviewAndSubmit({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Review & Submit
         </h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+        <p className="text-neu-text-primary/70 mb-6">
           Review your audition posting before submitting.
         </p>
       </div>
@@ -106,9 +106,9 @@ export default function ReviewAndSubmit({
       {/* Review Sections */}
       <div className="space-y-4">
         {/* Company/Individual */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-medium text-[#c5ddff] mb-2">Hosting</h3>
-          <p className="text-[#c5ddff]/70">
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+          <h3 className="text-lg font-medium text-neu-text-primary mb-2">Hosting</h3>
+          <p className="text-neu-text-primary/70">
             {castingData.isCompanyAudition
               ? `Company Audition${castingData.companyId ? '' : ' (No company selected)'}`
               : 'Individual Audition'}
@@ -116,42 +116,42 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Show */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-medium text-[#c5ddff] mb-2">Show</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+          <h3 className="text-lg font-medium text-neu-text-primary mb-2">Show</h3>
           {castingData.showData ? (
             <div>
-              <p className="text-[#c5ddff] font-medium">{castingData.showData.title}</p>
+              <p className="text-neu-text-primary font-medium">{castingData.showData.title}</p>
               {castingData.showData.author && (
-                <p className="text-[#c5ddff]/60 text-sm">by {castingData.showData.author}</p>
+                <p className="text-neu-text-primary/60 text-sm">by {castingData.showData.author}</p>
               )}
               {castingData.showData.description && (
-                <p className="text-[#c5ddff]/50 text-sm mt-1">
+                <p className="text-neu-text-primary/50 text-sm mt-1">
                   {castingData.showData.description}
                 </p>
               )}
             </div>
           ) : (
-            <p className="text-[#c5ddff]/70">No show selected</p>
+            <p className="text-neu-text-primary/70">No show selected</p>
           )}
         </div>
 
         {/* Roles */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-medium text-[#c5ddff] mb-2">
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+          <h3 className="text-lg font-medium text-neu-text-primary mb-2">
             Roles ({castingData.roles.length})
           </h3>
           <div className="space-y-2">
             {castingData.roles.map((role: any, index: number) => (
-              <div key={index} className="p-3 rounded-lg bg-[#2e3e5e]/50">
-                <p className="text-[#c5ddff] font-medium">{role.role_name}</p>
+              <div key={index} className="p-3 rounded-lg bg-neu-surface/50">
+                <p className="text-neu-text-primary font-medium">{role.role_name}</p>
                 {role.role_type && (
-                  <p className="text-[#c5ddff]/60 text-sm">{role.role_type}</p>
+                  <p className="text-neu-text-primary/60 text-sm">{role.role_type}</p>
                 )}
                 {role.gender && (
-                  <p className="text-[#c5ddff]/60 text-sm capitalize">{role.gender}</p>
+                  <p className="text-neu-text-primary/60 text-sm capitalize">{role.gender}</p>
                 )}
                 {role.description && (
-                  <p className="text-[#c5ddff]/50 text-sm mt-1">{role.description}</p>
+                  <p className="text-neu-text-primary/50 text-sm mt-1">{role.description}</p>
                 )}
               </div>
             ))}
@@ -159,17 +159,17 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Audition Details */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-medium text-[#c5ddff] mb-2">Audition Details</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+          <h3 className="text-lg font-medium text-neu-text-primary mb-2">Audition Details</h3>
           <div className="space-y-2 text-sm">
             {castingData.auditionDetails.auditionDates.length > 0 && (
               <div>
-                <span className="text-[#c5ddff]/60">Audition Dates: </span>
+                <span className="text-neu-text-primary/60">Audition Dates: </span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {castingData.auditionDetails.auditionDates.map((date: string, index: number) => (
                     <span
                       key={index}
-                      className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-[#5a8ff5]/30 text-[#c5ddff] text-xs"
+                      className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary text-xs"
                     >
                       {new Date(date).toLocaleDateString()}
                     </span>
@@ -179,12 +179,12 @@ export default function ReviewAndSubmit({
             )}
             {castingData.auditionDetails.rehearsalDates.length > 0 && (
               <div>
-                <span className="text-[#c5ddff]/60">Rehearsal Dates: </span>
+                <span className="text-neu-text-primary/60">Rehearsal Dates: </span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {castingData.auditionDetails.rehearsalDates.map((date: string, index: number) => (
                     <span
                       key={index}
-                      className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-[#5a8ff5]/30 text-[#c5ddff] text-xs"
+                      className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary text-xs"
                     >
                       {new Date(date).toLocaleDateString()}
                     </span>
@@ -194,20 +194,20 @@ export default function ReviewAndSubmit({
             )}
             {castingData.auditionDetails.rehearsalLocation && (
               <div>
-                <span className="text-[#c5ddff]/60">Rehearsal Location: </span>
-                <span className="text-[#c5ddff]">
+                <span className="text-neu-text-primary/60">Rehearsal Location: </span>
+                <span className="text-neu-text-primary">
                   {castingData.auditionDetails.rehearsalLocation}
                 </span>
               </div>
             )}
             {castingData.auditionDetails.performanceDates.length > 0 && (
               <div>
-                <span className="text-[#c5ddff]/60">Performance Dates: </span>
+                <span className="text-neu-text-primary/60">Performance Dates: </span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {castingData.auditionDetails.performanceDates.map((date: string, index: number) => (
                     <span
                       key={index}
-                      className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-[#5a8ff5]/30 text-[#c5ddff] text-xs"
+                      className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary text-xs"
                     >
                       {new Date(date).toLocaleDateString()}
                     </span>
@@ -217,24 +217,24 @@ export default function ReviewAndSubmit({
             )}
             {castingData.auditionDetails.performanceLocation && (
               <div>
-                <span className="text-[#c5ddff]/60">Performance Location: </span>
-                <span className="text-[#c5ddff]">
+                <span className="text-neu-text-primary/60">Performance Location: </span>
+                <span className="text-neu-text-primary">
                   {castingData.auditionDetails.performanceLocation}
                 </span>
               </div>
             )}
             {castingData.auditionDetails.ensembleSize && (
               <div>
-                <span className="text-[#c5ddff]/60">Ensemble Size: </span>
-                <span className="text-[#c5ddff]">
+                <span className="text-neu-text-primary/60">Ensemble Size: </span>
+                <span className="text-neu-text-primary">
                   {castingData.auditionDetails.ensembleSize}
                 </span>
               </div>
             )}
             {castingData.auditionDetails.equityStatus && (
               <div>
-                <span className="text-[#c5ddff]/60">Equity Status: </span>
-                <span className="text-[#c5ddff]">
+                <span className="text-neu-text-primary/60">Equity Status: </span>
+                <span className="text-neu-text-primary">
                   {castingData.auditionDetails.equityStatus}
                 </span>
               </div>
@@ -243,21 +243,21 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Audition Slots */}
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-          <h3 className="text-lg font-medium text-[#c5ddff] mb-2">
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+          <h3 className="text-lg font-medium text-neu-text-primary mb-2">
             Audition Slots ({castingData.slots.length})
           </h3>
           <div className="space-y-2">
             {castingData.slots.map((slot: any, index: number) => (
-              <div key={index} className="p-3 rounded-lg bg-[#2e3e5e]/50 text-sm">
-                <div className="text-[#c5ddff]">
+              <div key={index} className="p-3 rounded-lg bg-neu-surface/50 text-sm">
+                <div className="text-neu-text-primary">
                   {new Date(slot.start_time).toLocaleString()} -{' '}
                   {new Date(slot.end_time).toLocaleString()}
                 </div>
                 {slot.location && (
-                  <div className="text-[#c5ddff]/60">{slot.location}</div>
+                  <div className="text-neu-text-primary/60">{slot.location}</div>
                 )}
-                <div className="text-[#c5ddff]/60">
+                <div className="text-neu-text-primary/60">
                   Max signups: {slot.max_signups}
                 </div>
               </div>
@@ -278,7 +278,7 @@ export default function ReviewAndSubmit({
         <button
           onClick={onBack}
           disabled={submitting}
-          className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] text-[#b5ccff] border border-[#4a7bd9]/20 shadow-[5px_5px_10px_var(--cosmic-shadow-dark),-5px_-5px_10px_var(--cosmic-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--cosmic-shadow-dark),inset_-5px_-5px_10px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] hover:border-[#5a8ff5]/40 transition-all duration-300 font-medium disabled:opacity-50"
+          className="px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium disabled:opacity-50"
         >
           Back
         </button>

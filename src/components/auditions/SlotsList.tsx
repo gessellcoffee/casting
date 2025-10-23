@@ -114,8 +114,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
 
   if (!availableSlots || availableSlots.length === 0) {
     return (
-      <div className="p-6 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+      <div className="p-6 rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Audition Slots
         </h2>
         <EmptyState
@@ -127,8 +127,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
   }
 
   return (
-    <div className="p-6 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20">
-      <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+    <div className="p-6 rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60">
+      <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
         Available Audition Slots
       </h2>
 
@@ -142,8 +142,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
             <div className="flex items-start gap-3 flex-1">
               <MdCheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium mb-1 text-[#5a8ff5]">You're signed up for this audition</div>
-                <div className="text-sm text-[#c5ddff]/80">
+                <div className="font-medium mb-1 text-neu-accent-primary">You're signed up for this audition</div>
+                <div className="text-sm text-neu-text-primary/80">
                   {new Date(userSignup.audition_slots.start_time).toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -153,7 +153,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
                     minute: '2-digit',
                   })}
                 </div>
-                <div className="text-xs text-[#c5ddff]/60 mt-2">
+                <div className="text-xs text-neu-text-primary/60 mt-2">
                   You can only sign up for one slot per audition. To change your slot, cancel your current signup first.
                 </div>
               </div>
@@ -205,17 +205,17 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
           return (
             <div
               key={slot.slot_id}
-              className="p-4 rounded-lg bg-[#2e3e5e]/50 border border-[#4a7bd9]/10 flex items-center justify-between"
+              className="p-4 rounded-lg bg-white/70 backdrop-blur-sm border border-neu-border/40 flex items-center justify-between"
             >
               <div className="flex-1">
-                <div className="text-[#c5ddff] font-medium">
+                <div className="text-neu-text-primary font-medium">
                   {startTime.toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric',
                   })}
                 </div>
-                <div className="text-[#c5ddff]/70 text-sm">
+                <div className="text-neu-text-primary/70 text-sm">
                   {startTime.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
@@ -225,11 +225,11 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
                   })} ({duration} min)
                 </div>
                 {slot.location && (
-                  <div className="text-[#c5ddff]/60 text-xs mt-1">
+                  <div className="text-neu-text-primary/60 text-xs mt-1">
                     📍 {slot.location}
                   </div>
                 )}
-                <div className="text-[#c5ddff]/50 text-xs mt-1">
+                <div className="text-neu-text-primary/50 text-xs mt-1">
                   {slot.current_signups || 0} / {slot.max_signups} signed up
                 </div>
                 {hasConflict && (
@@ -241,7 +241,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
               </div>
 
               {userSignup && userSignup.audition_slots.slot_id === slot.slot_id ? (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-green-500/30 text-green-300 font-medium shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)]">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-accent-success font-medium shadow-[4px_4px_8px_rgba(163,177,198,0.3),-2px_-2px_6px_rgba(255,255,255,0.4)]">
                   <MdCheckCircle className="w-5 h-5" />
                   Signed Up
                 </div>

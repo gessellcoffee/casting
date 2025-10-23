@@ -173,7 +173,7 @@ export default function EditAuditionPage() {
     return (
       <StarryContainer>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-[#c5ddff]">Loading audition...</div>
+          <div className="text-neu-text-primary">Loading audition...</div>
         </div>
       </StarryContainer>
     );
@@ -194,14 +194,14 @@ export default function EditAuditionPage() {
           <div className="mb-8">
             <button
               onClick={() => router.push('/cast')}
-              className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors mb-4"
+              className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors mb-4"
             >
               ← Back to Dashboard
             </button>
             <h1 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
               Edit Audition
             </h1>
-            <p className="text-[#c5ddff]/90 mt-2">
+            <p className="text-neu-text-primary/90 mt-2">
               {audition?.show?.title || 'Update your audition details'}
             </p>
           </div>
@@ -217,14 +217,14 @@ export default function EditAuditionPage() {
                       className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
                         index <= currentStepIndex
                           ? 'bg-[#5a8ff5] border-[#5a8ff5] text-white'
-                          : 'bg-[#2e3e5e] border-[#4a7bd9]/20 text-[#c5ddff]/50'
+                          : 'bg-neu-surface border-neu-border text-neu-text-primary/50'
                       }`}
                     >
                       {index + 1}
                     </button>
                     <span
                       className={`text-xs mt-2 ${
-                        index <= currentStepIndex ? 'text-[#5a8ff5]' : 'text-[#c5ddff]/50'
+                        index <= currentStepIndex ? 'text-neu-accent-primary' : 'text-neu-text-primary/50'
                       }`}
                     >
                       {step.label}
@@ -282,14 +282,14 @@ export default function EditAuditionPage() {
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => router.push('/cast')}
-                className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] shadow-[3px_3px_6px_var(--cosmic-shadow-dark),-3px_-3px_6px_var(--cosmic-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)] transition-all duration-200 font-medium"
+                className="px-6 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] transition-all duration-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleSave(slots)}
                 disabled={saving}
-                className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#5a8ff5]/30 text-[#c5ddff] shadow-[3px_3px_6px_var(--cosmic-shadow-dark),-3px_-3px_6px_var(--cosmic-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--cosmic-shadow-dark),inset_-3px_-3px_6px_var(--cosmic-shadow-light)] hover:text-[#5a8ff5] transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-xl bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>

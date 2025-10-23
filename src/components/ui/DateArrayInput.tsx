@@ -139,10 +139,10 @@ export default function DateArrayInput({
         className={`
           h-10 flex items-center justify-center rounded-lg cursor-pointer select-none transition-all
           ${isSelected 
-            ? 'bg-[#5a8ff5] text-white font-medium shadow-md' 
-            : 'bg-[#2e3e5e]/30 text-[#c5ddff] hover:bg-[#2e3e5e]/60'
+            ? 'bg-[#5a8ff5] text-white font-semibold shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)]' 
+            : 'bg-white/80 text-neu-text-primary hover:bg-white shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]'
           }
-          ${isToday && !isSelected ? 'ring-2 ring-[#5a8ff5]/50' : ''}
+          ${isToday && !isSelected ? 'ring-2 ring-[#5a8ff5]/40' : ''}
         `}
       >
         {day}
@@ -169,7 +169,7 @@ export default function DateArrayInput({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-[#b5ccff] mb-2">
+        <label className="block text-sm font-medium text-neu-text-primary mb-2">
           {label}
         </label>
       )}
@@ -177,10 +177,10 @@ export default function DateArrayInput({
       {/* Input Display */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-[#2e3e5e] to-[#26364e] border border-[#4a7bd9]/20 text-[#c5ddff] cursor-pointer focus:outline-none focus:border-[#5a8ff5]/50 focus:ring-2 focus:ring-[#5a8ff5]/20 transition-all"
+        className="neu-input cursor-pointer"
       >
         <div className="flex items-center justify-between">
-          <span className={value.length === 0 ? 'text-[#c5ddff]/40' : ''}>
+          <span className={value.length === 0 ? 'text-neu-text-primary/40' : ''}>
             {getDisplayText()}
           </span>
           <svg
@@ -196,29 +196,29 @@ export default function DateArrayInput({
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full min-w-[320px] p-4 rounded-xl bg-[#1e2e4e] border border-[#4a7bd9]/30 shadow-2xl">
+        <div className="absolute z-50 mt-2 w-full min-w-[320px] neu-card-raised">
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={previousMonth}
-              className="p-2 rounded-lg hover:bg-[#2e3e5e] transition-colors"
+              className="neu-icon-btn"
             >
-              <svg className="w-5 h-5 text-[#c5ddff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-neu-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             
             <div className="text-center">
-              <div className="text-[#c5ddff] font-medium">
+              <div className="text-neu-text-primary font-medium">
                 {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </div>
             </div>
             
             <button
               onClick={nextMonth}
-              className="p-2 rounded-lg hover:bg-[#2e3e5e] transition-colors"
+              className="neu-icon-btn"
             >
-              <svg className="w-5 h-5 text-[#c5ddff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-neu-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -228,14 +228,14 @@ export default function DateArrayInput({
           <div className="flex gap-2 mb-3">
             <button
               onClick={goToToday}
-              className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-[#2e3e5e]/50 text-[#c5ddff] hover:bg-[#2e3e5e] transition-colors"
+              className="flex-1 neu-btn-small"
             >
               Today
             </button>
             {value.length > 0 && (
               <button
                 onClick={clearAll}
-                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
+                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors border border-red-500/30"
               >
                 Clear All
               </button>
@@ -245,7 +245,7 @@ export default function DateArrayInput({
           {/* Day Headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="h-8 flex items-center justify-center text-xs text-[#c5ddff]/60 font-medium">
+              <div key={day} className="h-8 flex items-center justify-center text-xs text-neu-text-primary/60 font-medium">
                 {day}
               </div>
             ))}
@@ -257,29 +257,29 @@ export default function DateArrayInput({
           </div>
 
           {/* Instructions */}
-          <div className="mt-3 pt-3 border-t border-[#4a7bd9]/20">
-            <p className="text-xs text-[#c5ddff]/60 text-center">
+          <div className="mt-3 pt-3 border-t border-neu-border">
+            <p className="text-xs text-neu-text-primary/60 text-center">
               Click and drag to select/deselect multiple dates
             </p>
           </div>
 
           {/* Selected Dates Summary */}
           {value.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-[#4a7bd9]/20">
-              <p className="text-xs text-[#c5ddff]/70 mb-2">
+            <div className="mt-3 pt-3 border-t border-neu-border">
+              <p className="text-xs text-neu-text-primary/70 mb-2">
                 Selected: {value.length} {value.length === 1 ? 'day' : 'days'}
               </p>
               <div className="max-h-32 overflow-y-auto flex flex-wrap gap-1">
                 {value.slice(0, 10).map(dateStr => (
                   <span
                     key={dateStr}
-                    className="px-2 py-0.5 text-xs rounded bg-[#5a8ff5]/20 border border-[#5a8ff5]/30 text-[#c5ddff]"
+                    className="neu-badge-accepted"
                   >
                     {new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 ))}
                 {value.length > 10 && (
-                  <span className="px-2 py-0.5 text-xs text-[#c5ddff]/60">
+                  <span className="px-2 py-0.5 text-xs text-neu-text-primary/60">
                     +{value.length - 10} more
                   </span>
                 )}

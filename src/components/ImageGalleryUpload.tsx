@@ -60,7 +60,7 @@ export default function ImageGalleryUpload({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-[#b5ccff]/70">
+        <label className="block text-sm font-medium text-neu-text-primary/70">
           Image Gallery ({images.length}/{maxImages})
         </label>
         {images.length < maxImages && (
@@ -94,7 +94,7 @@ export default function ImageGalleryUpload({
           {images.map((url, index) => (
             <div
               key={index}
-              className="relative group aspect-square rounded-lg overflow-hidden border border-[#4a7bd9]/20"
+              className="relative group aspect-square rounded-lg overflow-hidden border border-neu-border"
             >
               <img
                 src={url}
@@ -125,8 +125,8 @@ export default function ImageGalleryUpload({
       )}
 
       {images.length === 0 && (
-        <div className="text-center py-8 border-2 border-dashed border-[#4a7bd9]/20 rounded-lg">
-          <p className="text-[#b5ccff]/50 text-sm">No images uploaded yet</p>
+        <div className="text-center py-8 border-2 border-dashed border-neu-border rounded-lg">
+          <p className="text-neu-text-primary/50 text-sm">No images uploaded yet</p>
         </div>
       )}
     </div>

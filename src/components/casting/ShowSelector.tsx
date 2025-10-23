@@ -115,16 +115,16 @@ export default function ShowSelector({
   };
 
   if (loading) {
-    return <div className="text-[#c5ddff]">Loading shows...</div>;
+    return <div className="text-neu-text-primary">Loading shows...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#c5ddff] mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Select a Show
         </h2>
-        <p className="text-[#c5ddff]/70 mb-6">
+        <p className="text-neu-text-primary/70 mb-6">
           Choose an existing show or create a new one for this audition.
         </p>
       </div>
@@ -141,7 +141,7 @@ export default function ShowSelector({
       {/* Search Results */}
       {searchResults.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-[#b5ccff]">Search Results</h3>
+          <h3 className="text-sm font-medium text-neu-text-primary">Search Results</h3>
           {searchResults.map((show) => (
             <RadioCard
               key={show.show_id}
@@ -152,10 +152,10 @@ export default function ShowSelector({
               title={show.title}
             >
               {show.author && (
-                <div className="text-[#c5ddff]/60 text-sm">by {show.author}</div>
+                <div className="text-neu-text-primary/60 text-sm">by {show.author}</div>
               )}
               {show.description && (
-                <div className="text-[#c5ddff]/50 text-sm mt-1">{show.description}</div>
+                <div className="text-neu-text-primary/50 text-sm mt-1">{show.description}</div>
               )}
             </RadioCard>
           ))}
@@ -165,7 +165,7 @@ export default function ShowSelector({
       {/* Your Shows */}
       {shows.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-[#b5ccff]">Your Shows</h3>
+          <h3 className="text-sm font-medium text-neu-text-primary">Your Shows</h3>
           {shows.map((show) => (
             <RadioCard
               key={show.show_id}
@@ -176,10 +176,10 @@ export default function ShowSelector({
               title={show.title}
             >
               {show.author && (
-                <div className="text-[#c5ddff]/60 text-sm">by {show.author}</div>
+                <div className="text-neu-text-primary/60 text-sm">by {show.author}</div>
               )}
               {show.description && (
-                <div className="text-[#c5ddff]/50 text-sm mt-1">{show.description}</div>
+                <div className="text-neu-text-primary/50 text-sm mt-1">{show.description}</div>
               )}
             </RadioCard>
           ))}
@@ -190,13 +190,13 @@ export default function ShowSelector({
       {!showCreateForm ? (
         <button
           onClick={() => setShowCreateForm(true)}
-          className="text-[#5a8ff5] hover:text-[#94b0f6] transition-colors text-sm font-medium"
+          className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-sm font-medium"
         >
           + Create New Show
         </button>
       ) : (
-        <div className="p-4 rounded-xl bg-[#2e3e5e]/50 border border-[#4a7bd9]/20 space-y-4">
-          <h3 className="text-lg font-medium text-[#c5ddff]">Create New Show</h3>
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+          <h3 className="text-lg font-medium text-neu-text-primary">Create New Show</h3>
           
           <FormInput
             label="Title"
@@ -239,7 +239,7 @@ export default function ShowSelector({
                 setError(null);
               }}
               disabled={creating}
-              className="px-4 py-2 rounded-xl bg-[#2e3e5e] text-[#c5ddff] hover:bg-[#3e4e6e] transition-colors"
+              className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors"
             >
               Cancel
             </button>

@@ -8,6 +8,7 @@ interface ButtonProps {
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
+  variant?: 'primary' | 'secondary' | 'danger' | 'success';
 }
 
 export default function Button({ 
@@ -16,14 +17,21 @@ export default function Button({
   onClick, 
   disabled = false, 
   type = 'button',
-  className = ''
+  className = '',
+  variant = 'primary'
 }: ButtonProps) {
-  // If href is provided, render as Link wrapped in button for neuromorphic styling
+  // Build neumorphic button classes
+  const baseClasses = `n-button-${variant}`;
+  const combinedClasses = `${baseClasses} ${className}`.trim();
+
+  // If href is provided, render as Link wrapped in button for neumorphic styling
   if (href && !onClick) {
     return (
-      <button className={className} disabled={disabled}>
-        <Link href={href}>{text}</Link>
-      </button>
+      <Link href={href}>
+        <button className={combinedClasses} disabled={disabled}>
+          {text}
+        </button>
+      </Link>
     );
   }
 
@@ -33,7 +41,7 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={className}
+      className={combinedClasses}
     >
       {text}
     </button>

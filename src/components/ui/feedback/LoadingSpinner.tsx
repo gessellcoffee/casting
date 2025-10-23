@@ -23,7 +23,7 @@ export default function LoadingSpinner({
         className={`inline-block animate-spin rounded-full border-b-2 border-[#5a8ff5] ${sizeClasses[size]}`}
       ></div>
       {message && (
-        <p className="mt-4 text-[#c5ddff]/70">{message}</p>
+        <p className="mt-4 text-neu-text-primary/70">{message}</p>
       )}
     </div>
   );

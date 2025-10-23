@@ -26,11 +26,11 @@ export default function EmptyState({
           )}
         </div>
       )}
-      <h2 className="text-2xl font-semibold text-[#c5ddff] mb-2">
+      <h2 className="text-2xl font-semibold text-neu-text-primary mb-2">
         {title}
       </h2>
       {description && (
-        <p className="text-[#c5ddff]/70 mb-6">
+        <p className="text-neu-text-primary/70 mb-6">
           {description}
         </p>
       )}

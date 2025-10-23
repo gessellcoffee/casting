@@ -1,32 +1,48 @@
-    // tailwind.config.js
+// tailwind.config.js
 module.exports = {
   theme: {
     extend: {
       colors: {
-        cosmic: {
-          base: '#2a3a5a',
-          light: '#3a4a7a',
-          dark: '#1a2a4a',
-          darker: '#0f1929',
-          deepest: '#0a0f1a',
-          accent: '#4a7bd9',
-          glow: '#5a8ff5',
-          purple: '#1e3ae8',
-          lavender: '#b5ccff',
-          lilac: '#94b0f6',
-          mist: '#c5ddff',
-          surface: '#2e3e5e',
-          surfaceDark: '#26364e',
+        neu: {
           bg: {
-            start: '#0f1929',
-            mid: '#1a2a3e',
-            end: '#24344e',
+            base: '#e6eef9',
+            gradientStart: '#6b8dd6',
+            gradientEnd: '#e89cc5',
+          },
+          surface: {
+            DEFAULT: '#e6eef9',
+            light: '#f0f5fc',
+            dark: '#dce6f5',
           },
           shadow: {
-            dark: 'rgba(10, 15, 26, 0.6)',
-            light: 'rgba(58, 68, 106, 0.4)',
+            light: 'rgba(255, 255, 255, 0.8)',
+            dark: 'rgba(163, 177, 198, 0.6)',
+            insetLight: 'rgba(255, 255, 255, 0.5)',
+            insetDark: 'rgba(163, 177, 198, 0.4)',
+          },
+          accent: {
+            primary: '#6b8dd6',
+            secondary: '#8b9dc3',
+            success: '#68d391',
+            danger: '#fc8181',
+            warning: '#f6ad55',
+          },
+          text: {
+            primary: '#2d3748',
+            secondary: '#4a5568',
+            muted: '#718096',
+          },
+          border: {
+            DEFAULT: 'rgba(163, 177, 198, 0.2)',
+            focus: 'rgba(107, 141, 214, 0.4)',
           },
         },
+      },
+      boxShadow: {
+        'neu-raised': '10px 10px 20px rgba(163, 177, 198, 0.6), -10px -10px 20px rgba(255, 255, 255, 0.8)',
+        'neu-raised-lg': '15px 15px 30px rgba(163, 177, 198, 0.6), -15px -15px 30px rgba(255, 255, 255, 0.8)',
+        'neu-pressed': 'inset 6px 6px 12px rgba(163, 177, 198, 0.4), inset -6px -6px 12px rgba(255, 255, 255, 0.5)',
+        'neu-pressed-sm': 'inset 4px 4px 8px rgba(163, 177, 198, 0.4), inset -4px -4px 8px rgba(255, 255, 255, 0.5)',
       },
     },
   },

@@ -721,6 +721,57 @@ export type AuditionSignupInsert = Database['public']['Tables']['audition_signup
 export type AuditionSignupUpdate = Database['public']['Tables']['audition_signups']['Update'];
 export type SignupStatus = Database['public']['Enums']['signup_status_enum'];
 
+// Audition Signup with related data (for joins)
+export type AuditionSignupWithDetails = AuditionSignup & {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    profile_photo_url: string | null;
+  } | null;
+  audition_slots: {
+    slot_id: string;
+    start_time: string;
+    end_time: string;
+    location: string | null;
+  } | null;
+  roles: {
+    role_id: string;
+    role_name: string;
+    description: string | null;
+  } | null;
+};
+
+// User Signups with full nested details (slot, audition, show, role)
+export type UserSignupsWithDetails = AuditionSignup & {
+  audition_slots: {
+    slot_id: string;
+    start_time: string;
+    end_time: string;
+    location: string | null;
+    auditions: {
+      audition_id: string;
+      rehearsal_dates: string | null;
+      rehearsal_location: string | null;
+      performance_dates: string | null;
+      performance_location: string | null;
+      shows: {
+        show_id: string;
+        title: string;
+        author: string | null;
+        description: string | null;
+      } | null;
+    } | null;
+  } | null;
+  roles: {
+    role_id: string;
+    role_name: string;
+    description: string | null;
+    role_type: RoleType | null;
+    gender: RoleGender | null;
+  } | null;
+};
+
 // Cast Member types for easier use
 export type CastMember = Database['public']['Tables']['cast_members']['Row'];
 export type CastMemberInsert = Database['public']['Tables']['cast_members']['Insert'];

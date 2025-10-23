@@ -136,7 +136,7 @@ export default function ResumeEntry({
   const sourceLabel = entry.source;
 
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-[#2e3e5e]/50 to-[#26364e]/50 border border-[#4a7bd9]/20">
+    <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
       {isEditing ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -158,13 +158,13 @@ export default function ResumeEntry({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-[#b5ccff]/70">
+                <label className="block text-sm font-medium text-neu-text-primary/70">
                   Company/Theater
                 </label>
                 <button
                   type="button"
                   onClick={handleCompanyToggle}
-                  className="text-xs text-[#5a8ff5] hover:text-[#6a9fff] underline"
+                  className="text-xs text-neu-accent-primary hover:text-[#6a9fff] underline"
                 >
                   {useCompanyDropdown ? 'Enter manually' : 'Select from list'}
                 </button>
@@ -191,7 +191,7 @@ export default function ResumeEntry({
                 />
               )}
               {useCompanyDropdown && formData.company_id && (
-                <p className="text-xs text-[#b5ccff]/60 mt-1">
+                <p className="text-xs text-neu-text-primary/60 mt-1">
                   ⓘ Company owner will be notified for approval
                 </p>
               )}
@@ -224,7 +224,7 @@ export default function ResumeEntry({
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-[#c5ddff] mb-1">
+                <h3 className="text-lg font-semibold text-neu-text-primary mb-1">
                   {entry.show_name || 'Untitled Production'}
                 </h3>
                 {(entry.source === 'application' || entry.company_approved) && (
@@ -262,7 +262,7 @@ export default function ResumeEntry({
                   </svg>
                 )}
               </div>
-              <p className="text-[#5a8ff5] font-medium">
+              <p className="text-neu-accent-primary font-medium">
                 {entry.role || 'Role not specified'}
               </p>
             </div>
@@ -282,16 +282,16 @@ export default function ResumeEntry({
             )}
           </div>
 
-          <div className="space-y-1 text-sm text-[#b5ccff]/80 mb-4">
+          <div className="space-y-1 text-sm text-neu-text-primary/80 mb-4">
             {entry.company_name && (
               <p>
-                <span className="text-[#b5ccff]/60">Company: </span>
+                <span className="text-neu-text-primary/60">Company: </span>
                 {entry.company_name}
               </p>
             )}
             {entry.date_of_production && (
               <p>
-                <span className="text-[#b5ccff]/60">Date: </span>
+                <span className="text-neu-text-primary/60">Date: </span>
                 {entry.date_of_production}
               </p>
             )}
