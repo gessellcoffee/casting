@@ -246,14 +246,14 @@ export default function AddressInput({
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-50 w-full mt-2 bg-neu-surface border border-neu-border rounded-xl shadow-2xl max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-2 bg-neu-surface border-neu-border rounded-xl shadow-2xl max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.place_id}
               type="button"
               onClick={() => selectSuggestion(suggestion)}
-              className="w-full px-4 py-3 text-left hover:bg-[#5a8ff5]/10 transition-colors border-b border-[#4a7bd9]/10 last:border-b-0 flex items-start gap-3"
+              className="w-full px-4 py-3 text-left bg-white hover:bg-gray-50 border-none flex items-start gap-3"
             >
               <MdLocationOn className="w-5 h-5 mt-0.5 flex-shrink-0 " />
               <div className="flex-1 min-w-0">
