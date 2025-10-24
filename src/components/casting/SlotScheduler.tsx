@@ -251,7 +251,7 @@ export default function SlotScheduler({
     const numSlots = Math.floor(totalMinutes / slotWithBuffer);
 
     const newSlots: SlotData[] = [];
-    let currentTime = new Date(startDate);
+    const currentTime = new Date(startDate);
 
     for (let i = 0; i < numSlots; i++) {
       const slotStart = new Date(currentTime);
