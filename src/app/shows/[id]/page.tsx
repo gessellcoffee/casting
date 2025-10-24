@@ -7,6 +7,7 @@ import { getShow, updateShow } from '@/lib/supabase/shows';
 import { getShowRoles, createRole, updateRole, deleteRole } from '@/lib/supabase/roles';
 import { supabase } from '@/lib/supabase/client';
 import type { Show, Role, RoleInsert, RoleUpdate, RoleType, RoleGender } from '@/lib/supabase/types';
+import StarryContainer from '@/components/StarryContainer';
 
 export default function ShowDetailPage() {
   const router = useRouter();
@@ -210,7 +211,7 @@ export default function ShowDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a2332] via-[#243447] to-[#2e3e5e] p-6">
+    <StarryContainer>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -243,7 +244,7 @@ export default function ShowDetailPage() {
         </div>
 
         {/* Show Details Section */}
-        <div className="mb-8 p-6 rounded-xl bg-neu-surface border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)]">
+        <div className="mb-8 p-6 neu-card-raised">
           <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">Show Information</h2>
           
           {editMode ? (
@@ -328,7 +329,7 @@ export default function ShowDetailPage() {
         </div>
 
         {/* Roles Section */}
-        <div className="p-6 rounded-xl bg-neu-surface border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)]">
+        <div className="p-6 neu-card-raised">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold text-neu-text-primary">Roles</h2>
             {canManageShow() && !newRole && (
@@ -380,7 +381,7 @@ export default function ShowDetailPage() {
 
           {/* New Role Form */}
           {newRole && (
-            <div className="mb-6 p-4 rounded-xl bg-[#1a2332]/50 border border-neu-border">
+            <div className="mb-6 p-4 neu-card-raised">
               <h3 className="text-lg font-medium text-neu-text-primary mb-4">New Role</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -392,7 +393,7 @@ export default function ShowDetailPage() {
                     value={newRole.role_name}
                     onChange={(e) => setNewRole({ ...newRole, role_name: e.target.value })}
                     placeholder="e.g., Eliza Hamilton"
-                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                    className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   />
                 </div>
                 
@@ -403,7 +404,7 @@ export default function ShowDetailPage() {
                   <select
                     value={newRole.role_type || ''}
                     onChange={(e) => setNewRole({ ...newRole, role_type: (e.target.value as RoleType) || null })}
-                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                    className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   >
                     <option value="">Select type...</option>
                     {roleTypes.map((type) => (
@@ -419,7 +420,7 @@ export default function ShowDetailPage() {
                   <select
                     value={newRole.gender || ''}
                     onChange={(e) => setNewRole({ ...newRole, gender: (e.target.value as RoleGender) || null })}
-                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                    className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   >
                     <option value="">Select gender...</option>
                     {genderOptions.map((gender) => (
@@ -436,7 +437,7 @@ export default function ShowDetailPage() {
                       type="checkbox"
                       checked={newRole.needs_understudy || false}
                       onChange={(e) => setNewRole({ ...newRole, needs_understudy: e.target.checked })}
-                      className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                      className="neu-checkbox w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                     />
                     <span className="text-sm font-medium text-neu-text-primary">
                       This role needs an understudy
@@ -453,7 +454,7 @@ export default function ShowDetailPage() {
                     onChange={(e) => setNewRole({ ...newRole, description: e.target.value || null })}
                     placeholder="Describe the role..."
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
+                    className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -462,14 +463,14 @@ export default function ShowDetailPage() {
                 <button
                   onClick={handleSaveNewRole}
                   disabled={saving || !newRole.role_name.trim()}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-neu-border-focus hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="n-button-primary px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save Role'}
                 </button>
                 <button
                   onClick={() => setNewRole(null)}
                   disabled={saving}
-                  className="px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary text-sm font-medium border border-neu-border hover:border-neu-border-focus transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="n-button-secondary px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
@@ -506,13 +507,14 @@ export default function ShowDetailPage() {
                   onCancelEdit={() => setEditingRole(null)}
                   onSave={(updates) => handleUpdateRole(role.role_id, updates)}
                   onDelete={() => handleDeleteRole(role.role_id)}
+                  className="neu-card-raised"
                 />
               ))}
             </div>
           )}
         </div>
       </div>
-    </div>
+    </StarryContainer>
   );
 }
 
@@ -531,6 +533,7 @@ interface RoleCardProps {
   onCancelEdit: () => void;
   onSave: (updates: RoleUpdate) => void;
   onDelete: () => void;
+  className?: string;
 }
 
 function RoleCard({
@@ -547,6 +550,7 @@ function RoleCard({
   onCancelEdit,
   onSave,
   onDelete,
+  className,
 }: RoleCardProps) {
   const [editData, setEditData] = useState<RoleUpdate>({
     role_name: role.role_name,
@@ -570,7 +574,7 @@ function RoleCard({
 
   if (isEditing) {
     return (
-      <div className="p-4 rounded-xl bg-[#1a2332]/50 border border-neu-border">
+      <div className="p-4 rounded-xl neu-card-raised">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-neu-text-primary mb-2">
@@ -591,7 +595,7 @@ function RoleCard({
             <select
               value={editData.role_type || ''}
               onChange={(e) => setEditData({ ...editData, role_type: (e.target.value as RoleType) || null })}
-              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+              className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             >
               <option value="">Select type...</option>
               {roleTypes.map((type) => (
@@ -607,7 +611,7 @@ function RoleCard({
             <select
               value={editData.gender || ''}
               onChange={(e) => setEditData({ ...editData, gender: (e.target.value as RoleGender) || null })}
-              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+              className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
             >
               <option value="">Select gender...</option>
               {genderOptions.map((gender) => (
@@ -617,20 +621,19 @@ function RoleCard({
               ))}
             </select>
           </div>
-          
-          <div className="md:col-span-2">
-            <label className="flex items-center gap-3 cursor-pointer">
+          <br/>
+          <div className="switch-container inline-flex">
               <input
-                type="checkbox"
-                checked={editData.needs_understudy || false}
+                 checked={editData.needs_understudy || false}
                 onChange={(e) => setEditData({ ...editData, needs_understudy: e.target.checked })}
-                className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
-              />
-              <span className="text-sm font-medium text-neu-text-primary">
-                This role needs an understudy
-              </span>
-            </label>
-          </div>
+                className="toggle-checkbox" id="toggle-switch" type="checkbox" />
+  <label className="switch" htmlFor="toggle-switch">
+    <div className="toggle">
+      <div className="led"></div>
+    </div>
+  </label>
+</div>
+
           
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-neu-text-primary mb-2">
@@ -640,7 +643,7 @@ function RoleCard({
               value={editData.description || ''}
               onChange={(e) => setEditData({ ...editData, description: e.target.value || null })}
               rows={3}
-              className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
+              className="neu-input w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all resize-none"
             />
           </div>
         </div>
@@ -649,14 +652,14 @@ function RoleCard({
           <button
             onClick={() => onSave(editData)}
             disabled={saving || !editData.role_name?.trim()}
-            className="px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-neu-border-focus hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="n-button-primary px-4 py-2 rounded-lg bg-gradient-to-br from-[#4a7bd9] to-[#3d5fa8] text-white text-sm font-medium border border-neu-border-focus hover:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving...' : 'Save'}
           </button>
           <button
             onClick={onCancelEdit}
             disabled={saving}
-            className="px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary text-sm font-medium border border-neu-border hover:border-neu-border-focus transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="n-button-danger px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary text-sm font-medium border border-neu-border hover:border-neu-border-focus transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -666,7 +669,7 @@ function RoleCard({
   }
 
   return (
-    <div className={`p-4 rounded-xl bg-[#1a2332]/30 border transition-all ${
+    <div className={`p-4 rounded-xl neu-card-raised transition-all ${
       selectMode && isSelected 
         ? 'border-[#5a8ff5] bg-[#5a8ff5]/10' 
         : 'border-neu-border hover:border-neu-border-focus'
@@ -702,13 +705,13 @@ function RoleCard({
           <div className="flex gap-2">
             <button
               onClick={onEdit}
-              className="px-3 py-1 rounded-lg text-neu-accent-primary hover:bg-[#5a8ff5]/10 transition-all text-sm"
+              className="n-button-primary px-3 py-1 rounded-lg text-neu-accent-primary hover:bg-[#5a8ff5]/10 transition-all text-sm"
             >
               Edit
             </button>
             <button
               onClick={onDelete}
-              className="px-3 py-1 rounded-lg text-red-400 hover:bg-red-500/10 transition-all text-sm"
+              className="n-button-danger px-3 py-1 rounded-lg text-red-400 hover:bg-red-500/10 transition-all text-sm"
             >
               Delete
             </button>

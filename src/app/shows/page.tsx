@@ -11,6 +11,7 @@ import FormInput from '@/components/ui/forms/FormInput';
 import LoadingSpinner from '@/components/ui/feedback/LoadingSpinner';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import { useDebounce } from '@/lib/hooks/useDebounce';
+import StarryContainer from '@/components/StarryContainer';
 
 interface ShowWithStats extends Show {
   roleCount?: number;
@@ -100,7 +101,7 @@ export default function ShowsPage() {
   }, [debouncedSearchQuery]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a2332] via-[#243447] to-[#2e3e5e] p-6">
+    <StarryContainer>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -173,7 +174,7 @@ export default function ShowsPage() {
             {shows.map((show) => (
               <div
                 key={show.show_id}
-                className="p-6 rounded-xl bg-neu-surface border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:border-neu-border-focus transition-all duration-300"
+                className="p-6 rounded-xl neu-card-raised shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:border-neu-border-focus transition-all duration-300"
               >
                 {/* Show Header */}
                 <div className="mb-4">
@@ -269,6 +270,6 @@ export default function ShowsPage() {
           </div>
         )}
       </div>
-    </div>
+    </StarryContainer>
   );
 }

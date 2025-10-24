@@ -63,7 +63,7 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
   }, [currentDate, viewMode]);
 
   return (
-    <div className="rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60 overflow-hidden">
+    <div className="rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60 ">
       {/* Calendar Header */}
       <div className="p-4 sm:p-6 border-b border-neu-border/60">
         {/* Title - Always visible on mobile */}

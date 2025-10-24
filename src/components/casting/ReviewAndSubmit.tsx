@@ -106,7 +106,7 @@ export default function ReviewAndSubmit({
       {/* Review Sections */}
       <div className="space-y-4">
         {/* Company/Individual */}
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+        <div className="neu-card-raised p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
           <h3 className="text-lg font-medium text-neu-text-primary mb-2">Hosting</h3>
           <p className="text-neu-text-primary/70">
             {castingData.isCompanyAudition
@@ -116,7 +116,7 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Show */}
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+        <div className="neu-card-raised p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
           <h3 className="text-lg font-medium text-neu-text-primary mb-2">Show</h3>
           {castingData.showData ? (
             <div>
@@ -136,7 +136,7 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Roles */}
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+        <div className="neu-card-raised p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
           <h3 className="text-lg font-medium text-neu-text-primary mb-2">
             Roles ({castingData.roles.length})
           </h3>
@@ -159,7 +159,7 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Audition Details */}
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+        <div className="neu-card-raised p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
           <h3 className="text-lg font-medium text-neu-text-primary mb-2">Audition Details</h3>
           <div className="space-y-2 text-sm">
             {castingData.auditionDetails.auditionDates.length > 0 && (
@@ -243,7 +243,7 @@ export default function ReviewAndSubmit({
         </div>
 
         {/* Audition Slots */}
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+        <div className="neu-card-raised p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
           <h3 className="text-lg font-medium text-neu-text-primary mb-2">
             Audition Slots ({castingData.slots.length})
           </h3>
@@ -278,14 +278,14 @@ export default function ReviewAndSubmit({
         <button
           onClick={onBack}
           disabled={submitting}
-          className="px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium disabled:opacity-50"
+          className="n-button-secondary px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium disabled:opacity-50"
         >
           Back
         </button>
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="px-6 py-3 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="n-button-primary px-6 py-3 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? 'Creating Audition...' : 'Submit Audition'}
         </button>

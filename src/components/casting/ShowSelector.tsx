@@ -195,7 +195,7 @@ export default function ShowSelector({
           + Create New Show
         </button>
       ) : (
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+        <div className="p-4 rounded-xl bg-neu-surface/50 neu-card-raised border-neu-border space-y-4">
           <h3 className="text-lg font-medium text-neu-text-primary">Create New Show</h3>
           
           <FormInput

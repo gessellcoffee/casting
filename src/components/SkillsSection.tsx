@@ -224,14 +224,14 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
 
   if (loading) {
     return (
-      <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
-        <p className="text-neu-text-primary/70">Loading skills...</p>
+      <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 neu-card-raised border-neu-border">
+        <p className="text-neu-text-primary/70">Loading skills...</p> 
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6]">
           Skills
@@ -253,7 +253,7 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
       )}
 
       {isAddingNew && (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 neu-card-raised">
           <h3 className="text-lg font-semibold text-neu-text-primary mb-4">Add New Skill</h3>
           <div className="space-y-4">
             <div className="relative">
@@ -306,7 +306,7 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
                     setShowSuggestions(true);
                   }
                 }}
-                className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                className="w-full px-3 py-2 rounded-lg neu-input text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
                 placeholder="e.g., Acting, Singing, Dancing"
                 autoFocus
               />
@@ -349,7 +349,7 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
       )}
 
       {skills.length === 0 && !isAddingNew ? (
-        <div className="p-8 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-center">
+        <div className="neu-badge p-8 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-center">
           <p className="text-neu-text-primary/70">No skills added yet.</p>
           {isEditing && (
             <p className="text-neu-text-primary/50 text-sm mt-2">
@@ -358,12 +358,12 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
           )}
         </div>
       ) : (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 neu-card-raised border-neu-border">
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, index) => (
               <div
                 key={`${skill}-${index}`}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4a7bd9]/20 border border-neu-border text-neu-text-primary"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full neu-badge"
               >
                 <span>{skill}</span>
                 {isEditing && (

@@ -375,7 +375,7 @@ export default function ProfilePage() {
                   </div>
                 )}
                 {/*Skills Section*/}
-                {isEditing && user?.id && (
+                {user?.id && (
                   <div className="neu-card-raised w-full">
                     <SkillsSection userId={user.id} isEditing={isEditing} />
                   </div>

@@ -76,7 +76,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg bg-neu-surface/50 border border-[#9b87f5]/20 text-neu-text-primary hover:text-[#9b87f5] hover:border-[#9b87f5]/40 transition-all duration-200"
+            className="n-button-secondary p-2 rounded-lg bg-neu-surface/50 border border-[#9b87f5]/20 text-neu-text-primary hover:text-[#9b87f5] hover:border-[#9b87f5]/40 transition-all duration-200"
           >
             <MdClose className="w-5 h-5" />
           </button>
@@ -181,7 +181,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
             {/* Change Response Button */}
             <button
               onClick={() => setShowChangeModal(true)}
-              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-neu-surface/50 border border-neu-border text-neu-text-primary/70 hover:text-neu-text-primary hover:border-[#4a7bd9]/40 transition-all text-sm shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]"
+              className="n-button-danger w-full sm:w-auto px-4 py-2 rounded-lg bg-neu-surface/50 border border-neu-border text-neu-text-primary/70 hover:text-neu-text-primary hover:border-[#4a7bd9]/40 transition-all text-sm shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]"
             >
               Change Response to Declined
             </button>
@@ -229,14 +229,14 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
                   setError(null);
                 }}
                 disabled={isUpdating}
-                className="neu-btn-secondary flex-1"
+                className="n-btn-secondary flex-1"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDecline}
                 disabled={isUpdating}
-                className="neu-btn-secondary flex-1"
+                className="n-button-primary flex-1"
               >
                 {isUpdating ? 'Declining...' : 'Confirm Decline'}
               </button>
