@@ -248,8 +248,8 @@ export default function ProfilePage() {
 
                 {/* Basic Information */}
                 <div className="justify-center items-center grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="card w-full">
-                    <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
+                  <div className="neu-card-raised w-full">
+                    <label className="block text-sm font-medium neu-text-primary  mb-2">
                       First Name
                     </label>
                     {isEditing ? (
@@ -265,7 +265,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="card w-full">
+                  <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       Middle Name
                     </label>
@@ -282,7 +282,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="card p-4 w-full">
+                  <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       Last Name
                     </label>
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="card w-full">
+                  <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                       Username
                     </label>
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Email (Read-only) */}
-                <div className="card w-full">
+                <div className="neu-card-raised w-full">
                   <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                     Email
                   </label>
@@ -326,7 +326,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Description */}
-                <div className="card w-full">
+                <div className="neu-card-raised w-full">
                   <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
                     Bio / Description
                   </label>
@@ -347,7 +347,7 @@ export default function ProfilePage() {
 
                 {/* Image Gallery */}
                 {isEditing && user?.id && (
-                  <div className="card w-full">
+                  <div className="neu-card-raised w-full">
                     <ImageGalleryUpload
                       userId={user.id}
                       images={formData.image_gallery}
@@ -357,7 +357,7 @@ export default function ProfilePage() {
                 )}
 
                 {!isEditing && formData.image_gallery.length > 0 && (
-                  <div className="card w-full">
+                  <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium text-neu-text-primary/70 mb-4">
                       Image Gallery
                     </label>
@@ -376,14 +376,14 @@ export default function ProfilePage() {
                 )}
                 {/*Skills Section*/}
                 {isEditing && user?.id && (
-                  <div className="card w-full">
+                  <div className="neu-card-raised w-full">
                     <SkillsSection userId={user.id} isEditing={isEditing} />
                   </div>
                 )}
 
                 {/* Resume Section */}
                 {user?.id && (
-                  <div className="card w-full">
+                  <div className="w-full">
                     <ResumeSection 
                       userId={user.id} 
                       isEditing={isEditing}

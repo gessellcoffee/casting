@@ -222,8 +222,8 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 neu-card-raised">
+      <div className=" flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6]">
           Resume
         </h2>
@@ -250,12 +250,12 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
       )}
 
       {/* Resume File Upload */}
-      <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+      <div className="p-4 rounded-xl neu-card-raised">
         <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
           Resume File
         </label>
         {resumeUrl ? (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between neu-card-raised">
             <a
               href={resumeUrl}
               target="_blank"
@@ -310,7 +310,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
       </div>
 
       {isAddingNew && (
-        <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+        <div className="p-4 rounded-xl neu-card-raised">
           <h3 className="text-lg font-semibold text-neu-text-primary mb-4">New Resume Entry</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

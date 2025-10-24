@@ -253,9 +253,9 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 max-h-[calc(100vh-120px)] overflow-hidden rounded-xl bg-white/98 backdrop-blur-md border border-neu-border/60 shadow-2xl z-[9999] flex flex-col">
+        <div className="absolute right-0 mt-2 w-96 max-h-[calc(100vh-120px)] overflow-hidden rounded-xl bg-white/98 backdrop-blur-md  border-neu-border/60 shadow-2xl z-[9999] flex flex-col">
           {/* Header */}
-          <div className="p-4 border-b border-neu-border/60 bg-white/98 flex-shrink-0">
+          <div className="p-4 border-neu-border/60 bg-white/98 flex-shrink-0">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-neu-text-primary">Notifications</h3>
               {unreadCount > 0 && (
@@ -289,7 +289,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
               notifications.map((notification) => (
                 <div
                   key={notification.notification_id}
-                  className={`notification-card p-4 border-b border-[#4a7bd9]/10 hover:bg-neu-surface/30 transition-colors ${
+                  className={`notification-card  p-4  transition-colors ${
                     !notification.is_read ? 'bg-[#4a7bd9]/5' : ''
                   }`}
                   onClick={() => !notification.is_read && handleMarkAsRead(notification.notification_id)}
@@ -331,7 +331,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                               View Requestor
                             </Link>
                           )}
-                          <div className="flex gap-2">
+                          <div className="flex gap-4 ">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -371,7 +371,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       {notification.is_actionable && 
                        notification.reference_type === 'callback_invitation' && 
                        !notification.action_taken && (
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex gap-4 mt-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -396,13 +396,14 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       )}
                     </div>
                   </div>
+
                 </div>
               ))
             )}
           </div>
 
           {/* View All Link */}
-          <div className="p-4 border-t border-neu-border bg-neu-surface/30">
+          <div className="p-4  bg-neu-surface/30 border-gray-300 border-t">
             <Link
               href="/notifications"
               className="block text-center text-sm font-semibold text-neu-accent-primary hover:text-neu-accent-secondary transition-colors"

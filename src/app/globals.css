@@ -495,14 +495,13 @@ select.neu-input {
 /* Notification Card - solid white card with shadow */
 .notification-card {
   padding: 1.25rem;
-  border-radius: 1rem;
-  background: #ffffff;
+  background: var(--neu-surface);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
 .notification-card.read {
-  background: #f5f5f5;
+  background: var(--neu-surface-dark);
 }
 
 /* Notification Filter Button - neumorphic style */
@@ -562,7 +561,7 @@ select.neu-input {
 .notification-empty {
   padding: 2rem;
   border-radius: 1rem;
-  background: #ffffff;
+  background: var(--neu-surface);
   text-align: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }

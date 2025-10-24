@@ -136,9 +136,9 @@ export default function ResumeEntry({
   const sourceLabel = entry.source;
 
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
-      {isEditing ? (
-        <div className="space-y-4">
+    <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 neu-card-raised">
+      {isEditing ? (  
+        <div className="space-y-4 neu-card-raised">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Show/Production Name"
