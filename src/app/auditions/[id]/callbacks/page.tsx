@@ -7,6 +7,11 @@ import { getUser } from '@/lib/supabase/auth';
 import StarryContainer from '@/components/StarryContainer';
 import CallbackManagement from '@/components/callbacks/CallbackManagement';
 
+export const metadata = {
+    title: 'Callback Management',
+    description: 'Manage callbacks for an audition',
+}
+
 export default function CallbackManagementPage() {
   const params = useParams();
   const router = useRouter();

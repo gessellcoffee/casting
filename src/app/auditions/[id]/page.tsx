@@ -10,6 +10,7 @@ import RolesList from '@/components/auditions/RolesList';
 import SlotsList from '@/components/auditions/SlotsList';
 import AuditionInfo from '@/components/auditions/AuditionInfo';
 
+
 export default function AuditionDetailPage() {
   const params = useParams();
   const router = useRouter();
