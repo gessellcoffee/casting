@@ -115,7 +115,10 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
               </label>
             )}
 
+
+
             <div className="flex flex-row items-center gap-2 justify-center sm:justify-start">
+           
             <button
               onClick={() => setViewMode('month')}
               className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base ${

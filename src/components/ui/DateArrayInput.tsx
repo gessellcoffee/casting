@@ -8,6 +8,7 @@ interface DateArrayInputProps {
   label?: string;
   placeholder?: string;
   className?: string;
+  multiple?: boolean;
 }
 
 export default function DateArrayInput({
@@ -16,6 +17,7 @@ export default function DateArrayInput({
   label,
   placeholder = 'Select dates...',
   className = '',
+  multiple = true,
 }: DateArrayInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -160,9 +162,11 @@ export default function DateArrayInput({
 
     // Show first and last date as range
     const sortedDates = [...value].sort();
-    const firstDate = new Date(sortedDates[0]);
-    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
-    
+    const sortedDatesLength = sortedDates.length;
+    const firstDate = new Date(sortedDates[1]);
+    const lastDate = new Date(sortedDates[sortedDatesLength-1]);
+    lastDate.setDate(lastDate.getDate() + 1);
+  
     return `${firstDate.toLocaleDateString()} - ${lastDate.toLocaleDateString()} (${value.length} days)`;
   };
 
@@ -257,11 +261,13 @@ export default function DateArrayInput({
           </div>
 
           {/* Instructions */}
+          {multiple===true && (
           <div className="mt-3 pt-3 border-t border-neu-border">
             <p className="text-xs text-neu-text-primary/60 text-center">
               Click and drag to select/deselect multiple dates
             </p>
           </div>
+          )}
 
           {/* Selected Dates Summary */}
           {value.length > 0 && (

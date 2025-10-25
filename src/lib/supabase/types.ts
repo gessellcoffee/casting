@@ -833,3 +833,41 @@ export interface UserMetadata {
 export interface ExtendedUser extends User {
   user_metadata: UserMetadata;
 }
+
+// --- Calendar/Event types used by UI forms ---
+export type EventFrequency = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+
+export interface EventFormData {
+  title: string;
+  description?: string;
+  start: string; // ISO string for datetime-local or date
+  end: string;   // ISO string
+  allDay: boolean;
+  location?: string;
+  color?: string;
+  isRecurring: boolean;
+  recurrence: {
+    frequency: EventFrequency;
+    interval: number;
+    byDay: string[];      // e.g. ['MO','WE']
+    byMonthDay: number[]; // specific days of month
+    byMonth: number[];    // 1-12
+    endType: 'never' | 'on' | 'after';
+    endDate: string;      // YYYY-MM-DD when endType === 'on'
+    occurrences: number;  // when endType === 'after'
+  };
+}
+
+export interface CalendarEvent {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string | null;
+  start: string | Date;
+  end: string | Date;
+  allDay?: boolean;
+  location?: string | null;
+  color?: string | null;
+  isRecurring?: boolean;
+  recurrenceRule?: any | null;
+}

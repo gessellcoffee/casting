@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MdCalendarToday, MdLocationOn, MdAccessTime } from 'react-icons/md';
 import AuditionEventModal from './AuditionEventModal';
 import CallbackDetailsModal from '@/components/callbacks/CallbackDetailsModal';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import Badge from '@/components/ui/feedback/Badge';
+import useEvents from '@/hooks/useEvents';
+import EventForm from '@/components/events/EventForm';
 
 interface CalendarListViewProps {
   signups: any[];
@@ -17,6 +19,18 @@ interface CalendarListViewProps {
 export default function CalendarListView({ signups, callbacks = [], userId, onRefresh }: CalendarListViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
+  const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const { events, loadEvents } = useEvents(userId);
+
+  // Load a broad range of personal events initially
+  useEffect(() => {
+    const start = new Date();
+    start.setMonth(start.getMonth() - 6);
+    const end = new Date();
+    end.setMonth(end.getMonth() + 6);
+    loadEvents(start, end);
+  }, [loadEvents]);
 
   // Filter and sort signups
   const filteredSignups = useMemo(() => {
@@ -68,6 +82,23 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
     });
   }, [callbacks, filter]);
 
+  // Filter and sort personal events
+  const filteredPersonal = useMemo(() => {
+    const now = new Date();
+    let filtered = events.filter((evt: any) => {
+      if (!evt.start) return false;
+      const start = new Date(evt.start);
+      if (filter === 'upcoming') return start >= now;
+      if (filter === 'past') return start < now;
+      return true;
+    });
+    return filtered.sort((a: any, b: any) => {
+      const timeA = new Date(a.start).getTime();
+      const timeB = new Date(b.start).getTime();
+      return filter === 'past' ? timeB - timeA : timeA - timeB;
+    });
+  }, [events, filter]);
+
   // Group signups and callbacks by month
   const groupedEvents = useMemo(() => {
     const grouped: Record<string, any[]> = {};
@@ -94,20 +125,42 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
       grouped[monthKey].push({ ...callback, type: 'callback' });
     });
 
+    // Add personal events
+    filteredPersonal.forEach((evt: any) => {
+      const date = new Date(evt.start);
+      const monthKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      if (!grouped[monthKey]) grouped[monthKey] = [];
+      grouped[monthKey].push({ ...evt, type: 'personal' });
+    });
+
     // Sort events within each month
     Object.keys(grouped).forEach(month => {
       grouped[month].sort((a, b) => {
-        const timeA = new Date(a.type === 'audition' ? a.audition_slots.start_time : a.callback_slots.start_time).getTime();
-        const timeB = new Date(b.type === 'audition' ? b.audition_slots.start_time : b.callback_slots.start_time).getTime();
+        const timeA = new Date(
+          a.type === 'audition' ? a.audition_slots.start_time : a.type === 'callback' ? a.callback_slots.start_time : a.start
+        ).getTime();
+        const timeB = new Date(
+          b.type === 'audition' ? b.audition_slots.start_time : b.type === 'callback' ? b.callback_slots.start_time : b.start
+        ).getTime();
         return filter === 'past' ? timeB - timeA : timeA - timeB;
       });
     });
     
     return grouped;
-  }, [filteredSignups, filteredCallbacks, filter]);
+  }, [filteredSignups, filteredCallbacks, filteredPersonal, filter]);
 
   return (
     <>
+      {/* Add Personal Event Button */}
+      <div className="mb-4">
+        <button
+          onClick={() => { setSelectedDate(new Date()); setShowPersonalEventsModal(true); }}
+          className="px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary"
+        >
+          + Add Personal Event
+        </button>
+      </div>
+
       {/* Filter Buttons */}
       <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6">
         <button
@@ -159,20 +212,23 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
               <div className="space-y-3">
                 {monthEvents.map((event: any) => {
                   const isCallback = event.type === 'callback';
-                  const startTime = new Date(isCallback ? event.callback_slots.start_time : event.audition_slots.start_time);
-                  const endTime = new Date(isCallback ? event.callback_slots.end_time : event.audition_slots.end_time);
+                  const isPersonal = event.type === 'personal';
+                  const startTime = new Date(isCallback ? event.callback_slots.start_time : event.audition_slots ? event.audition_slots.start_time : event.start);
+                  const endTime = new Date(isCallback ? event.callback_slots.end_time : event.audition_slots ? event.audition_slots.end_time : event.end || event.start);
                   const showTitle = isCallback 
                     ? event.callback_slots?.auditions?.shows?.title || 'Callback'
-                    : event.audition_slots?.auditions?.shows?.title || 'Unknown Show';
+                    : event.audition_slots?.auditions?.shows?.title || event.title || 'Unknown Show';
                   const showAuthor = isCallback ? event.callback_slots?.auditions?.shows?.author : event.audition_slots?.auditions?.shows?.author;
                   const roleName = !isCallback ? event.roles?.role_name : null;
-                  const location = isCallback ? event.callback_slots.location : (event.audition_slots.location || event.audition_slots?.auditions?.audition_location);
+                  const location = isCallback ? event.callback_slots.location : (event.audition_slots ? (event.audition_slots.location || event.audition_slots?.auditions?.audition_location) : event.location);
                   const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
 
+                  const Wrapper: any = 'button';
+                  const clickable = !isPersonal; // avoid opening audition modal for personal
                   return (
-                    <button
-                      key={isCallback ? event.invitation_id : event.signup_id}
-                      onClick={() => setSelectedEvent(isCallback ? { ...event, isCallback: true } : event)}
+                    <Wrapper
+                      key={isCallback ? event.invitation_id : event.signup_id || event.id || `${event.title}-${event.start}`}
+                      onClick={clickable ? () => setSelectedEvent(isCallback ? { ...event, isCallback: true } : event) : undefined}
                       className="w-full text-left p-3 sm:p-4 rounded-lg bg-white/70 backdrop-blur-sm border border-neu-border/40 hover:border-neu-border-focus hover:bg-white/85 transition-all duration-200"
                     >
                       <div className="flex items-start justify-between gap-2 sm:gap-4">
@@ -187,8 +243,9 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-[#9b87f5]' : 'text-neu-text-primary'}`}>
+                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-[#9b87f5]' : isPersonal ? 'text-green-600' : 'text-neu-text-primary'}`}>
                                 {isCallback && <span className="flex-shrink-0">📋</span>}
+                                {isPersonal && <span className="flex-shrink-0">🗓️</span>}
                                 <span className="truncate">{showTitle}</span>
                               </h4>
                               {showAuthor && (
@@ -204,6 +261,11 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                               {isCallback && (
                                 <p className="text-xs sm:text-sm text-[#9b87f5] font-medium mt-1">
                                   Callback
+                                </p>
+                              )}
+                              {isPersonal && (
+                                <p className="text-xs sm:text-sm text-green-600 font-medium mt-1">
+                                  Personal
                                 </p>
                               )}
                             </div>
@@ -247,7 +309,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                           )}
                         </div>
                       </div>
-                    </button>
+                    </Wrapper>
                   );
                 })}
               </div>
@@ -270,6 +332,22 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
           callback={selectedEvent}
           onClose={() => setSelectedEvent(null)}
           onUpdate={onRefresh}
+        />
+      )}
+      {showPersonalEventsModal && (
+        <EventForm
+          isOpen={showPersonalEventsModal}
+          onClose={() => setShowPersonalEventsModal(false)}
+          onSave={() => {
+            // Reload a reasonable range: one year window
+            const start = new Date();
+            start.setMonth(start.getMonth() - 6);
+            const end = new Date();
+            end.setMonth(end.getMonth() + 6);
+            loadEvents(start, end);
+          }}
+          selectedDate={selectedDate || undefined}
+          userId={userId}
         />
       )}
     </>
