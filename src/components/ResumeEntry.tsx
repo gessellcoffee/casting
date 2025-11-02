@@ -143,6 +143,7 @@ export default function ResumeEntry({
             <FormInput
               label="Show/Production Name"
               name="show_name"
+              className="neu-input"
               value={formData.show_name}
               onChange={handleInputChange}
               placeholder="Hamlet"
@@ -151,6 +152,7 @@ export default function ResumeEntry({
             <FormInput
               label="Role"
               name="role"
+              className="neu-input"
               value={formData.role}
               onChange={handleInputChange}
               placeholder="Ophelia"
@@ -187,6 +189,7 @@ export default function ResumeEntry({
                   name="company_name"
                   value={formData.company_name}
                   onChange={handleInputChange}
+                  className="neu-input"
                   placeholder="Shakespeare Theater Company"
                 />
               )}
@@ -200,6 +203,7 @@ export default function ResumeEntry({
             <FormInput
               label="Date"
               name="date_of_production"
+              className="neu-input"
               value={formData.date_of_production}
               onChange={handleInputChange}
               placeholder="2024"
