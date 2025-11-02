@@ -8,7 +8,7 @@ import { deleteAudition } from '@/lib/supabase/auditions';
 import StarryContainer from '@/components/StarryContainer';
 import Link from 'next/link';
 import Button from '@/components/Button';
-import { MdEdit, MdDelete, MdVisibility, MdAssignment } from 'react-icons/md';
+import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd } from 'react-icons/md';
 
 export default function CastDashboard() {
   const router = useRouter();
@@ -147,6 +147,11 @@ export default function CastDashboard() {
                       <Link href={`/auditions/${audition.audition_id}/callbacks`}>
                         <button className="neu-icon-btn" title="Manage Callbacks">
                           <MdAssignment className="w-5 h-5" />
+                        </button>
+                      </Link>
+                      <Link href={`/auditions/${audition.audition_id}/cast-show`}>
+                        <button className="neu-icon-btn" title="Cast Show">
+                          <MdOutlinePersonAdd className="w-5 h-5" />
                         </button>
                       </Link>
                       <Link href={`/auditions/${audition.audition_id}`}>

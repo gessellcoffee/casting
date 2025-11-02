@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { X } from 'lucide-react';
 import { EventFormData, EventFrequency } from '@/lib/supabase/types';
 import { createEvent, updateEvent, CalendarEvent } from '@/lib/supabase/events';
+import DateArrayInput from '../ui/DateArrayInput';
 
 const frequencyOptions = [
   { value: 'NONE', label: 'Does not repeat' },
@@ -115,6 +116,13 @@ export default function EventForm({
     }));
   };
 
+  const handleDateChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: (value instanceof Date ? value : new Date(value)),
+    }));
+  };
+
   const handleRecurrenceChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -215,8 +223,8 @@ export default function EventForm({
               </div>
             </div>
 
-            {formData.recurrence.frequency === 'WEEKLY' || (formData.recurrence.frequency === 'CUSTOM' && (
-              <div>
+            { formData.recurrence.frequency === 'CUSTOM' && (
+                <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   On days
                 </label>
@@ -237,7 +245,7 @@ export default function EventForm({
                   ))}
                 </div>
               </div>
-            ))}
+            )} 
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -345,7 +353,7 @@ export default function EventForm({
                     className="text-gray-400 hover:text-gray-500"
                     onClick={onClose}
                   >
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    <X className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
 
@@ -430,13 +438,9 @@ export default function EventForm({
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700">
                       Location
                     </label>
-                    <input
-                      type="text"
-                      id="location"
-                      name="location"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      value={formData.location}
-                      onChange={handleInputChange}
+                    <DateArrayInput
+                      value={formData.recurrence.byDay}
+                      onChange={handleDateChange}
                     />
                   </div>
 

@@ -503,3 +503,101 @@ export async function isRoleUnderstudyFilled(
 
   return (data?.length ?? 0) > 0;
 }
+
+/**
+ * Get all ensemble members for an audition (cast members with null role_id)
+ */
+export async function getEnsembleMembers(auditionId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('cast_members')
+    .select(`
+      *,
+      profiles (
+        id,
+        first_name,
+        last_name,
+        profile_photo_url,
+        email
+      )
+    `)
+    .eq('audition_id', auditionId)
+    .is('role_id', null);
+
+  if (error) {
+    console.error('Error fetching ensemble members:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get ensemble member count for an audition
+ */
+export async function getEnsembleMemberCount(auditionId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('cast_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('audition_id', auditionId)
+    .is('role_id', null);
+
+  if (error) {
+    console.error('Error counting ensemble members:', error);
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
+/**
+ * Check if a user is already in the ensemble for an audition
+ */
+export async function isUserInEnsemble(
+  userId: string,
+  auditionId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('cast_members')
+    .select('cast_member_id')
+    .eq('user_id', userId)
+    .eq('audition_id', auditionId)
+    .is('role_id', null)
+    .limit(1);
+
+  if (error) {
+    console.error('Error checking user ensemble status:', error);
+    return false;
+  }
+
+  return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Get all roles a user is cast in for an audition (excluding ensemble)
+ */
+export async function getUserRolesInAudition(
+  userId: string,
+  auditionId: string
+): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('cast_members')
+    .select(`
+      *,
+      roles (
+        role_id,
+        role_name,
+        description,
+        role_type
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('audition_id', auditionId)
+    .not('role_id', 'is', null);
+
+  if (error) {
+    console.error('Error fetching user roles in audition:', error);
+    return [];
+  }
+
+  return data || [];
+}

@@ -90,9 +90,14 @@ export async function getAuditionById(auditionId: string) {
     ...data,
     show: data.shows,
     company: data.companies,
-    slots: data.audition_slots?.map((slot: AuditionSlotWithSignups) => ({
+    slots: data.audition_slots?.map((slot: any) => ({
       ...slot,
       current_signups: slot.current_signups?.[0]?.count || 0,
+      signups: slot.signups?.map((signup: any) => ({
+        id: signup.id,
+        user_id: signup.user_id,
+        user: signup.users
+      })) || []
     })),
     roles: roles,
   };

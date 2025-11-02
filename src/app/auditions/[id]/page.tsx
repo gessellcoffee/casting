@@ -72,7 +72,7 @@ export default function AuditionDetailPage() {
 
   return (
     <StarryContainer>
-      <div className="min-h-screen py-8 px-4">
+      <div className="neu-card-raised min-h-screen py-8 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}
           <button

@@ -492,7 +492,7 @@ export type Database = {
           cast_member_id: string;
           audition_id: string;
           user_id: string;
-          role_id: string;
+          role_id: string | null;
           status: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy: boolean;
         };
@@ -500,7 +500,7 @@ export type Database = {
           cast_member_id?: string;
           audition_id: string;
           user_id: string;
-          role_id: string;
+          role_id?: string | null;
           status?: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy?: boolean;
         };
@@ -508,7 +508,7 @@ export type Database = {
           cast_member_id?: string;
           audition_id?: string;
           user_id?: string;
-          role_id?: string;
+          role_id?: string | null;
           status?: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy?: boolean;
         };

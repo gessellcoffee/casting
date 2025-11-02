@@ -9,15 +9,22 @@ import FormTextarea from '@/components/ui/forms/FormTextarea';
 import Alert from '@/components/ui/feedback/Alert';
 import WizardNavigation from '@/components/ui/navigation/WizardNavigation';
 
+interface RoleOperation {
+  type: 'create' | 'update' | 'delete';
+  role?: any;
+  roleId?: string;
+}
+
 interface RoleManagerProps {
   showId: string;
   roles: any[];
-  onUpdate: (roles: any[]) => void;
+  onUpdate: (operations: RoleOperation[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
 interface RoleFormData {
+  role_id?: string; // Optional for new roles, required for existing roles
   role_name: string;
   description: string | null;
   role_type: RoleType | null;
@@ -33,6 +40,8 @@ export default function RoleManager({
   onBack,
 }: RoleManagerProps) {
   const [localRoles, setLocalRoles] = useState<RoleFormData[]>(roles.length > 0 ? roles : []);
+  const [existingRoles, setExistingRoles] = useState<Role[]>([]);
+  const [roleOperations, setRoleOperations] = useState<RoleOperation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,9 +51,23 @@ export default function RoleManager({
 
   const loadExistingRoles = async () => {
     setLoading(true);
-    const existingRoles = await getShowRoles(showId);
-    if (existingRoles.length > 0 && localRoles.length === 0) {
-      setLocalRoles(existingRoles);
+    const existingRolesData = await getShowRoles(showId);
+
+    if (existingRolesData.length > 0) {
+      setExistingRoles(existingRolesData);
+      // Use existing roles from database
+      const existingAsFormData = existingRolesData.map(role => ({
+        role_id: role.role_id,
+        role_name: role.role_name,
+        description: role.description,
+        role_type: role.role_type,
+        gender: role.gender,
+        needs_understudy: role.needs_understudy,
+      }));
+      setLocalRoles(existingAsFormData);
+    } else if (roles.length > 0) {
+      // No existing roles in database, use roles from parent (if any)
+      setLocalRoles(roles);
     }
     setLoading(false);
   };
@@ -76,13 +99,75 @@ export default function RoleManager({
   const handleNext = () => {
     // Validate at least one role with a name
     const validRoles = localRoles.filter((role) => role.role_name.trim());
-    
+
     if (validRoles.length === 0) {
       setError('Please add at least one role with a name');
       return;
     }
 
-    onUpdate(validRoles);
+    // Generate role operations by comparing current state with existing roles
+    const operations: RoleOperation[] = [];
+
+    // Create a map of existing roles by ID for quick lookup
+    const existingRolesMap = new Map(existingRoles.map(role => [role.role_id, role]));
+
+    // Create a map of current roles by ID for quick lookup
+    const currentRolesMap = new Map(validRoles.map(role => [role.role_id, role]));
+
+    // Find deleted roles (existing roles not in current list)
+    existingRoles.forEach(existingRole => {
+      if (!currentRolesMap.has(existingRole.role_id)) {
+        operations.push({
+          type: 'delete',
+          roleId: existingRole.role_id,
+        });
+      }
+    });
+
+    // Find new and updated roles
+    validRoles.forEach((role) => {
+      if (role.role_id) {
+        // Existing role - check if it has been modified
+        const existingRole = existingRolesMap.get(role.role_id);
+        if (existingRole) {
+          const hasChanges =
+            existingRole.description !== role.description ||
+            existingRole.role_type !== role.role_type ||
+            existingRole.gender !== role.gender ||
+            existingRole.needs_understudy !== role.needs_understudy ||
+            existingRole.role_name !== role.role_name;
+
+          if (hasChanges) {
+            operations.push({
+              type: 'update',
+              roleId: role.role_id,
+              role: {
+                role_name: role.role_name,
+                description: role.description,
+                role_type: role.role_type,
+                gender: role.gender,
+                needs_understudy: role.needs_understudy,
+              },
+            });
+          }
+        }
+      } else {
+        // New role
+        operations.push({
+          type: 'create',
+          role: {
+            show_id: showId,
+            role_name: role.role_name,
+            description: role.description,
+            role_type: role.role_type,
+            gender: role.gender,
+            needs_understudy: role.needs_understudy,
+          },
+        });
+      }
+    });
+
+    onUpdate(operations);
     onNext();
   };
 
