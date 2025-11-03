@@ -19,8 +19,8 @@ export default function HeroModule({ user }: HeroModuleProps) {
         <div className="nav-buttons m-8 flex items-center justify-center gap-4">
             {user ? (
               <>
-                <Button text="Audition" href="/auditions" className='m-4'/>
-                <Button text="Post an Audition" href="/cast" className='m-4'/>
+                <Button text="Audition" href="/auditions" className='m-4 recommended-button'/>
+                <Button text="Post an Audition" href="/cast" className='m-4 recommended-button'/>
               </>
             ) : (
               <Button text="Login to Get Started" href="/login" className='m-4'/>

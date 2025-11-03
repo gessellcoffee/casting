@@ -1424,3 +1424,107 @@ select.neu-input {
   background: rgba(21, 27, 53, 0.95);
   border-bottom: 1px solid rgba(124, 58, 237, 0.3);
 }
+
+/* ===== RECOMMENDED BUTTON - SPECIAL SPARKLE EFFECT ===== */
+.recommended-button {
+  position: relative;
+  overflow: hidden;
+  animation: recommendedPulse 2s ease-in-out infinite;
+}
+
+/* Pulsing glow effect */
+@keyframes recommendedPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(107, 141, 214, 0.4),
+      0 0 40px rgba(107, 141, 214, 0.2),
+      inset 0 0 20px rgba(107, 141, 214, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(107, 141, 214, 0.6),
+      0 0 60px rgba(107, 141, 214, 0.3),
+      inset 0 0 30px rgba(107, 141, 214, 0.2);
+  }
+}
+
+[data-theme="dark"] .recommended-button {
+  animation: recommendedPulseDark 2s ease-in-out infinite;
+}
+
+@keyframes recommendedPulseDark {
+  0%, 100% {
+    box-shadow: 
+      0 0 25px rgba(167, 139, 250, 0.5),
+      0 0 50px rgba(124, 58, 237, 0.3),
+      inset 0 0 25px rgba(167, 139, 250, 0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(167, 139, 250, 0.7),
+      0 0 80px rgba(124, 58, 237, 0.4),
+      inset 0 0 40px rgba(167, 139, 250, 0.25);
+  }
+}
+
+/* Sparkle shine effect */
+.recommended-button::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  animation: recommendedSparkle 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes recommendedSparkle {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Cosmic particles effect for dark mode */
+[data-theme="dark"] .recommended-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(167, 139, 250, 0.6) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(124, 58, 237, 0.6) 0%, transparent 50%);
+  background-size: 100% 100%;
+  animation: recommendedParticles 4s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@keyframes recommendedParticles {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Enhanced hover state */
+.recommended-button:hover {
+  animation: recommendedPulse 1s ease-in-out infinite;
+}
+
+[data-theme="dark"] .recommended-button:hover {
+  animation: recommendedPulseDark 1s ease-in-out infinite;
+}

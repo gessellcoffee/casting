@@ -695,7 +695,7 @@ export default function SlotScheduler({
                     setShowSlotModal(false);
                     setShowMultiSlotModal(true);
                   }}
-                  className="n-button-secondary w-full px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors text-sm"
+                  className="recommended-button n-button-secondary w-full px-4 py-2 rounded-lg bg-neu-surface text-neu-text-primary hover:bg-[#3e4e6e] transition-colors text-sm"
                 >
                   Generate Multiple Slots
                 </button>

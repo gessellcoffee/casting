@@ -7,6 +7,7 @@ import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, get
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
+import GoogleCalendarImport from '@/components/calendar/GoogleCalendarImport';
 import { generateProductionEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 
 export default function MyAuditionsPage() {
@@ -83,7 +84,11 @@ export default function MyAuditionsPage() {
             </p>
           </div>
           
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3">
+            <GoogleCalendarImport 
+              userId={user.id}
+              onImportComplete={loadData}
+            />
             <DownloadMyCalendarButton
               signups={signups}
               callbacks={callbacks}
