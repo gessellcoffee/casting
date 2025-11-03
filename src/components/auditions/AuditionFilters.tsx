@@ -11,8 +11,12 @@ interface AuditionFiltersProps {
   filters: {
     equityStatus: string;
     dateRange: string;
+    state: string;
+    city: string;
   };
   onFiltersChange: (filters: any) => void;
+  states: string[];
+  cities: string[];
 }
 
 export default function AuditionFilters({
@@ -20,6 +24,8 @@ export default function AuditionFilters({
   onSearchChange,
   filters,
   onFiltersChange,
+  states,
+  cities,
 }: AuditionFiltersProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debouncedQuery = useDebounce(localQuery, 300);
@@ -31,7 +37,7 @@ export default function AuditionFilters({
 
   return (
     <div className="mb-8 p-6 rounded-2xl neu-card-raised">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Search */}
         <FormInput
           label="Search"
@@ -63,6 +69,34 @@ export default function AuditionFilters({
           <option value="today">Today</option>
           <option value="week">This Week</option>
           <option value="month">This Month</option>
+        </FormSelect>
+
+        {/* State Filter */}
+        <FormSelect
+          label="State"
+          value={filters.state}
+          onChange={(e) => onFiltersChange({ ...filters, state: e.target.value, city: 'all' })}
+        >
+          <option value="all">All States</option>
+          {states.map((state) => (
+            <option key={state} value={state}>
+              {state}
+            </option>
+          ))}
+        </FormSelect>
+
+        {/* City Filter */}
+        <FormSelect
+          label="City"
+          value={filters.city}
+          onChange={(e) => onFiltersChange({ ...filters, city: e.target.value })}
+        >
+          <option value="all">All Cities</option>
+          {cities.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
         </FormSelect>
       </div>
     </div>

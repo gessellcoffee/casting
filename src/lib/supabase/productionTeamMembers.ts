@@ -5,6 +5,11 @@ import type {
   ProductionTeamMemberUpdate,
   ProductionTeamMemberWithProfile 
 } from './types';
+import { 
+  generateAuditionCalendarEvents, 
+  generateICSFile, 
+  type AuditionCalendarData 
+} from '@/lib/utils/calendarUtils';
 
 /**
  * Get all production team members for an audition
@@ -274,4 +279,135 @@ export async function isUserProductionMember(
   }
 
   return !!data;
+}
+
+/**
+ * Generate calendar data for an audition (for production team members)
+ * Returns ICS file content that can be downloaded or sent via email
+ */
+export async function generateProductionCalendar(
+  auditionId: string
+): Promise<{ data: string | null; error: any }> {
+  try {
+    // Fetch audition with all related data
+    const { data: audition, error: auditionError } = await supabase
+      .from('auditions')
+      .select(`
+        *,
+        shows (
+          title
+        )
+      `)
+      .eq('audition_id', auditionId)
+      .single();
+
+    if (auditionError || !audition) {
+      console.error('Error fetching audition for calendar:', auditionError);
+      return { data: null, error: auditionError || new Error('Audition not found') };
+    }
+
+    // Fetch audition slots
+    const { data: slots, error: slotsError } = await supabase
+      .from('audition_slots')
+      .select('*')
+      .eq('audition_id', auditionId)
+      .order('start_time', { ascending: true });
+
+    if (slotsError) {
+      console.error('Error fetching slots for calendar:', slotsError);
+    }
+
+    // Fetch callback slots
+    const { data: callbackSlots, error: callbackError } = await supabase
+      .from('callback_slots')
+      .select('*')
+      .eq('audition_id', auditionId)
+      .order('start_time', { ascending: true });
+
+    if (callbackError) {
+      console.error('Error fetching callback slots for calendar:', callbackError);
+    }
+
+    // Parse rehearsal and performance dates from comma-separated strings
+    const rehearsalDates = audition.rehearsal_dates 
+      ? audition.rehearsal_dates.split(',').map((d: string) => d.trim()).filter(Boolean)
+      : [];
+    
+    const performanceDates = audition.performance_dates 
+      ? audition.performance_dates.split(',').map((d: string) => d.trim()).filter(Boolean)
+      : [];
+
+    // Prepare calendar data (convert null to undefined for optional fields)
+    const calendarData: AuditionCalendarData = {
+      showTitle: audition.shows?.title || 'Untitled Show',
+      auditionDates: audition.audition_dates || [],
+      auditionLocation: audition.audition_location || undefined,
+      rehearsalDates,
+      rehearsalLocation: audition.rehearsal_location || undefined,
+      performanceDates,
+      performanceLocation: audition.performance_location || undefined,
+      slots: slots?.map(s => ({ ...s, location: s.location || undefined })) || [],
+      callbackSlots: callbackSlots?.map(s => ({ ...s, location: s.location || undefined })) || [],
+    };
+
+    // Generate calendar events
+    const events = generateAuditionCalendarEvents(calendarData);
+
+    // Generate ICS file
+    const icsContent = generateICSFile(
+      events,
+      `${audition.shows?.title || 'Production'} - Full Schedule`
+    );
+
+    return { data: icsContent, error: null };
+  } catch (err: any) {
+    console.error('Error generating production calendar:', err);
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * Send calendar to production team members
+ * TODO: Integrate with email service to send ICS files to team members
+ * For now, this prepares the calendar data that can be sent
+ */
+export async function sendCalendarToProductionTeam(
+  auditionId: string
+): Promise<{ success: boolean; error: any }> {
+  try {
+    // Generate the calendar
+    const { data: icsContent, error: calendarError } = await generateProductionCalendar(auditionId);
+
+    if (calendarError || !icsContent) {
+      return { success: false, error: calendarError || new Error('Failed to generate calendar') };
+    }
+
+    // Get production team members
+    const members = await getProductionTeamMembers(auditionId);
+
+    // TODO: Send email with ICS attachment to each team member
+    // For now, we'll just log that the calendar was generated
+    console.log(`Calendar generated for ${members.length} production team members`);
+    console.log('ICS content ready to send (email integration pending)');
+
+    // In a future implementation, you would:
+    // 1. Set up an email service (e.g., SendGrid, Resend, or Supabase Edge Function with SMTP)
+    // 2. Send emails to each team member with the ICS file as an attachment
+    // 3. Include a personalized message with their role title
+    
+    // Example (pseudo-code):
+    // for (const member of members) {
+    //   await sendEmail({
+    //     to: member.profiles?.email || member.invited_email,
+    //     subject: `Production Calendar - ${showTitle}`,
+    //     body: `You've been added as ${member.role_title}...`,
+    //     attachments: [{ filename: 'production-calendar.ics', content: icsContent }]
+    //   });
+    // }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    console.error('Error sending calendar to production team:', err);
+    return { success: false, error: err };
+  }
 }

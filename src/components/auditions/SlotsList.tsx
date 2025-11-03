@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { MdCalendarToday, MdCheckCircle, MdWarning, MdDelete } from 'react-icons/md';
 import Alert from '@/components/ui/feedback/Alert';
 import EmptyState from '@/components/ui/feedback/EmptyState';
+import { formatUSDateWithFullWeekday, formatUSTime } from '@/lib/utils/dateUtils';
 
 interface SlotsListProps {
   slots: any[];
@@ -144,14 +145,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
               <div>
                 <div className="font-medium mb-1 text-neu-accent-primary">You're signed up for this audition</div>
                 <div className="text-sm text-neu-text-primary/80">
-                  {new Date(userSignup.audition_slots.start_time).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })} at {new Date(userSignup.audition_slots.start_time).toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
+                  {formatUSDateWithFullWeekday(userSignup.audition_slots.start_time)} at {formatUSTime(userSignup.audition_slots.start_time)}
                 </div>
                 <div className="text-xs text-neu-text-primary/60 mt-2">
                   You can only sign up for one slot per audition. To change your slot, cancel your current signup first.
@@ -209,20 +203,10 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
             >
               <div className="flex-1">
                 <div className="text-neu-text-primary font-medium">
-                  {startTime.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+                  {formatUSDateWithFullWeekday(startTime)}
                 </div>
                 <div className="text-neu-text-primary/70 text-sm">
-                  {startTime.toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })} - {endTime.toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })} ({duration} min)
+                  {formatUSTime(startTime)} - {formatUSTime(endTime)} ({duration} min)
                 </div>
                 {slot.location && (
                   <div className="text-neu-text-primary/60 text-xs mt-1">

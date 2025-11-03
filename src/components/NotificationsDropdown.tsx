@@ -16,7 +16,7 @@ import { respondToCallbackInvitation } from '@/lib/supabase/callbackInvitations'
 import { acceptCastingOffer, declineCastingOffer } from '@/lib/supabase/castingOffers';
 import Link from 'next/link';
 import { useClickOutside } from '@/lib/hooks/useClickOutside';
-import { formatTimeAgo } from '@/lib/utils/dateUtils';
+import { formatTimeAgo, formatUSDate, formatUSTime } from '@/lib/utils/dateUtils';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import Badge from '@/components/ui/feedback/Badge';
 import CallbackResponseModal from '@/components/callbacks/CallbackResponseModal';
@@ -138,10 +138,10 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       details: {
         showTitle: `Callback Invitation for ${notification.callback_invitations?.callback_slots?.auditions?.shows?.title || 'Unknown Show'}`,
         date: notification.callback_invitations?.callback_slots?.start_time 
-          ? new Date(notification.callback_invitations.callback_slots.start_time).toLocaleDateString()
+          ? formatUSDate(notification.callback_invitations.callback_slots.start_time)
           : undefined,
         time: notification.callback_invitations?.callback_slots?.start_time 
-          ? new Date(notification.callback_invitations.callback_slots.start_time).toLocaleTimeString()
+          ? formatUSTime(notification.callback_invitations.callback_slots.start_time)
           : undefined,
         location: notification.callback_invitations?.callback_slots?.location,
       },

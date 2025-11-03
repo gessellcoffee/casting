@@ -29,6 +29,15 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
   const auditionLocation = audition?.audition_location;
   const location = slotLocation || auditionLocation;
 
+  // Format rehearsal dates as a date range
+  const formatDateRange = (dates: string | null): string => {
+    if (!dates) return '';
+    const dateArray = dates.split(',').map(d => d.trim()).filter(Boolean);
+    if (dateArray.length === 0) return '';
+    if (dateArray.length === 1) return dateArray[0];
+    return `${dateArray[0]} - ${dateArray[dateArray.length - 1]}`;
+  };
+
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to cancel this audition signup?')) {
       return;
@@ -222,7 +231,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
               {audition.rehearsal_dates && (
                 <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
                   <h4 className="text-sm font-semibold text-neu-text-primary/70 mb-1">Rehearsal Dates</h4>
-                  <p className="text-neu-text-primary text-sm">{audition.rehearsal_dates}</p>
+                  <p className="text-neu-text-primary text-sm">{formatDateRange(audition.rehearsal_dates)}</p>
                   {audition.rehearsal_location && (
                     <div className="text-neu-text-primary/60 text-xs mt-1">
                       📍 {audition.rehearsal_location}
@@ -234,7 +243,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
               {audition.performance_dates && (
                 <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border">
                   <div className="text-sm text-neu-text-primary/70 mb-1">Performance Dates</div>
-                  <div className="text-neu-text-primary text-sm">{audition.performance_dates}</div>
+                  <div className="text-neu-text-primary text-sm">{formatDateRange(audition.performance_dates)}</div>
                   {audition.performance_location && (
                     <div className="text-neu-text-primary/60 text-xs mt-1">
                       📍 {audition.performance_location}

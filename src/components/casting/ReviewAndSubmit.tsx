@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { createAudition } from '@/lib/supabase/auditions';
 import { createAuditionRole, updateAuditionRole, deleteAuditionRole } from '@/lib/supabase/auditionRoles';
 import { createAuditionSlots } from '@/lib/supabase/auditionSlots';
-import { addProductionTeamMember, inviteProductionTeamMember } from '@/lib/supabase/productionTeamMembers';
+import { addProductionTeamMember, inviteProductionTeamMember, sendCalendarToProductionTeam } from '@/lib/supabase/productionTeamMembers';
+import { formatUSDate } from '@/lib/utils/dateUtils';
 
 interface ReviewAndSubmitProps {
   castingData: any & {
@@ -163,6 +164,15 @@ export default function ReviewAndSubmit({
             }
           }
         }
+
+        // Step 5: Generate and prepare calendar for production team
+        const { success: calendarSuccess, error: calendarError } = await sendCalendarToProductionTeam(audition.audition_id);
+        if (!calendarSuccess) {
+          console.error('Failed to generate calendar for production team:', calendarError);
+          // Don't throw - calendar is a nice-to-have feature
+        } else {
+          console.log('Calendar generated successfully for production team');
+        }
       }
 
       // Success!
@@ -253,7 +263,7 @@ export default function ReviewAndSubmit({
                       key={index}
                       className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary text-xs"
                     >
-                      {new Date(date).toLocaleDateString()}
+                      {formatUSDate(date)}
                     </span>
                   ))}
                 </div>
@@ -268,7 +278,7 @@ export default function ReviewAndSubmit({
                       key={index}
                       className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary text-xs"
                     >
-                      {new Date(date).toLocaleDateString()}
+                      {formatUSDate(date)}
                     </span>
                   ))}
                 </div>
@@ -291,7 +301,7 @@ export default function ReviewAndSubmit({
                       key={index}
                       className="px-2 py-1 rounded bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary text-xs"
                     >
-                      {new Date(date).toLocaleDateString()}
+                      {formatUSDate(date)}
                     </span>
                   ))}
                 </div>

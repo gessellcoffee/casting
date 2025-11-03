@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { CastingOfferWithDetails } from '@/lib/supabase/types';
 import SendOfferModal from './SendOfferModal';
 import OfferStatusBadge from './OfferStatusBadge';
+import { formatUSDate } from '@/lib/utils/dateUtils';
 
 interface CastingOffersPanelProps {
   auditionId: string;
@@ -228,7 +229,7 @@ export default function CastingOffersPanel({ auditionId, currentUserId }: Castin
                             <span className="text-sm text-neu-text-secondary">Ensemble</span>
                           )}
                           <span className="text-xs text-neu-text-secondary">
-                            {new Date(offer.sent_at).toLocaleDateString()}
+                            {formatUSDate(offer.sent_at)}
                           </span>
                         </>
                       ) : (

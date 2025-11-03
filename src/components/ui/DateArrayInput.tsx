@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { formatUSDate, formatUSMonthDay, formatUSMonthYear } from '@/lib/utils/dateUtils';
 
 interface DateArrayInputProps {
   value: string[]; // Array of date strings in YYYY-MM-DD format
@@ -64,6 +65,12 @@ export default function DateArrayInput({
 
   const formatDate = (year: number, month: number, day: number): string => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  // Parse YYYY-MM-DD string as local date to avoid timezone issues
+  const parseLocalDate = (dateStr: string): Date => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
   };
 
   const isDateSelected = (dateStr: string): boolean => {
@@ -157,17 +164,16 @@ export default function DateArrayInput({
     if (value.length === 0) return placeholder;
     
     if (value.length === 1) {
-      return new Date(value[0]).toLocaleDateString();
+      return formatUSDate(parseLocalDate(value[0]));
     }
 
     // Show first and last date as range
     const sortedDates = [...value].sort();
     const sortedDatesLength = sortedDates.length;
-    const firstDate = new Date(sortedDates[1]);
-    const lastDate = new Date(sortedDates[sortedDatesLength-1]);
-    lastDate.setDate(lastDate.getDate() + 1);
+    const firstDate = parseLocalDate(sortedDates[0]);
+    const lastDate = parseLocalDate(sortedDates[sortedDatesLength-1]);
   
-    return `${firstDate.toLocaleDateString()} - ${lastDate.toLocaleDateString()} (${value.length} days)`;
+    return `${formatUSDate(firstDate)} - ${formatUSDate(lastDate)} (${value.length} days)`;
   };
 
   return (
@@ -214,7 +220,7 @@ export default function DateArrayInput({
             
             <div className="text-center">
               <div className="text-neu-text-primary font-medium">
-                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                {formatUSMonthYear(currentMonth)}
               </div>
             </div>
             
@@ -281,7 +287,7 @@ export default function DateArrayInput({
                     key={dateStr}
                     className="neu-badge-accepted"
                   >
-                    {new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {formatUSMonthDay(parseLocalDate(dateStr))}
                   </span>
                 ))}
                 {value.length > 10 && (

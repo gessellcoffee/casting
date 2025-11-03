@@ -5,17 +5,19 @@ import { MdChevronLeft, MdChevronRight, MdCalendarToday, MdList } from 'react-ic
 import CalendarMonthView from './CalendarMonthView';
 import CalendarWeekView from './CalendarWeekView';
 import CalendarListView from './CalendarListView';
+import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 
 type ViewMode = 'month' | 'week' | 'list';
 
 interface AuditionCalendarProps {
   signups: any[];
   callbacks?: any[];
+  productionEvents?: ProductionDateEvent[];
   userId: string;
   onRefresh?: () => void;
 }
 
-export default function AuditionCalendar({ signups, callbacks = [], userId, onRefresh }: AuditionCalendarProps) {
+export default function AuditionCalendar({ signups, callbacks = [], productionEvents = [], userId, onRefresh }: AuditionCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCallbacks, setShowCallbacks] = useState(true);
@@ -163,6 +165,7 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
           <CalendarMonthView 
             signups={signups}
             callbacks={showCallbacks ? callbacks : []}
+            productionEvents={productionEvents}
             currentDate={currentDate}
             userId={userId}
             onRefresh={onRefresh}
@@ -172,6 +175,7 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
           <CalendarWeekView 
             signups={signups}
             callbacks={showCallbacks ? callbacks : []}
+            productionEvents={productionEvents}
             currentDate={currentDate}
             userId={userId}
             onRefresh={onRefresh}
@@ -181,6 +185,7 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
           <CalendarListView 
             signups={signups}
             callbacks={showCallbacks ? callbacks : []}
+            productionEvents={productionEvents}
             userId={userId}
             onRefresh={onRefresh}
           />

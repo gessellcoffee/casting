@@ -555,3 +555,105 @@ export async function bulkUpdateSignupStatus(
 
   return { error: null };
 }
+
+/**
+ * Get auditions where user has accepted a casting offer (status = 'Offer Accepted')
+ * These shows should appear in the user's calendar with rehearsal and performance dates
+ */
+export async function getUserCastShows(userId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .select(`
+      *,
+      audition_slots (
+        auditions (
+          audition_id,
+          rehearsal_dates,
+          rehearsal_location,
+          performance_dates,
+          performance_location,
+          shows (
+            show_id,
+            title,
+            author
+          )
+        )
+      ),
+      roles (
+        role_id,
+        role_name
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('status', 'Offer Accepted');
+
+  if (error) {
+    console.error('Error fetching user cast shows:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get auditions owned by the user
+ * These shows should appear in the owner's calendar with rehearsal and performance dates
+ */
+export async function getUserOwnedAuditions(userId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('auditions')
+    .select(`
+      audition_id,
+      rehearsal_dates,
+      rehearsal_location,
+      performance_dates,
+      performance_location,
+      shows (
+        show_id,
+        title,
+        author
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching user owned auditions:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get auditions where user is a production team member
+ * These shows should appear in the team member's calendar with rehearsal and performance dates
+ */
+export async function getUserProductionTeamAuditions(userId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('production_team_members')
+    .select(`
+      audition_id,
+      role_title,
+      auditions (
+        audition_id,
+        rehearsal_dates,
+        rehearsal_location,
+        performance_dates,
+        performance_location,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('Error fetching user production team auditions:', error);
+    return [];
+  }
+
+  return data || [];
+}

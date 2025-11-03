@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAuditionsWithDetails } from '@/lib/supabase/auditionQueries';
 import StarryContainer from '@/components/StarryContainer';
 import AuditionCard from '@/components/auditions/AuditionCard';
@@ -16,6 +16,8 @@ export default function AuditionsPage() {
   const [filters, setFilters] = useState({
     equityStatus: 'all',
     dateRange: 'all',
+    state: 'all',
+    city: 'all',
   });
 
   useEffect(() => {
@@ -36,6 +38,92 @@ export default function AuditionsPage() {
     
     setLoading(false);
   };
+
+  // Helper function to extract state from location string
+  const extractState = (location: string | null): string | null => {
+    if (!location) return null;
+    // Common US address format: "Street, City, State ZIP"
+    // or "City, State ZIP"
+    // State is typically a 2-letter code before the ZIP
+    const stateMatch = location.match(/,\s*([A-Z]{2})\s+\d{5}/);
+    if (stateMatch) return stateMatch[1];
+    
+    // Try alternative format: "City, State"
+    const altMatch = location.match(/,\s*([A-Z]{2})\s*(?:,|$)/);
+    if (altMatch) return altMatch[1];
+    
+    return null;
+  };
+
+  // Helper function to extract city from location string
+  const extractCity = (location: string | null): string | null => {
+    if (!location) return null;
+    // Common format: "Street, City, State ZIP" or "City, State ZIP"
+    // Find the state code first, then get the part before it
+    const parts = location.split(',').map(p => p.trim());
+    
+    // Find which part contains the state code (2 letters followed by optional ZIP)
+    let stateIndex = -1;
+    for (let i = 0; i < parts.length; i++) {
+      // Check if this part starts with a 2-letter state code
+      if (/^[A-Z]{2}(\s+\d{5})?/.test(parts[i])) {
+        stateIndex = i;
+        break;
+      }
+    }
+    
+    // If we found a state, get the part immediately before it
+    if (stateIndex > 0) {
+      const cityPart = parts[stateIndex - 1];
+      // Remove any leading numbers/addresses and get the city name
+      const cityMatch = cityPart.match(/^(?:\d+\s+)?(.+?)$/);
+      if (cityMatch) {
+        const city = cityMatch[1].trim();
+        // Make sure it's not empty and looks like a city (not just numbers)
+        if (city && /[A-Za-z]/.test(city)) {
+          return city;
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  // Extract unique states and cities from auditions
+  const { states, cities } = useMemo(() => {
+    const statesSet = new Set<string>();
+    const citiesSet = new Set<string>();
+    
+    auditions.forEach(audition => {
+      const state = extractState(audition.audition_location);
+      const city = extractCity(audition.audition_location);
+      
+      if (state) statesSet.add(state);
+      if (city) citiesSet.add(city);
+    });
+    
+    return {
+      states: Array.from(statesSet).sort(),
+      cities: Array.from(citiesSet).sort(),
+    };
+  }, [auditions]);
+
+  // Filter cities based on selected state
+  const filteredCities = useMemo(() => {
+    if (filters.state === 'all') return cities;
+    
+    const citiesInState = new Set<string>();
+    auditions.forEach(audition => {
+      const state = extractState(audition.audition_location);
+      const city = extractCity(audition.audition_location);
+      
+      if (state === filters.state && city) {
+        citiesInState.add(city);
+      }
+    });
+    
+    return Array.from(citiesInState).sort();
+  }, [auditions, filters.state, cities]);
 
   const applyFilters = () => {
     let filtered = [...auditions];
@@ -85,6 +173,22 @@ export default function AuditionsPage() {
       });
     }
 
+    // State filter
+    if (filters.state !== 'all') {
+      filtered = filtered.filter(audition => {
+        const state = extractState(audition.audition_location);
+        return state === filters.state;
+      });
+    }
+
+    // City filter
+    if (filters.city !== 'all') {
+      filtered = filtered.filter(audition => {
+        const city = extractCity(audition.audition_location);
+        return city === filters.city;
+      });
+    }
+
     setFilteredAuditions(filtered);
   };
 
@@ -120,6 +224,8 @@ export default function AuditionsPage() {
             onSearchChange={setSearchQuery}
             filters={filters}
             onFiltersChange={setFilters}
+            states={states}
+            cities={filteredCities}
           />
 
           {/* Loading State */}
@@ -142,15 +248,15 @@ export default function AuditionsPage() {
           {!loading && filteredAuditions.length === 0 && (
             <div className="text-center py-12">
               <div className="text-neu-text-secondary mb-4">
-                {searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all'
+                {searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all' || filters.state !== 'all' || filters.city !== 'all'
                   ? 'No auditions match your filters'
                   : 'No auditions posted yet'}
               </div>
-              {(searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all') && (
+              {(searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all' || filters.state !== 'all' || filters.city !== 'all') && (
                 <button
                   onClick={() => {
                     setSearchQuery('');
-                    setFilters({ equityStatus: 'all', dateRange: 'all' });
+                    setFilters({ equityStatus: 'all', dateRange: 'all', state: 'all', city: 'all' });
                   }}
                   className="n-button-secondary"
                 >

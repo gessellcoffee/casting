@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/feedback/Badge';
+import { formatUSDateWithWeekday, formatUSTime } from '@/lib/utils/dateUtils';
 
 interface AuditionCardProps {
   audition: any;
@@ -10,6 +11,15 @@ interface AuditionCardProps {
 
 export default function AuditionCard({ audition }: AuditionCardProps) {
   const { show, company, slots, equity_status, audition_location, rehearsal_dates, performance_dates } = audition;
+
+  // Format rehearsal dates as a date range
+  const formatDateRange = (dates: string | null): string => {
+    if (!dates) return '';
+    const dateArray = dates.split(',').map(d => d.trim()).filter(Boolean);
+    if (dateArray.length === 0) return '';
+    if (dateArray.length === 1) return dateArray[0];
+    return `${dateArray[0]} - ${dateArray[dateArray.length - 1]}`;
+  };
 
   // Get earliest available slot
   const earliestSlot = slots?.length > 0 
@@ -72,12 +82,12 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
         <div className="space-y-2 mb-4 text-sm">
           {rehearsal_dates && (
             <div className="text-neu-text-secondary">
-              <span className="font-medium text-neu-text-primary">Rehearsals:</span> {rehearsal_dates}
+              <span className="font-medium text-neu-text-primary">Rehearsals:</span> {formatDateRange(rehearsal_dates)}
             </div>
           )}
           {performance_dates && (
             <div className="text-neu-text-secondary">
-              <span className="font-medium text-neu-text-primary">Performances:</span> {performance_dates}
+              <span className="font-medium text-neu-text-primary">Performances:</span> {formatDateRange(performance_dates)}
             </div>
           )}
         </div>
@@ -90,13 +100,7 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
                 <span className="font-medium">Next Audition:</span>
               </div>
               <div className="text-sm text-neu-text-secondary">
-                {new Date(earliestSlot.start_time).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })}
+                {formatUSDateWithWeekday(earliestSlot.start_time)}, {formatUSTime(earliestSlot.start_time)}
               </div>
               {earliestSlot.location && (
                 <div className="text-xs text-neu-text-muted">

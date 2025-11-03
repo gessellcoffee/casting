@@ -8,6 +8,7 @@ import { deleteAudition } from '@/lib/supabase/auditions';
 import StarryContainer from '@/components/StarryContainer';
 import Link from 'next/link';
 import Button from '@/components/Button';
+import DownloadCalendarButton from '@/components/auditions/DownloadCalendarButton';
 import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd } from 'react-icons/md';
 
 export default function CastDashboard() {
@@ -138,35 +139,43 @@ export default function CastDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-row flex-wrap gap-2 lg:flex-shrink-0">
-                      <Link href={`/cast/edit/${audition.audition_id}`}>
-                        <button className="neu-icon-btn" title="Edit Audition">
-                          <MdEdit className="w-5 h-5" />
+                    <div className="flex flex-col gap-3 lg:flex-shrink-0">
+                      <div className="flex flex-row flex-wrap gap-2">
+                        <Link href={`/cast/edit/${audition.audition_id}`}>
+                          <button className="neu-icon-btn" title="Edit Audition">
+                            <MdEdit className="w-5 h-5" />
+                          </button>
+                        </Link>
+                        <Link href={`/auditions/${audition.audition_id}/callbacks`}>
+                          <button className="neu-icon-btn" title="Manage Callbacks">
+                            <MdAssignment className="w-5 h-5" />
+                          </button>
+                        </Link>
+                        <Link href={`/auditions/${audition.audition_id}/cast-show`}>
+                          <button className="neu-icon-btn" title="Cast Show">
+                            <MdOutlinePersonAdd className="w-5 h-5" />
+                          </button>
+                        </Link>
+                        <Link href={`/auditions/${audition.audition_id}`}>
+                          <button className="neu-icon-btn" title="View Audition">
+                            <MdVisibility className="w-5 h-5" />
+                          </button>
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(audition.audition_id)}
+                          disabled={deleting === audition.audition_id}
+                          className="neu-icon-btn hover:text-neu-accent-danger disabled:opacity-50"
+                          title="Delete Audition"
+                        >
+                          <MdDelete className="w-5 h-5" />
                         </button>
-                      </Link>
-                      <Link href={`/auditions/${audition.audition_id}/callbacks`}>
-                        <button className="neu-icon-btn" title="Manage Callbacks">
-                          <MdAssignment className="w-5 h-5" />
-                        </button>
-                      </Link>
-                      <Link href={`/auditions/${audition.audition_id}/cast-show`}>
-                        <button className="neu-icon-btn" title="Cast Show">
-                          <MdOutlinePersonAdd className="w-5 h-5" />
-                        </button>
-                      </Link>
-                      <Link href={`/auditions/${audition.audition_id}`}>
-                        <button className="neu-icon-btn" title="View Audition">
-                          <MdVisibility className="w-5 h-5" />
-                        </button>
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(audition.audition_id)}
-                        disabled={deleting === audition.audition_id}
-                        className="neu-icon-btn hover:text-neu-accent-danger disabled:opacity-50"
-                        title="Delete Audition"
-                      >
-                        <MdDelete className="w-5 h-5" />
-                      </button>
+                      </div>
+                      <DownloadCalendarButton
+                        auditionId={audition.audition_id}
+                        showTitle={audition.show?.title || 'Production'}
+                        variant="secondary"
+                        size="sm"
+                      />
                     </div>
                   </div>
                 </div>

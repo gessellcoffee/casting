@@ -6,6 +6,7 @@ import { acceptCastingOffer, declineCastingOffer } from '@/lib/supabase/castingO
 import type { CastingOfferWithDetails } from '@/lib/supabase/types';
 import OfferStatusBadge from './OfferStatusBadge';
 import Button from '@/components/Button';
+import { formatUSDate } from '@/lib/utils/dateUtils';
 
 interface CastingOfferCardProps {
   offer: CastingOfferWithDetails;
@@ -104,11 +105,11 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
       {/* Dates */}
       <div className="flex items-center gap-4 text-sm text-neu-text-secondary mb-4">
         <div>
-          <span className="font-medium">Sent:</span> {new Date(offer.sent_at).toLocaleDateString()}
+          <span className="font-medium">Sent:</span> {formatUSDate(offer.sent_at)}
         </div>
         {offer.responded_at && (
           <div>
-            <span className="font-medium">Responded:</span> {new Date(offer.responded_at).toLocaleDateString()}
+            <span className="font-medium">Responded:</span> {formatUSDate(offer.responded_at)}
           </div>
         )}
       </div>

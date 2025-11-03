@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getProductionTeamMembers } from '@/lib/supabase/productionTeamMembers';
 import type { ProductionTeamMemberWithProfile } from '@/lib/supabase/types';
+import { formatUSDateShort } from '@/lib/utils/dateUtils';
 
 interface AuditionInfoProps {
   audition: any;
@@ -22,6 +23,15 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
 
   const [productionTeam, setProductionTeam] = useState<ProductionTeamMemberWithProfile[]>([]);
   const [loadingTeam, setLoadingTeam] = useState(true);
+
+  // Format rehearsal dates as a date range
+  const formatDateRange = (dates: string | null): string => {
+    if (!dates) return '';
+    const dateArray = dates.split(',').map(d => d.trim()).filter(Boolean);
+    if (dateArray.length === 0) return '';
+    if (dateArray.length === 1) return dateArray[0];
+    return `${dateArray[0]} - ${dateArray[dateArray.length - 1]}`;
+  };
 
   useEffect(() => {
     const loadProductionTeam = async () => {
@@ -53,10 +63,7 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
             </h3>
             {audition_dates && Array.isArray(audition_dates) && audition_dates.length > 0 && (
               <div className="text-sm text-neu-text-primary/70 mb-1">
-                📅 {audition_dates.map(date => {
-                  const d = new Date(date);
-                  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                }).join(', ')}
+                📅 {audition_dates.map(date => formatUSDateShort(date)).join(', ')}
               </div>
             )}
             {audition_location && (
@@ -86,7 +93,7 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
             </h3>
             {rehearsal_dates && (
               <div className="text-sm text-neu-text-primary/70 mb-1">
-                📅 {rehearsal_dates}
+                📅 {formatDateRange(rehearsal_dates)}
               </div>
             )}
             {rehearsal_location && (
@@ -105,7 +112,7 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
             </h3>
             {performance_dates && (
               <div className="text-sm text-neu-text-primary/70 mb-1">
-                📅 {performance_dates}
+                📅 {formatDateRange(performance_dates)}
               </div>
             )}
             {performance_location && (

@@ -10,15 +10,18 @@ import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
+import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { formatUSMonthYear, formatUSMonthShort, formatUSTime } from '@/lib/utils/dateUtils';
 
 interface CalendarListViewProps {
   signups: any[];
   callbacks?: any[];
+  productionEvents?: ProductionDateEvent[];
   userId: string;
   onRefresh?: () => void;
 }
 
-export default function CalendarListView({ signups, callbacks = [], userId, onRefresh }: CalendarListViewProps) {
+export default function CalendarListView({ signups, callbacks = [], productionEvents = [], userId, onRefresh }: CalendarListViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
@@ -103,6 +106,22 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
     });
   }, [events, filter]);
 
+  // Filter and sort production events
+  const filteredProduction = useMemo(() => {
+    const now = new Date();
+    let filtered = productionEvents.filter((evt) => {
+      const eventDate = new Date(evt.date);
+      if (filter === 'upcoming') return eventDate >= now;
+      if (filter === 'past') return eventDate < now;
+      return true;
+    });
+    return filtered.sort((a, b) => {
+      const timeA = new Date(a.date).getTime();
+      const timeB = new Date(b.date).getTime();
+      return filter === 'past' ? timeB - timeA : timeA - timeB;
+    });
+  }, [productionEvents, filter]);
+
   // Group signups and callbacks by month
   const groupedEvents = useMemo(() => {
     const grouped: Record<string, any[]> = {};
@@ -110,7 +129,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
     // Add signups
     filteredSignups.forEach((signup) => {
       const date = new Date(signup.audition_slots.start_time);
-      const monthKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const monthKey = formatUSMonthYear(date);
       
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
@@ -121,7 +140,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
     // Add callbacks
     filteredCallbacks.forEach((callback) => {
       const date = new Date(callback.callback_slots.start_time);
-      const monthKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const monthKey = formatUSMonthYear(date);
       
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
@@ -132,26 +151,40 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
     // Add personal events
     filteredPersonal.forEach((evt: any) => {
       const date = new Date(evt.start);
-      const monthKey = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const monthKey = formatUSMonthYear(date);
       if (!grouped[monthKey]) grouped[monthKey] = [];
       grouped[monthKey].push({ ...evt, type: 'personal' });
+    });
+
+    // Add production events (rehearsal and performance dates)
+    filteredProduction.forEach((evt) => {
+      const date = new Date(evt.date);
+      const monthKey = formatUSMonthYear(date);
+      if (!grouped[monthKey]) grouped[monthKey] = [];
+      grouped[monthKey].push({ ...evt, type: 'production' });
     });
 
     // Sort events within each month
     Object.keys(grouped).forEach(month => {
       grouped[month].sort((a, b) => {
         const timeA = new Date(
-          a.type === 'audition' ? a.audition_slots.start_time : a.type === 'callback' ? a.callback_slots.start_time : a.start
+          a.type === 'audition' ? a.audition_slots.start_time : 
+          a.type === 'callback' ? a.callback_slots.start_time : 
+          a.type === 'production' ? a.date :
+          a.start
         ).getTime();
         const timeB = new Date(
-          b.type === 'audition' ? b.audition_slots.start_time : b.type === 'callback' ? b.callback_slots.start_time : b.start
+          b.type === 'audition' ? b.audition_slots.start_time : 
+          b.type === 'callback' ? b.callback_slots.start_time : 
+          b.type === 'production' ? b.date :
+          b.start
         ).getTime();
         return filter === 'past' ? timeB - timeA : timeA - timeB;
       });
     });
     
     return grouped;
-  }, [filteredSignups, filteredCallbacks, filteredPersonal, filter]);
+  }, [filteredSignups, filteredCallbacks, filteredPersonal, filteredProduction, filter]);
 
   return (
     <>
@@ -217,28 +250,41 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                 {monthEvents.map((event: any) => {
                   const isCallback = event.type === 'callback';
                   const isPersonal = event.type === 'personal';
-                  const startTime = new Date(isCallback ? event.callback_slots.start_time : event.audition_slots ? event.audition_slots.start_time : event.start);
-                  const endTime = new Date(isCallback ? event.callback_slots.end_time : event.audition_slots ? event.audition_slots.end_time : event.end || event.start);
+                  const isProduction = event.type === 'production';
+                  
+                  const startTime = new Date(
+                    isCallback ? event.callback_slots.start_time :
+                    isProduction ? event.date :
+                    event.audition_slots ? event.audition_slots.start_time : event.start
+                  );
+                  const endTime = new Date(
+                    isCallback ? event.callback_slots.end_time :
+                    isProduction ? event.date :
+                    event.audition_slots ? event.audition_slots.end_time : event.end || event.start
+                  );
+                  
                   const showTitle = isCallback 
                     ? event.callback_slots?.auditions?.shows?.title || 'Callback'
+                    : isProduction 
+                    ? event.title
                     : event.audition_slots?.auditions?.shows?.title || event.title || 'Unknown Show';
-                  const showAuthor = isCallback ? event.callback_slots?.auditions?.shows?.author : event.audition_slots?.auditions?.shows?.author;
-                  const roleName = !isCallback ? event.roles?.role_name : null;
-                  const location = isCallback ? event.callback_slots.location : (event.audition_slots ? (event.audition_slots.location || event.audition_slots?.auditions?.audition_location) : event.location);
+                  const showAuthor = isCallback ? event.callback_slots?.auditions?.shows?.author : isProduction ? event.show?.author : event.audition_slots?.auditions?.shows?.author;
+                  const roleName = !isCallback && !isProduction ? event.roles?.role_name : isProduction ? event.role : null;
+                  const location = isCallback ? event.callback_slots.location : isProduction ? event.location : (event.audition_slots ? (event.audition_slots.location || event.audition_slots?.auditions?.audition_location) : event.location);
                   const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
 
                   const Wrapper: any = 'button';
                   return (
                     <Wrapper
-                      key={isCallback ? event.invitation_id : event.signup_id || event.id || `${event.title}-${event.start}`}
+                      key={isCallback ? event.invitation_id : isProduction ? `prod-${event.auditionId}-${event.type}-${event.date}` : event.signup_id || event.id || `${event.title}-${event.start}`}
                       onClick={() => {
                         if (isPersonal) {
                           setSelectedPersonalEvent(event);
-                        } else {
+                        } else if (!isProduction) {
                           setSelectedEvent(isCallback ? { ...event, isCallback: true } : event);
                         }
                       }}
-                      className="w-full text-left p-3 sm:p-4 rounded-lg bg-neu-surface/50 backdrop-blur-sm border border-neu-border hover:border-neu-border-focus hover:bg-neu-surface/70 transition-all duration-200"
+                      className={`w-full text-left p-3 sm:p-4 rounded-lg bg-neu-surface/50 backdrop-blur-sm border border-neu-border hover:border-neu-border-focus hover:bg-neu-surface/70 transition-all duration-200 ${isProduction ? 'cursor-default' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-2 sm:gap-4">
                         <div className="flex-1">
@@ -248,13 +294,15 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                                 {startTime.getDate()}
                               </div>
                               <div className="text-[10px] sm:text-xs text-neu-text-primary/70 uppercase">
-                                {startTime.toLocaleDateString('en-US', { month: 'short' })}
+                                {formatUSMonthShort(startTime)}
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-purple-400' : isPersonal ? 'text-green-400' : 'text-[#5a8ff5]'}`}>
+                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-purple-400' : isPersonal ? 'text-green-400' : isProduction ? (event.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400') : 'text-[#5a8ff5]'}`}>
                                 {isCallback && <span className="flex-shrink-0">📋</span>}
                                 {isPersonal && <span className="flex-shrink-0">🗓️</span>}
+                                {isProduction && event.type === 'rehearsal' && <span className="flex-shrink-0">🎭</span>}
+                                {isProduction && event.type === 'performance' && <span className="flex-shrink-0">🎪</span>}
                                 <span className="truncate">{showTitle}</span>
                               </h4>
                               {showAuthor && (
@@ -277,19 +325,18 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                                   Personal
                                 </p>
                               )}
+                              {isProduction && (
+                                <p className={`text-xs sm:text-sm font-medium mt-1 ${event.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400'}`}>
+                                  {event.type === 'rehearsal' ? 'Rehearsal Period' : 'Performance Run'}
+                                </p>
+                              )}
                             </div>
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neu-text-primary/70 ml-[54px] sm:ml-[72px]">
                             <div className="flex items-center gap-1">
                               <MdAccessTime className="w-3 h-3 sm:w-4 sm:h-4" />
-                              {startTime.toLocaleTimeString('en-US', {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                              })} - {endTime.toLocaleTimeString('en-US', {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                              })} ({duration} min)
+                              {formatUSTime(startTime)} - {formatUSTime(endTime)} ({duration} min)
                             </div>
                             {location && (
                               <div className="flex items-center gap-1 truncate">

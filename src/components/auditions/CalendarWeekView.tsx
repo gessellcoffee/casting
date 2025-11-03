@@ -9,16 +9,18 @@ import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
+import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 
 interface CalendarWeekViewProps {
   signups: any[];
   callbacks?: any[];
+  productionEvents?: ProductionDateEvent[];
   currentDate: Date;
   userId: string;
   onRefresh?: () => void;
 }
 
-export default function CalendarWeekView({ signups, callbacks = [], currentDate, userId, onRefresh }: CalendarWeekViewProps) {
+export default function CalendarWeekView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh }: CalendarWeekViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -109,6 +111,27 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
     });
   };
 
+  // Group production events by individual dates
+  const productionByDate = useMemo(() => {
+    const grouped: Record<string, ProductionDateEvent[]> = {};
+    productionEvents.forEach(evt => {
+      const eventDate = new Date(evt.date);
+      const key = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(evt);
+    });
+    return grouped;
+  }, [productionEvents]);
+
+  const getProductionForDate = (date: Date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    return (productionByDate[dateKey] || []).sort((a, b) => {
+      const timeA = new Date(a.date).getTime();
+      const timeB = new Date(b.date).getTime();
+      return timeA - timeB;
+    });
+  };
+
 
   return (
     <>
@@ -118,6 +141,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
             const daySignups = getSignupsForDate(date);
             const dayCallbacks = getCallbacksForDate(date);
             const dayPersonal = getPersonalForDate(date);
+            const dayProduction = getProductionForDate(date);
             const today = isToday(date);
 
             return (
@@ -153,7 +177,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
 
               {/* Events for this day */}
               <div className="space-y-2">
-                {daySignups.length === 0 && dayCallbacks.length === 0 && dayPersonal.length === 0 ? (
+                {daySignups.length === 0 && dayCallbacks.length === 0 && dayPersonal.length === 0 && dayProduction.length === 0 ? (
                   <div className="text-xs text-neu-text-primary/40 text-center py-4">
                     No events
                   </div>
@@ -221,6 +245,38 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                           </div>
                         )}
                       </button>
+                    );
+                  })}
+
+                  {/* Production Events (Rehearsal/Performance) */}
+                  {dayProduction.map((evt) => {
+                    return (
+                      <div
+                        key={`prod-${evt.auditionId}-${evt.type}-${evt.date}`}
+                        className={`w-full text-left p-2 rounded-lg backdrop-blur-sm border transition-all duration-200 ${
+                          evt.type === 'rehearsal' 
+                            ? 'bg-orange-500/20 border-orange-500/50' 
+                            : 'bg-blue-500/20 border-blue-500/50'
+                        }`}
+                      >
+                        <div className={`text-xs font-semibold mb-1 ${evt.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400'}`}>
+                          {evt.type === 'rehearsal' ? 'Rehearsal' : 'Performance'}
+                        </div>
+                        <div className="text-sm font-medium text-neu-text-primary truncate flex items-center gap-1">
+                          <span>{evt.type === 'rehearsal' ? '🎭' : '🎪'}</span>
+                          <span className="truncate">{evt.show.title}</span>
+                        </div>
+                        {evt.role && (
+                          <div className="text-xs text-neu-text-primary/70 truncate mt-1">
+                            {evt.role}
+                          </div>
+                        )}
+                        {evt.location && (
+                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
+                            📍 {evt.location}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
 
