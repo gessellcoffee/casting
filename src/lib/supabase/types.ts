@@ -917,6 +917,43 @@ export type Database = {
           }
         ];
       };
+      google_calendar_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          access_token: string;
+          refresh_token: string | null;
+          expiry_date: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          access_token: string;
+          refresh_token?: string | null;
+          expiry_date?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          access_token?: string;
+          refresh_token?: string | null;
+          expiry_date?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'google_calendar_tokens_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       // Add more tables as needed
     };
     Views: {
@@ -1133,6 +1170,11 @@ export type CastingOfferWithDetails = CastingOffer & {
     is_understudy: boolean;
   } | null;
 };
+
+// Google Calendar Token types for easier use
+export type GoogleCalendarToken = Database['public']['Tables']['google_calendar_tokens']['Row'];
+export type GoogleCalendarTokenInsert = Database['public']['Tables']['google_calendar_tokens']['Insert'];
+export type GoogleCalendarTokenUpdate = Database['public']['Tables']['google_calendar_tokens']['Update'];
 
 // Auth-related types
 export interface AuthError {
