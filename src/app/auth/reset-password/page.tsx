@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import StarryContainer from '@/components/StarryContainer';
 import { updatePassword } from '@/lib/supabase/auth';
+import { supabase } from '@/lib/supabase/client';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -15,6 +16,29 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // Handle authentication from URL hash (Supabase PKCE flow)
+  useEffect(() => {
+    const handleAuthFromHash = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Session error:', error);
+          setError('Invalid or expired reset link. Please request a new password reset.');
+        } else if (data.session) {
+          setIsReady(true);
+        } else {
+          setError('No active session found. Please request a new password reset.');
+        }
+      } catch (err) {
+        console.error('Auth error:', err);
+        setError('An error occurred. Please try again.');
+      }
+    };
+
+    handleAuthFromHash();
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +110,15 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Reset Password Form */}
+          {/* Loading state while verifying session */}
+          {!isReady && !error && (
+            <div className="text-center text-neu-text-primary/60">
+              Verifying reset link...
+            </div>
+          )}
+
+          {/* Reset Password Form - only show when ready */}
+          {isReady && (
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium text-neu-text-primary mb-2">
@@ -100,7 +132,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 pr-12 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                  className="neu-input w-full px-4 py-3 pr-12 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   placeholder="••••••••"
                   disabled={loading || success}
                 />
@@ -127,7 +159,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 pr-12 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                  className="neu-input w-full px-4 py-3 pr-12 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
                   placeholder="••••••••"
                   disabled={loading || success}
                 />
@@ -145,11 +177,12 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className='neu-button'
             >
               {loading ? 'Updating...' : 'Update Password'}
             </button>
           </form>
+          )}
         </div>
       </StarryContainer>
     </div>
