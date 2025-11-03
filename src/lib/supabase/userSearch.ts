@@ -41,12 +41,15 @@ export async function searchUsers(
       );
     }
 
-    // Filter by skills (if user has any of the specified skills)
+    // Filter by skills (if user has any of the selected skills)
     if (skills.length > 0) {
-      queryBuilder = queryBuilder.overlaps('skills', skills);
+      // Build OR conditions for each skill using contains operator
+      // This checks if the user's skills array contains any of the selected skills
+      const skillFilters = skills.map(skill => `skills.cs.["${skill}"]`).join(',');
+      queryBuilder = queryBuilder.or(skillFilters);
     }
 
-    // Filter by location
+    // Filter by location (AND condition)
     if (location) {
       queryBuilder = queryBuilder.ilike('location', `%${location}%`);
     }
@@ -60,6 +63,7 @@ export async function searchUsers(
 
     if (error) {
       console.error('Error searching users:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return { users: [], total: 0 };
     }
 

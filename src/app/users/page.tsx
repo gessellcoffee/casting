@@ -6,6 +6,7 @@ import StarryContainer from '@/components/StarryContainer';
 import { searchUsers, getAllSkills, getAllLocations } from '@/lib/supabase/userSearch';
 import type { Profile } from '@/lib/supabase/types';
 import { Search, MapPin, Award, User } from 'lucide-react';
+import MultiSelectDropdown from '@/components/ui/forms/MultiSelectDropdown';
 
 export default function UsersDirectoryPage() {
   const [users, setUsers] = useState<Profile[]>([]);
@@ -70,15 +71,6 @@ export default function UsersDirectoryPage() {
       if (timeout) clearTimeout(timeout);
     };
   }, [searchQuery, selectedSkills, locationFilter, page]);
-
-  const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) =>
-      prev.includes(skill)
-        ? prev.filter((s) => s !== skill)
-        : [...prev, skill]
-    );
-    setPage(0); // Reset to first page
-  };
 
   const handleLocationChange = (location: string) => {
     setLocationFilter(location);
@@ -145,31 +137,23 @@ export default function UsersDirectoryPage() {
 
               {/* Skills Filter */}
               <div>
-                <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
-                  <Award className="inline w-4 h-4 mr-1" />
-                  Skills ({selectedSkills.length} selected)
-                </label>
-                <div className="max-h-32 overflow-y-auto p-3 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
-                  {allSkills.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {allSkills.map((skill) => (
-                        <button
-                          key={skill}
-                          onClick={() => toggleSkill(skill)}
-                          className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                            selectedSkills.includes(skill)
-                              ? 'bg-[#4a7bd9] text-white border border-[#4a7bd9]'
-                              : 'bg-neu-surface/50 text-neu-text-primary border border-neu-border hover:border-[#4a7bd9]/50'
-                          }`}
-                        >
-                          {skill}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-neu-text-primary/50 text-sm">No skills available</p>
-                  )}
-                </div>
+                <MultiSelectDropdown
+                  label={
+                    <>
+                      <Award className="inline w-4 h-4 mr-1" />
+                      Skills ({selectedSkills.length} selected)
+                    </>
+                  }
+                  placeholder="Select skills..."
+                  options={allSkills}
+                  selectedValues={selectedSkills}
+                  onChange={(values) => {
+                    setSelectedSkills(values);
+                    setPage(0);
+                  }}
+                  className="z-[100000]"
+                  itemsPerPage={20}
+                />
               </div>
             </div>
 
