@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary placeholder-neu-text-muted focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                className="neu-input"
                 placeholder="you@example.com"
                 disabled={loading}
               />
