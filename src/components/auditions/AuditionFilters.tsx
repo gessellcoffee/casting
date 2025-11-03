@@ -30,7 +30,7 @@ export default function AuditionFilters({
   }, [debouncedQuery, onSearchChange]);
 
   return (
-    <div className="mb-8 p-6 rounded-2xl bg-white/90 backdrop-blur-md border border-neu-border/60 shadow-neu-raised">
+    <div className="mb-8 p-6 rounded-2xl neu-card-raised">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Search */}
         <FormInput

@@ -29,7 +29,7 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
 
   return (
     <Link href={`/auditions/${audition.audition_id}`}>
-      <div className="h-full p-6 rounded-2xl bg-white/90 backdrop-blur-md border border-neu-border/60 shadow-[8px_8px_16px_rgba(163,177,198,0.4),-4px_-4px_12px_rgba(255,255,255,0.5)] hover:shadow-[12px_12px_20px_rgba(163,177,198,0.5),-6px_-6px_16px_rgba(255,255,255,0.6)] hover:transform hover:translate-y-[-2px] transition-all duration-300 cursor-pointer group">
+      <div className="h-full p-6 rounded-2xl neu-card-raised hover:shadow-neu-raised-lg hover:transform hover:translate-y-[-2px] transition-all duration-300 cursor-pointer group">
         
         {/* Show Title */}
         <h3 className="text-xl font-bold text-neu-text-primary mb-2 group-hover:text-neu-accent-primary transition-colors">

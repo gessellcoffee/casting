@@ -97,7 +97,7 @@ export default function AuditionDetailPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 neu-card-raised">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Roles */}
@@ -113,7 +113,7 @@ export default function AuditionDetailPage() {
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 neu-card-raised">
               <AuditionInfo audition={audition} />
             </div>
           </div>

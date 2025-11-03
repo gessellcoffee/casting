@@ -21,6 +21,9 @@ export type Database = {
           skills: string[] | null; // JSONB array of skill names
           education: any | null; // JSONB
           preferences: any | null; // JSONB
+          location: string | null;
+          location_lat: number | null;
+          location_lng: number | null;
           created_at: string;
           username: string;
         };
@@ -37,6 +40,9 @@ export type Database = {
           skills?: string[] | null;
           education?: any | null;
           preferences?: any | null;
+          location?: string | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
           created_at?: string;
           username: string;
         };
@@ -53,6 +59,9 @@ export type Database = {
           skills?: string[] | null;
           education?: any | null;
           preferences?: any | null;
+          location?: string | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
           created_at?: string;
           username?: string;
         };

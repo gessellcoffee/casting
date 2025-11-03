@@ -122,6 +122,14 @@ export default function UserProfilePage() {
                   <p className="text-neu-text-primary">{profile.username}</p>
                 </div>
               )}
+              {profile.location && (
+                <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+                  <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
+                    Location
+                  </label>
+                  <p className="text-neu-text-primary">{profile.location}</p>
+                </div>
+              )}
             </div>
 
             {/* Description */}
