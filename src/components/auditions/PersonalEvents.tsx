@@ -92,22 +92,25 @@ export default function RecurringEventForm({ onSave, onClose }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label htmlFor="start-time" className="block text-sm font-medium neu-text">Start Time</label>
-          <TimeInput
+          <input
+            type="datetime-local"
+            id="start-time"
             value={startTime}
-            onChange={setStartTime}
-            label="Start Time"
-            placeholder="Select start time..."
+            onChange={(e) => setStartTime(e.target.value)}
             className="neu-input"
+            required
           />
         </div>
         <div className="space-y-2">
           <label htmlFor="end-time" className="block text-sm font-medium neu-text">End Time</label>
-          <TimeInput
+          <input
+            type="datetime-local"
+            id="end-time"
             value={endTime}
-            onChange={setEndTime}
-            label="End Time"
-            placeholder="Select end time..."
+            onChange={(e) => setEndTime(e.target.value)}
             className="neu-input"
+            min={startTime}
+            required
           />
         </div>
       </div>
