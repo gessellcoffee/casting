@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { getUser } from '@/lib/supabase/auth';
@@ -42,15 +42,15 @@ export default function CastShowPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const isUpdatingRef = useRef(false);
 
   const loadData = useCallback(async () => {
-    if (isUpdating) return; // Prevent multiple simultaneous updates
+    if (isUpdatingRef.current) return; // Prevent multiple simultaneous updates
     
     setLoading(true);
     setError(null);
     setSuccess(null);
-    setIsUpdating(true);
+    isUpdatingRef.current = true;
   
     try {
       // Get current user
@@ -99,9 +99,9 @@ export default function CastShowPage() {
       setError(err.message || 'Failed to load audition');
     } finally {
       setLoading(false);
-      setIsUpdating(false);
+      isUpdatingRef.current = false;
     }
-  }, [params.id, router, isUpdating]);
+  }, [params.id, router]);
 
   useEffect(() => {
     loadData();

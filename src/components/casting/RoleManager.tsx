@@ -56,48 +56,54 @@ export default function RoleManager({
   const loadExistingRoles = async () => {
     setLoading(true);
     
-    // If we have an audition ID, load audition-specific roles
-    // Otherwise, load show roles as templates
+    // If we have an audition ID, load audition-specific roles as existing roles
+    // Otherwise, load show roles as templates (without IDs)
     let existingRolesData: (Role | AuditionRole)[] = [];
     
     if (auditionId) {
+      // Load actual audition roles that exist in the database
       existingRolesData = await getAuditionRoles(auditionId);
+      
+      if (existingRolesData.length > 0) {
+        setExistingRoles(existingRolesData);
+        // Use existing audition roles from database with their IDs
+        const existingAsFormData = existingRolesData.map(role => {
+          // Handle both Role and AuditionRole types
+          const roleId = 'audition_role_id' in role ? role.audition_role_id : role.role_id;
+          return {
+            role_id: roleId,
+            role_name: role.role_name,
+            description: role.description,
+            role_type: role.role_type,
+            gender: role.gender,
+            needs_understudy: role.needs_understudy,
+          };
+        });
+        setLocalRoles(existingAsFormData);
+      } else if (roles.length > 0) {
+        // No existing audition roles, use roles from parent (if any)
+        setLocalRoles(roles);
+      }
     } else {
-      existingRolesData = await getShowRoles(showId);
-    }
-
-    if (existingRolesData.length > 0) {
-      setExistingRoles(existingRolesData);
-      // Use existing roles from database
-      const existingAsFormData = existingRolesData.map(role => {
-        // Handle both Role and AuditionRole types
-        const roleId = 'audition_role_id' in role ? role.audition_role_id : role.role_id;
-        return {
-          role_id: roleId,
-          role_name: role.role_name,
-          description: role.description,
-          role_type: role.role_type,
-          gender: role.gender,
-          needs_understudy: role.needs_understudy,
-        };
-      });
-      setLocalRoles(existingAsFormData);
-    } else if (roles.length > 0) {
-      // No existing roles in database, use roles from parent (if any)
-      setLocalRoles(roles);
-    } else if (!auditionId) {
-      // For new auditions without existing roles, load show roles as templates
-      const showRolesData = await getShowRoles(showId);
-      if (showRolesData.length > 0) {
-        const templatesAsFormData = showRolesData.map(role => ({
-          // Don't include role_id so they're treated as new roles
-          role_name: role.role_name,
-          description: role.description,
-          role_type: role.role_type,
-          gender: role.gender,
-          needs_understudy: role.needs_understudy,
-        }));
-        setLocalRoles(templatesAsFormData);
+      // For new auditions, load show roles as templates WITHOUT IDs
+      if (roles.length > 0) {
+        // Use roles from parent if provided
+        setLocalRoles(roles);
+      } else {
+        // Load show roles as templates
+        const showRolesData = await getShowRoles(showId);
+        if (showRolesData.length > 0) {
+          const templatesAsFormData = showRolesData.map(role => ({
+            // Explicitly don't include role_id so they're treated as new roles
+            // This prevents the system from trying to update non-existent audition_roles
+            role_name: role.role_name,
+            description: role.description,
+            role_type: role.role_type,
+            gender: role.gender,
+            needs_understudy: role.needs_understudy,
+          }));
+          setLocalRoles(templatesAsFormData);
+        }
       }
     }
     setLoading(false);
@@ -187,7 +193,9 @@ export default function RoleManager({
           }
         }
       } else {
-        // New role - include audition_id if working with audition roles
+        // New role - prepare role data
+        // For existing auditions, include audition_id
+        // For new auditions, audition_id will be added later in ReviewAndSubmit
         const roleData: any = {
           role_name: role.role_name,
           description: role.description,
@@ -196,11 +204,12 @@ export default function RoleManager({
           needs_understudy: role.needs_understudy,
         };
         
+        // Only set audition_id if we're editing an existing audition
         if (useAuditionRoles && auditionId) {
           roleData.audition_id = auditionId;
-        } else {
-          roleData.show_id = showId;
         }
+        // Note: For new auditions, don't set show_id or audition_id here
+        // The audition_id will be set in ReviewAndSubmit after the audition is created
         
         operations.push({
           type: 'create',

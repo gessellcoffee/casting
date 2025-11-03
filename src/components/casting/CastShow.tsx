@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getShowRoles } from '@/lib/supabase/roles';
-import type { Role, User, CastMember, Audition } from '@/lib/supabase/types';
+import { getAuditionRoles, updateAuditionRole } from '@/lib/supabase/auditionRoles';
+import type { AuditionRole, User, CastMember, Audition } from '@/lib/supabase/types';
 import FormSelect from '@/components/ui/forms/FormSelect';
 import { Alert } from '@/components/ui/feedback';
 import StarryContainer from '../StarryContainer';
@@ -21,8 +21,9 @@ interface CastShowProps {
   onError: (error: string) => void;
 }
 
-interface RoleWithCast extends Role {
+interface RoleWithCast extends AuditionRole {
   castMembers: CastMember[];
+  understudyCastMembers: CastMember[];
   auditionees: Array<{
     user_id: string;
     full_name: string | null;
@@ -49,6 +50,7 @@ export default function CastShow({
   const [roles, setRoles] = useState<RoleWithCast[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [roleSelections, setRoleSelections] = useState<Record<string, string[]>>({});
+  const [understudySelections, setUnderstudySelections] = useState<Record<string, string[]>>({});
   const [ensembleMembers, setEnsembleMembers] = useState<EnsembleMember[]>([]);
   const [availableActors, setAvailableActors] = useState<Array<{
     user_id: string;
@@ -60,20 +62,20 @@ export default function CastShow({
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
+
       console.log('CastShow - audition data:', audition);
-      console.log('CastShow - show_id:', audition.show_id);
-      
-      // Get all roles for the show
-      const showRoles = await getShowRoles(audition.show_id);
-      console.log('CastShow - showRoles:', showRoles);
-      console.log('CastShow - showRoles length:', showRoles.length);
-      
+      console.log('CastShow - audition_id:', audition.audition_id);
+
+      // Get all audition-specific roles
+      const auditionRoles = await getAuditionRoles(audition.audition_id);
+      console.log('CastShow - auditionRoles:', auditionRoles);
+      console.log('CastShow - auditionRoles length:', auditionRoles.length);
+
       // Get all signups for this audition
       const signups = await getAuditionSignups(audition.audition_id);
       console.log('CastShow - signups:', signups);
       console.log('CastShow - signups length:', signups.length);
-      
+
       // Get existing cast members
       const castMembers = await getAuditionCastMembers(audition.audition_id);
 
@@ -84,56 +86,67 @@ export default function CastShow({
             s.user_id,
             {
               user_id: s.user_id,
-              full_name: s.profiles?.first_name && s.profiles.last_name 
-                ? `${s.profiles.first_name} ${s.profiles.last_name}` 
+              full_name: s.profiles?.first_name && s.profiles.last_name
+                ? `${s.profiles.first_name} ${s.profiles.last_name}`
                 : s.profiles?.email || 'Unknown User',
-              email: s.profiles?.email || 'No email'
-            }
+              email: s.profiles?.email || 'No email',
+            },
           ])
         ).values()
       );
       setAvailableActors(uniqueActors);
 
       // Group signups by role
-      const rolesWithCast = showRoles.map(role => {
+      const rolesWithCast = auditionRoles.map((role) => {
         const roleSignups = signups.filter((s: any) => s.role_id === role.role_id);
-        const roleCastMembers = castMembers.filter(cm => cm.role_id === role.role_id);
-        
+        const roleCastMembers = castMembers.filter(
+          (cm) => cm.audition_role_id === role.audition_role_id && !cm.is_understudy
+        );
+        const understudyCastMembers = castMembers.filter(
+          (cm) => cm.audition_role_id === role.audition_role_id && cm.is_understudy
+        );
+
         return {
           ...role,
           castMembers: roleCastMembers,
+          understudyCastMembers: understudyCastMembers,
           auditionees: roleSignups.map((s: any) => ({
             user_id: s.user_id,
-            full_name: s.profiles?.first_name && s.profiles.last_name 
-              ? `${s.profiles.first_name} ${s.profiles.last_name}` 
+            full_name: s.profiles?.first_name && s.profiles.last_name
+              ? `${s.profiles.first_name} ${s.profiles.last_name}`
               : s.profiles?.email || 'Unknown User',
             email: s.profiles?.email || 'No email',
-            signup_id: s.signup_id
-          }))
+            signup_id: s.signup_id,
+          })),
         };
       });
 
       // Initialize selections with existing cast (multiple per role)
       const initialSelections: Record<string, string[]> = {};
-      rolesWithCast.forEach(role => {
-        initialSelections[role.role_id] = role.castMembers.map(cm => cm.user_id);
+      const initialUnderstudySelections: Record<string, string[]> = {};
+      rolesWithCast.forEach((role) => {
+        initialSelections[role.audition_role_id] = role.castMembers.map((cm) => cm.user_id);
+        initialUnderstudySelections[role.audition_role_id] = role.understudyCastMembers.map(
+          (cm) => cm.user_id
+        );
       });
       setRoleSelections(initialSelections);
+      setUnderstudySelections(initialUnderstudySelections);
 
-      // Get ensemble members (cast members with null role_id or special ensemble role)
+      // Get ensemble members (cast members with null role_id and audition_role_id)
       const ensemble = castMembers
-        .filter(cm => !cm.role_id)
-        .map(cm => {
-          const actor = uniqueActors.find(a => a.user_id === cm.user_id);
+        .filter((cm) => !cm.role_id && !cm.audition_role_id)
+        .map((cm) => {
+          const actor = uniqueActors.find((a) => a.user_id === cm.user_id);
           return {
             cast_member_id: cm.cast_member_id,
             user_id: cm.user_id,
             full_name: actor?.full_name || 'Unknown',
-            email: actor?.email || 'No email'
+            email: actor?.email || 'No email',
           };
         });
       setEnsembleMembers(ensemble);
-      
+
       setRoles(rolesWithCast);
       setError(null);
     } catch (err) {
@@ -152,78 +165,126 @@ export default function CastShow({
 
   const handleAddRoleCast = (roleId: string, userId: string) => {
     if (!userId) return;
-    
-    setRoleSelections(prev => {
+
+    setRoleSelections((prev) => {
       const current = prev[roleId] || [];
       if (current.includes(userId)) {
         return prev; // Already added
       }
       return {
         ...prev,
-        [roleId]: [...current, userId]
+        [roleId]: [...current, userId],
       };
     });
   };
 
   const handleRemoveRoleCast = (roleId: string, userId: string) => {
-    setRoleSelections(prev => ({
+    setRoleSelections((prev) => ({
       ...prev,
-      [roleId]: (prev[roleId] || []).filter(id => id !== userId)
+      [roleId]: (prev[roleId] || []).filter((id) => id !== userId),
     }));
+  };
+
+  const handleAddUnderstudyCast = (roleId: string, userId: string) => {
+    if (!userId) return;
+
+    setUnderstudySelections((prev) => {
+      const current = prev[roleId] || [];
+      if (current.includes(userId)) {
+        return prev; // Already added
+      }
+      return {
+        ...prev,
+        [roleId]: [...current, userId],
+      };
+    });
+  };
+
+  const handleRemoveUnderstudyCast = (roleId: string, userId: string) => {
+    setUnderstudySelections((prev) => ({
+      ...prev,
+      [roleId]: (prev[roleId] || []).filter((id) => id !== userId),
+    }));
+  };
+
+  const handleToggleUnderstudy = async (roleId: string, currentValue: boolean) => {
+    try {
+      const { error } = await updateAuditionRole(roleId, {
+        needs_understudy: !currentValue,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Refresh data to show the update
+      await loadData();
+    } catch (err) {
+      console.error('Error toggling understudy:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update understudy setting';
+      setError(errorMessage);
+      onError(errorMessage);
+    }
   };
 
   const handleAddEnsembleMember = () => {
     if (!selectedEnsembleActor) return;
-    
-    const actor = availableActors.find(a => a.user_id === selectedEnsembleActor);
+
+    const actor = availableActors.find((a) => a.user_id === selectedEnsembleActor);
     if (!actor) return;
-    
+
     // Check if already in ensemble
-    if (ensembleMembers.some(em => em.user_id === selectedEnsembleActor)) {
+    if (ensembleMembers.some((em) => em.user_id === selectedEnsembleActor)) {
       return;
     }
-    
-    setEnsembleMembers(prev => [...prev, {
-      cast_member_id: '', // Will be created on save
-      user_id: actor.user_id,
-      full_name: actor.full_name,
-      email: actor.email
-    }]);
+
+    setEnsembleMembers((prev) => [
+      ...prev,
+      {
+        cast_member_id: '', // Will be created on save
+        user_id: actor.user_id,
+        full_name: actor.full_name,
+        email: actor.email,
+      },
+    ]);
     setSelectedEnsembleActor('');
   };
 
   const handleRemoveEnsembleMember = (userId: string) => {
-    setEnsembleMembers(prev => prev.filter(em => em.user_id !== userId));
+    setEnsembleMembers((prev) => prev.filter((em) => em.user_id !== userId));
   };
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      
+
       // Get existing cast members
       const existingCast = await getAuditionCastMembers(audition.audition_id);
-      
-      // Process role assignments
-      for (const [roleId, userIds] of Object.entries(roleSelections)) {
-        const role = roles.find(r => r.role_id === roleId);
+
+      // Process role assignments (principals)
+      for (const [auditionRoleId, userIds] of Object.entries(roleSelections)) {
+        const role = roles.find((r) => r.audition_role_id === auditionRoleId);
         if (!role) continue;
-        
-        const existingForRole = existingCast.filter(cm => cm.role_id === roleId);
-        const existingUserIds = existingForRole.map(cm => cm.user_id);
-        
+
+        const existingForRole = existingCast.filter(
+          (cm) => cm.audition_role_id === auditionRoleId && !cm.is_understudy
+        );
+        const existingUserIds = existingForRole.map((cm) => cm.user_id);
+
         // Add new cast members
         for (const userId of userIds) {
           if (!existingUserIds.includes(userId)) {
             await createCastMember({
               audition_id: audition.audition_id,
-              role_id: roleId,
+              role_id: role.role_id,
+              audition_role_id: auditionRoleId,
               user_id: userId,
               status: 'Offered',
-              is_understudy: false
+              is_understudy: false,
             });
           }
         }
-        
+
         // Remove cast members no longer selected
         for (const existing of existingForRole) {
           if (!userIds.includes(existing.user_id)) {
@@ -231,32 +292,65 @@ export default function CastShow({
           }
         }
       }
-      
+
+      // Process understudy assignments
+      for (const [auditionRoleId, userIds] of Object.entries(understudySelections)) {
+        const role = roles.find((r) => r.audition_role_id === auditionRoleId);
+        if (!role) continue;
+
+        const existingForRole = existingCast.filter(
+          (cm) => cm.audition_role_id === auditionRoleId && cm.is_understudy
+        );
+        const existingUserIds = existingForRole.map((cm) => cm.user_id);
+
+        // Add new understudy cast members
+        for (const userId of userIds) {
+          if (!existingUserIds.includes(userId)) {
+            await createCastMember({
+              audition_id: audition.audition_id,
+              role_id: role.role_id,
+              audition_role_id: auditionRoleId,
+              user_id: userId,
+              status: 'Offered',
+              is_understudy: true,
+            });
+          }
+        }
+
+        // Remove understudy cast members no longer selected
+        for (const existing of existingForRole) {
+          if (!userIds.includes(existing.user_id)) {
+            await deleteCastMember(existing.cast_member_id);
+          }
+        }
+      }
+
       // Process ensemble members
-      const existingEnsemble = existingCast.filter(cm => !cm.role_id);
-      const existingEnsembleUserIds = existingEnsemble.map(cm => cm.user_id);
-      const newEnsembleUserIds = ensembleMembers.map(em => em.user_id);
-      
+      const existingEnsemble = existingCast.filter((cm) => !cm.role_id && !cm.audition_role_id);
+      const existingEnsembleUserIds = existingEnsemble.map((cm) => cm.user_id);
+      const newEnsembleUserIds = ensembleMembers.map((em) => em.user_id);
+
       // Add new ensemble members
       for (const member of ensembleMembers) {
         if (!existingEnsembleUserIds.includes(member.user_id)) {
           await createCastMember({
             audition_id: audition.audition_id,
-            role_id: null as any, // Ensemble has no specific role
+            role_id: null as any,
+            audition_role_id: null as any,
             user_id: member.user_id,
             status: 'Offered',
-            is_understudy: false
+            is_understudy: false,
           });
         }
       }
-      
+
       // Remove ensemble members no longer selected
       for (const existing of existingEnsemble) {
         if (!newEnsembleUserIds.includes(existing.user_id)) {
           await deleteCastMember(existing.cast_member_id);
         }
       }
-      
+
       // Refresh data to show updates
       await loadData();
       onSave();
@@ -295,7 +389,7 @@ export default function CastShow({
         {audition.show?.author && (
           <p className="text-gray-600 mb-6">by {audition.show.author}</p>
         )}
-        
+
         {error && (
           <Alert variant="error" className="mb-6">
             {error}
@@ -321,9 +415,10 @@ export default function CastShow({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {roles.length > 0 ? (
                     roles.map((role) => {
-                      const selectedActors = roleSelections[role.role_id] || [];
+                      const selectedActors = roleSelections[role.audition_role_id] || [];
+                      const selectedUnderstudies = understudySelections[role.audition_role_id] || [];
                       return (
-                        <tr key={role.role_id} className="hover:bg-gray-50">
+                        <tr key={role.audition_role_id} className="hover:bg-gray-50">
                           <td className="px-6 py-4">
                             <div className="font-medium text-gray-900">{role.role_name}</div>
                             {role.description && (
@@ -332,49 +427,107 @@ export default function CastShow({
                             <div className="text-xs text-gray-500 mt-1">
                               {role.auditionees.length} auditionee{role.auditionees.length !== 1 ? 's' : ''}
                             </div>
+                            <div className="mt-2">
+                              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={role.needs_understudy}
+                                  onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy)}
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span>Needs Understudy</span>
+                              </label>
+                            </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="space-y-2">
-                              {/* Display selected actors */}
-                              {selectedActors.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                  {selectedActors.map(userId => {
-                                    const actor = availableActors.find(a => a.user_id === userId);
-                                    return actor ? (
-                                      <div key={userId} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
-                                        <span>{actor.full_name}</span>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleRemoveRoleCast(role.role_id, userId)}
-                                          className="text-blue-600 hover:text-blue-800"
-                                        >
-                                          <X size={14} />
-                                        </button>
-                                      </div>
-                                    ) : null;
-                                  })}
+                            <div className="space-y-4">
+                              {/* Principal Cast */}
+                              <div>
+                                <div className="text-xs font-semibold text-gray-600 mb-1 uppercase">Principal</div>
+                                {selectedActors.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {selectedActors.map((userId) => {
+                                      const actor = availableActors.find((a) => a.user_id === userId);
+                                      return actor ? (
+                                        <div key={userId} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
+                                          <span>{actor.full_name}</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveRoleCast(role.audition_role_id, userId)}
+                                            className="text-blue-600 hover:text-blue-800"
+                                          >
+                                            <X size={14} />
+                                          </button>
+                                        </div>
+                                      ) : null;
+                                    })}
+                                  </div>
+                                )}
+                                <FormSelect
+                                  value=""
+                                  onChange={(e) => handleAddRoleCast(role.audition_role_id, e.target.value)}
+                                  className="mt-1 block w-full"
+                                  disabled={availableActors.length === 0}
+                                >
+                                  <option value="">
+                                    {availableActors.length === 0
+                                      ? 'No actors available'
+                                      : 'Add principal actor...'}
+                                  </option>
+                                  {availableActors
+                                    .filter((actor) => !selectedActors.includes(actor.user_id) && !selectedUnderstudies.includes(actor.user_id))
+                                    .map((actor) => (
+                                      <option key={actor.user_id} value={actor.user_id}>
+                                        {actor.full_name} ({actor.email})
+                                      </option>
+                                    ))}
+                                </FormSelect>
+                              </div>
+
+                              {/* Understudy Cast */}
+                              {role.needs_understudy && (
+                                <div className="border-t border-gray-200 pt-3">
+                                  <div className="text-xs font-semibold text-gray-600 mb-1 uppercase">Understudy</div>
+                                  {selectedUnderstudies.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                      {selectedUnderstudies.map((userId) => {
+                                        const actor = availableActors.find((a) => a.user_id === userId);
+                                        return actor ? (
+                                          <div key={userId} className="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm">
+                                            <span>{actor.full_name}</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveUnderstudyCast(role.audition_role_id, userId)}
+                                              className="text-purple-600 hover:text-purple-800"
+                                            >
+                                              <X size={14} />
+                                            </button>
+                                          </div>
+                                        ) : null;
+                                      })}
+                                    </div>
+                                  )}
+                                  <FormSelect
+                                    value=""
+                                    onChange={(e) => handleAddUnderstudyCast(role.audition_role_id, e.target.value)}
+                                    className="mt-1 block w-full"
+                                    disabled={availableActors.length === 0}
+                                  >
+                                    <option value="">
+                                      {availableActors.length === 0
+                                        ? 'No actors available'
+                                        : 'Add understudy actor...'}
+                                    </option>
+                                    {availableActors
+                                      .filter((actor) => !selectedActors.includes(actor.user_id) && !selectedUnderstudies.includes(actor.user_id))
+                                      .map((actor) => (
+                                        <option key={actor.user_id} value={actor.user_id}>
+                                          {actor.full_name} ({actor.email})
+                                        </option>
+                                      ))}
+                                  </FormSelect>
                                 </div>
                               )}
-                              {/* Add actor dropdown */}
-                              <FormSelect
-                                value=""
-                                onChange={(e) => handleAddRoleCast(role.role_id, e.target.value)}
-                                className="mt-1 block w-full"
-                                disabled={availableActors.length === 0}
-                              >
-                                <option value="">
-                                  {availableActors.length === 0 
-                                    ? 'No actors available' 
-                                    : 'Add an actor...'}
-                                </option>
-                                {availableActors
-                                  .filter(actor => !selectedActors.includes(actor.user_id))
-                                  .map((actor) => (
-                                    <option key={actor.user_id} value={actor.user_id}>
-                                      {actor.full_name} ({actor.email})
-                                    </option>
-                                  ))}
-                              </FormSelect>
                             </div>
                           </td>
                         </tr>
