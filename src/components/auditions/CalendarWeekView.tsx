@@ -1,10 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AuditionEventModal from './AuditionEventModal';
 import CallbackDetailsModal from '@/components/callbacks/CallbackDetailsModal';
 import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
 import { isToday } from '@/lib/utils/dateUtils';
+import useEvents from '@/hooks/useEvents';
+import EventForm from '@/components/events/EventForm';
+import PersonalEventModal from '@/components/events/PersonalEventModal';
+import type { CalendarEvent } from '@/lib/supabase/types';
 
 interface CalendarWeekViewProps {
   signups: any[];
@@ -16,6 +20,11 @@ interface CalendarWeekViewProps {
 
 export default function CalendarWeekView({ signups, callbacks = [], currentDate, userId, onRefresh }: CalendarWeekViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
+  const { events, loadEvents } = useEvents(userId);
 
   // Generate week days
   const weekDays = useMemo(() => {
@@ -28,6 +37,31 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
       return date;
     });
   }, [currentDate]);
+
+  // Load personal events in week range
+  const weekRange = useMemo(() => {
+    const start = new Date(currentDate);
+    start.setDate(currentDate.getDate() - currentDate.getDay());
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }, [currentDate]);
+
+  useEffect(() => {
+    loadEvents(weekRange.start, weekRange.end);
+  }, [weekRange.start.getTime(), weekRange.end.getTime(), loadEvents]);
+
+  const personalByDate = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+    events.forEach(evt => {
+      const dt = new Date((evt as any).start);
+      const key = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(evt);
+    });
+    return grouped;
+  }, [events]);
 
   // Group signups by date
   const signupsByDate = useGroupedSignups(signups);
@@ -66,6 +100,15 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
     });
   };
 
+  const getPersonalForDate = (date: Date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    return (personalByDate[dateKey] || []).sort((a: any, b: any) => {
+      const timeA = new Date(a.start).getTime();
+      const timeB = new Date(b.start).getTime();
+      return timeA - timeB;
+    });
+  };
+
 
   return (
     <>
@@ -74,6 +117,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
           {weekDays.map((date, index) => {
             const daySignups = getSignupsForDate(date);
             const dayCallbacks = getCallbacksForDate(date);
+            const dayPersonal = getPersonalForDate(date);
             const today = isToday(date);
 
             return (
@@ -97,11 +141,19 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                 >
                   {date.getDate()}
                 </div>
+                <div className="mt-2">
+                  <button
+                    onClick={() => { setSelectedDate(date); setShowPersonalEventsModal(true); }}
+                    className="w-full text-center px-2 py-1 rounded text-xs bg-white/80 backdrop-blur-sm border border-neu-border/60 text-neu-text-primary hover:bg-white/90 transition-all duration-200"
+                  >
+                    + Add Personal Event
+                  </button>
+                </div>
               </div>
 
               {/* Events for this day */}
               <div className="space-y-2">
-                {daySignups.length === 0 && dayCallbacks.length === 0 ? (
+                {daySignups.length === 0 && dayCallbacks.length === 0 && dayPersonal.length === 0 ? (
                   <div className="text-xs text-neu-text-primary/40 text-center py-4">
                     No events
                   </div>
@@ -140,6 +192,32 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                         {signup.audition_slots.location && (
                           <div className="text-xs text-neu-text-primary/60 truncate mt-1">
                             📍 {signup.audition_slots.location}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Personal Events */}
+                  {dayPersonal.map((evt: any) => {
+                    const startTime = new Date(evt.start);
+                    const endTime = evt.end ? new Date(evt.end) : null;
+                    return (
+                      <button
+                        key={evt.id || `${evt.title}-${evt.start}`}
+                        onClick={() => setSelectedPersonalEvent(evt)}
+                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-green-400/40 hover:bg-white/90 transition-all duration-200"
+                      >
+                        <div className="text-xs font-semibold text-green-600 mb-1">
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          {endTime ? ` - ${endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
+                        </div>
+                        <div className="text-sm font-medium text-neu-text-primary truncate">
+                          {evt.title}
+                        </div>
+                        {evt.location && (
+                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
+                            📍 {evt.location}
                           </div>
                         )}
                       </button>
@@ -204,6 +282,46 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
           onUpdate={onRefresh}
         />
       )}
+      {showPersonalEventsModal && !editingPersonalEvent && (
+        <EventForm
+          isOpen={showPersonalEventsModal}
+          onClose={() => setShowPersonalEventsModal(false)}
+          onSave={() => loadEvents(weekRange.start, weekRange.end)}
+          selectedDate={selectedDate || undefined}
+          userId={userId}
+        />
+      )}
+      {editingPersonalEvent && (
+        <EventForm
+          isOpen={true}
+          onClose={() => {
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          onSave={() => {
+            loadEvents(weekRange.start, weekRange.end);
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          event={editingPersonalEvent}
+          userId={userId}
+        />
+      )}
+      {selectedPersonalEvent && !editingPersonalEvent && (
+        <PersonalEventModal
+          event={selectedPersonalEvent}
+          userId={userId}
+          onClose={() => setSelectedPersonalEvent(null)}
+          onDelete={() => {
+            loadEvents(weekRange.start, weekRange.end);
+            setSelectedPersonalEvent(null);
+          }}
+          onEdit={(event) => {
+            setEditingPersonalEvent(event);
+          }}
+        />
+      )}
     </>
   );
 }
+

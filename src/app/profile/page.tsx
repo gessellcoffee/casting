@@ -9,9 +9,11 @@ import { getUser } from '@/lib/supabase';
 import { getProfile, updateProfile } from '@/lib/supabase/profile';
 import { uploadProfilePhoto } from '@/lib/supabase/storage';
 import type { Profile } from '@/lib/supabase/types';
+import type { LocationData } from '@/lib/google-maps/types';
 import Button from '@/components/Button';
 import SkillsSection from '@/components/SkillsSection';
 import Link from 'next/link';
+import LocationAutocomplete from '@/components/LocationAutocomplete';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -35,6 +37,9 @@ export default function ProfilePage() {
     profile_photo_url: '',
     resume_url: '',
     image_gallery: [] as string[],
+    location: '',
+    location_lat: null as number | null,
+    location_lng: null as number | null,
   });
 
   useEffect(() => {
@@ -59,6 +64,9 @@ export default function ProfilePage() {
               image_gallery: Array.isArray(profileData.image_gallery) 
                 ? profileData.image_gallery 
                 : [],
+              location: profileData.location || '',
+              location_lat: profileData.location_lat || null,
+              location_lng: profileData.location_lng || null,
             });
           }
         }
@@ -107,6 +115,15 @@ export default function ProfilePage() {
     setFormData(prev => ({ ...prev, resume_url: url }));
   };
 
+  const handleLocationChange = (location: string, locationData?: LocationData) => {
+    setFormData(prev => ({
+      ...prev,
+      location,
+      location_lat: locationData?.coordinates.lat || null,
+      location_lng: locationData?.coordinates.lng || null,
+    }));
+  };
+
   const handleSave = async () => {
     if (!user?.id) return;
 
@@ -124,6 +141,9 @@ export default function ProfilePage() {
         profile_photo_url: formData.profile_photo_url,
         resume_url: formData.resume_url,
         image_gallery: formData.image_gallery,
+        location: formData.location,
+        location_lat: formData.location_lat,
+        location_lng: formData.location_lng,
       });
 
       if (updateError) {
@@ -155,6 +175,9 @@ export default function ProfilePage() {
         image_gallery: Array.isArray(profile.image_gallery) 
           ? profile.image_gallery 
           : [],
+        location: profile.location || '',
+        location_lat: profile.location_lat || null,
+        location_lng: profile.location_lng || null,
       });
     }
     setIsEditing(false);
@@ -166,8 +189,8 @@ export default function ProfilePage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <StarryContainer starCount={15} className="card w-full max-w-4xl">
           <div className="p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
                 My Profile
               </h1>
               
@@ -184,7 +207,7 @@ export default function ProfilePage() {
                   />
                 </div>
               ) : (
-                <div className="nav-buttons">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                   <Button
                     onClick={handleCancel}
                     disabled={saving}
@@ -329,6 +352,25 @@ export default function ProfilePage() {
                     Email
                   </label>
                   <p className="text-neu-text-primary">{user.email}</p>
+                </div>
+
+                {/* Location */}
+                <div className="neu-card-raised w-full">
+                  {isEditing ? (
+                    <LocationAutocomplete
+                      value={formData.location}
+                      onChange={handleLocationChange}
+                      label="Location"
+                      placeholder="Enter your city or location..."
+                    />
+                  ) : (
+                    <>
+                      <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
+                        Location
+                      </label>
+                      <p className="text-neu-text-primary">{formData.location || 'Not set'}</p>
+                    </>
+                  )}
                 </div>
 
                 {/* Description */}

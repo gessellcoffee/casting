@@ -3,6 +3,7 @@ import { Sora, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import NavigationBar from "../components/NavigationBar";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 const sora = Sora({
   variable: "--font-geist-sans",
@@ -33,8 +34,10 @@ export default function RootLayout({
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
           strategy="beforeInteractive"
         />
-        <NavigationBar />
-        <main className="pt-8">{children}</main>
+        <ThemeProvider>
+          <NavigationBar />
+          <main className="pt-4 sm:pt-8">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );

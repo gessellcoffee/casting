@@ -21,6 +21,9 @@ export type Database = {
           skills: string[] | null; // JSONB array of skill names
           education: any | null; // JSONB
           preferences: any | null; // JSONB
+          location: string | null;
+          location_lat: number | null;
+          location_lng: number | null;
           created_at: string;
           username: string;
         };
@@ -37,6 +40,9 @@ export type Database = {
           skills?: string[] | null;
           education?: any | null;
           preferences?: any | null;
+          location?: string | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
           created_at?: string;
           username: string;
         };
@@ -53,6 +59,9 @@ export type Database = {
           skills?: string[] | null;
           education?: any | null;
           preferences?: any | null;
+          location?: string | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
           created_at?: string;
           username?: string;
         };
@@ -487,12 +496,65 @@ export type Database = {
           }
         ];
       };
+      audition_roles: {
+        Row: {
+          audition_role_id: string;
+          audition_id: string;
+          role_id: string | null;
+          role_name: string;
+          description: string | null;
+          role_type: Database['public']['Enums']['role_type_enum'] | null;
+          gender: Database['public']['Enums']['role_genders'] | null;
+          needs_understudy: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          audition_role_id?: string;
+          audition_id: string;
+          role_id?: string | null;
+          role_name: string;
+          description?: string | null;
+          role_type?: Database['public']['Enums']['role_type_enum'] | null;
+          gender?: Database['public']['Enums']['role_genders'] | null;
+          needs_understudy?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          audition_role_id?: string;
+          audition_id?: string;
+          role_id?: string | null;
+          role_name?: string;
+          description?: string | null;
+          role_type?: Database['public']['Enums']['role_type_enum'] | null;
+          gender?: Database['public']['Enums']['role_genders'] | null;
+          needs_understudy?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'audition_roles_audition_id_fkey';
+            columns: ['audition_id'];
+            referencedRelation: 'auditions';
+            referencedColumns: ['audition_id'];
+          },
+          {
+            foreignKeyName: 'audition_roles_role_id_fkey';
+            columns: ['role_id'];
+            referencedRelation: 'roles';
+            referencedColumns: ['role_id'];
+          }
+        ];
+      };
       cast_members: {
         Row: {
           cast_member_id: string;
           audition_id: string;
           user_id: string;
-          role_id: string;
+          role_id: string | null;
+          audition_role_id: string | null;
           status: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy: boolean;
         };
@@ -500,7 +562,8 @@ export type Database = {
           cast_member_id?: string;
           audition_id: string;
           user_id: string;
-          role_id: string;
+          role_id?: string | null;
+          audition_role_id?: string | null;
           status?: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy?: boolean;
         };
@@ -508,7 +571,8 @@ export type Database = {
           cast_member_id?: string;
           audition_id?: string;
           user_id?: string;
-          role_id?: string;
+          role_id?: string | null;
+          audition_role_id?: string | null;
           status?: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy?: boolean;
         };
@@ -530,6 +594,12 @@ export type Database = {
             columns: ['role_id'];
             referencedRelation: 'roles';
             referencedColumns: ['role_id'];
+          },
+          {
+            foreignKeyName: 'cast_members_audition_role_id_fkey';
+            columns: ['audition_role_id'];
+            referencedRelation: 'audition_roles';
+            referencedColumns: ['audition_role_id'];
           }
         ];
       };
@@ -772,6 +842,11 @@ export type UserSignupsWithDetails = AuditionSignup & {
   } | null;
 };
 
+// Audition Role types for easier use
+export type AuditionRole = Database['public']['Tables']['audition_roles']['Row'];
+export type AuditionRoleInsert = Database['public']['Tables']['audition_roles']['Insert'];
+export type AuditionRoleUpdate = Database['public']['Tables']['audition_roles']['Update'];
+
 // Cast Member types for easier use
 export type CastMember = Database['public']['Tables']['cast_members']['Row'];
 export type CastMemberInsert = Database['public']['Tables']['cast_members']['Insert'];
@@ -832,4 +907,47 @@ export interface UserMetadata {
 // Extended user type with metadata
 export interface ExtendedUser extends User {
   user_metadata: UserMetadata;
+}
+
+// --- Calendar/Event types used by UI forms ---
+export type EventFrequency = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+
+export interface EventFormData {
+  title: string;
+  description?: string;
+  start: string; // ISO string for datetime-local or date
+  end: string;   // ISO string
+  allDay: boolean;
+  location?: string;
+  color?: string;
+  isRecurring: boolean;
+  recurrence: {
+    frequency: EventFrequency;
+    customFrequencyType?: 'WEEKLY' | 'MONTHLY' | 'YEARLY'; // Used when frequency is CUSTOM
+    interval: number;
+    byDay: string[];      // e.g. ['MO','WE']
+    byMonthDay: number[]; // specific days of month
+    byMonth: number[];    // 1-12
+    endType: 'never' | 'on' | 'after';
+    endDate: string;      // YYYY-MM-DD when endType === 'on'
+    occurrences: number;  // when endType === 'after'
+  };
+}
+
+export interface CalendarEvent {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string | null;
+  start: string | Date;
+  end: string | Date;
+  allDay?: boolean;
+  location?: string | null;
+  color?: string | null;
+  isRecurring?: boolean;
+  recurrenceRule?: any | null;
+  // Metadata for recurring event instances
+  _isInstance?: boolean;
+  _originalEventId?: string;
+  _instanceDate?: string;
 }

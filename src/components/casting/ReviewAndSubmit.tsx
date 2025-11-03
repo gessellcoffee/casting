@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 import { createAudition } from '@/lib/supabase/auditions';
-import { createRoles } from '@/lib/supabase/roles';
+import { createAuditionRole, updateAuditionRole, deleteAuditionRole } from '@/lib/supabase/auditionRoles';
 import { createAuditionSlots } from '@/lib/supabase/auditionSlots';
 
 interface ReviewAndSubmitProps {
-  castingData: any;
+  castingData: any & {
+    roleOperations?: Array<{
+      type: 'create' | 'update' | 'delete';
+      role?: any;
+      roleId?: string;
+    }>;
+  };
   userId: string;
   onBack: () => void;
   onSuccess: () => void;
@@ -53,19 +59,63 @@ export default function ReviewAndSubmit({
         throw new Error('Failed to create audition');
       }
 
-      // Step 2: Create roles
-      const rolesData = castingData.roles.map((role: any) => ({
-        show_id: castingData.showId,
-        role_name: role.role_name,
-        description: role.description || null,
-        role_type: role.role_type,
-        gender: role.gender,
-      }));
+      // Step 2: Process audition role operations
+      // All roles are now audition-specific and don't modify the base show
+      if (castingData.roleOperations && castingData.roleOperations.length > 0) {
+        for (const operation of castingData.roleOperations) {
+          switch (operation.type) {
+            case 'create':
+              if (operation.role) {
+                // Ensure the role has the audition_id
+                const roleData = {
+                  ...operation.role,
+                  audition_id: audition.audition_id,
+                };
+                const { error: createError } = await createAuditionRole(roleData);
+                if (createError) {
+                  throw new Error(`Failed to create audition role: ${createError.message}`);
+                }
+              }
+              break;
 
-      const { error: rolesError } = await createRoles(rolesData);
+            case 'update':
+              if (operation.roleId && operation.role) {
+                const { error: updateError } = await updateAuditionRole(operation.roleId, operation.role);
+                if (updateError) {
+                  throw new Error(`Failed to update audition role: ${updateError.message}`);
+                }
+              }
+              break;
 
-      if (rolesError) {
-        throw new Error('Failed to create roles');
+            case 'delete':
+              if (operation.roleId) {
+                const { error: deleteError } = await deleteAuditionRole(operation.roleId);
+                if (deleteError) {
+                  throw new Error(`Failed to delete audition role: ${deleteError.message}`);
+                }
+              }
+              break;
+
+            default:
+              console.warn('Unknown role operation type:', operation.type);
+          }
+        }
+      } else if (castingData.roles && castingData.roles.length > 0) {
+        // Fallback: Create audition roles if no operations provided (backward compatibility)
+        for (const role of castingData.roles) {
+          const roleData = {
+            audition_id: audition.audition_id,
+            role_name: role.role_name,
+            description: role.description || null,
+            role_type: role.role_type,
+            gender: role.gender,
+            needs_understudy: role.needs_understudy || false,
+          };
+          const { error: createError } = await createAuditionRole(roleData);
+          if (createError) {
+            throw new Error(`Failed to create audition role: ${createError.message}`);
+          }
+        }
       }
 
       // Step 3: Create audition slots
@@ -80,7 +130,7 @@ export default function ReviewAndSubmit({
       const { error: slotsError } = await createAuditionSlots(slotsData);
 
       if (slotsError) {
-        throw new Error('Failed to create audition slots');
+        throw new Error(`Failed to create audition slots - ${slotsError.message}`);
       }
 
       // Success!

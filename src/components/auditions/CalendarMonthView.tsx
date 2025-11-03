@@ -1,10 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AuditionEventModal from './AuditionEventModal';
 import CallbackDetailsModal from '@/components/callbacks/CallbackDetailsModal';
+import PersonalEvents from './PersonalEvents';
+import useEvents from '@/hooks/useEvents';
+import EventForm from '@/components/events/EventForm';
+import PersonalEventModal from '@/components/events/PersonalEventModal';
 import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
 import { isToday } from '@/lib/utils/dateUtils';
+import { useRouter } from 'next/navigation';
+import type { CalendarEvent } from '@/lib/supabase/types';
+
 
 interface CalendarMonthViewProps {
   signups: any[];
@@ -16,6 +23,12 @@ interface CalendarMonthViewProps {
 
 export default function CalendarMonthView({ signups, callbacks = [], currentDate, userId, onRefresh }: CalendarMonthViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
+  const { events, loadEvents } = useEvents(userId);
 
   // Generate calendar grid
   const calendarDays = useMemo(() => {
@@ -95,6 +108,33 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
     return callbacksByDate[dateKey] || [];
   };
 
+  // Load and group personal events by date for current month range
+  const monthRange = useMemo(() => {
+    const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
+    return { start, end };
+  }, [currentDate]);
+
+  useEffect(() => {
+    loadEvents(monthRange.start, monthRange.end);
+  }, [monthRange.start.getTime(), monthRange.end.getTime(), loadEvents]);
+
+  const personalByDate = useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+    events.forEach(evt => {
+      const dt = new Date((evt as any).start);
+      const key = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(evt);
+    });
+    return grouped;
+  }, [events]);
+
+  const getPersonalForDate = (date: Date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    return personalByDate[dateKey] || [];
+  };
+
 
   return (
     <>
@@ -115,8 +155,9 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
         {calendarDays.map((day, index) => {
           const daySignups = getSignupsForDate(day.fullDate);
           const dayCallbacks = getCallbacksForDate(day.fullDate);
+          const dayPersonal = getPersonalForDate(day.fullDate);
           const today = isToday(day.fullDate);
-          const totalEvents = daySignups.length + dayCallbacks.length;
+          const totalEvents = daySignups.length + dayCallbacks.length + dayPersonal.length;
 
           return (
             <div
@@ -126,6 +167,10 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                   ? 'bg-neu-surface/30 border-neu-border'
                   : 'bg-neu-surface/10 border-[#4a7bd9]/10'
               } ${today ? 'ring-1 sm:ring-2 ring-[#5a8ff5]/50' : ''}`}
+              onClick={() => {
+                setSelectedDate(day.fullDate);
+                setShowAddEventModal(true);
+              }}
             >
               <div
                 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${
@@ -141,7 +186,7 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                 {daySignups.slice(0, 2).map((signup) => {
                   const startTime = new Date(signup.audition_slots.start_time);
                   const showTitle = signup.audition_slots?.auditions?.shows?.title || 'Unknown Show';
-                  
+                   
                   return (
                     <button
                       key={signup.signup_id}
@@ -159,11 +204,48 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                   );
                 })}
 
+                {/* Personal Events */}
+                {dayPersonal.slice(0, Math.max(0, 3 - daySignups.length)).map((evt: any) => {
+                  const startTime = new Date(evt.start);
+                  return (
+                    <button
+                      key={evt.id || `${evt.title}-${evt.start}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPersonalEvent(evt);
+                      }}
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-green-400/40 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
+                      title={evt.title}
+                    >
+                      <div className="font-medium truncate">{evt.title}</div>
+                      <div className="text-neu-text-primary/70 hidden sm:block">
+                        {startTime.toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {/* Add Event Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedDate(day.fullDate);
+                    setShowPersonalEventsModal(true);
+                  }}
+                  className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-neu-accent-primary/30 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
+                >
+                  + Add Personal Event
+                </button>
+
+
                 {/* Callback Events */}
-                {dayCallbacks.slice(0, Math.max(0, 3 - daySignups.length)).map((callback) => {
+                {dayCallbacks.slice(0, Math.max(0, 3 - daySignups.length - Math.min(dayPersonal.length, Math.max(0, 3 - daySignups.length)))).map((callback) => {
                   const startTime = new Date(callback.callback_slots.start_time);
                   const showTitle = callback.callback_slots?.auditions?.shows?.title || 'Callback';
-                  
+                   
                   return (
                     <button
                       key={callback.invitation_id}
@@ -212,6 +294,54 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
           onUpdate={onRefresh}
         />
       )}
+      {showPersonalEventsModal && !editingPersonalEvent && (
+        <EventForm
+          isOpen={showPersonalEventsModal}
+          onClose={() => setShowPersonalEventsModal(false)}
+          onSave={() => {
+            if (monthRange) {
+              loadEvents(monthRange.start, monthRange.end);
+            }
+          }}
+          selectedDate={selectedDate || undefined}
+          userId={userId}
+        />
+      )}
+      {editingPersonalEvent && (
+        <EventForm
+          isOpen={true}
+          onClose={() => {
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          onSave={() => {
+            if (monthRange) {
+              loadEvents(monthRange.start, monthRange.end);
+            }
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          event={editingPersonalEvent}
+          userId={userId}
+        />
+      )}
+      {selectedPersonalEvent && !editingPersonalEvent && (
+        <PersonalEventModal
+          event={selectedPersonalEvent}
+          userId={userId}
+          onClose={() => setSelectedPersonalEvent(null)}
+          onDelete={() => {
+            if (monthRange) {
+              loadEvents(monthRange.start, monthRange.end);
+            }
+            setSelectedPersonalEvent(null);
+          }}
+          onEdit={(event) => {
+            setEditingPersonalEvent(event);
+          }}
+        />
+      )}
     </>
   );
 }
+

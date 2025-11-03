@@ -63,9 +63,9 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
   }, [currentDate, viewMode]);
 
   return (
-    <div className="rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60 ">
+    <div className="calendar-container rounded-xl">
       {/* Calendar Header */}
-      <div className="p-4 sm:p-6 border-b border-neu-border/60">
+      <div className="calendar-header-border p-4 sm:p-6">
         {/* Title - Always visible on mobile */}
         <h2 className="text-xl sm:text-2xl font-semibold text-neu-text-primary mb-4">
           {periodDisplay}
@@ -115,7 +115,10 @@ export default function AuditionCalendar({ signups, callbacks = [], userId, onRe
               </label>
             )}
 
+
+
             <div className="flex flex-row items-center gap-2 justify-center sm:justify-start">
+           
             <button
               onClick={() => setViewMode('month')}
               className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base ${

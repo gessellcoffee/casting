@@ -21,6 +21,7 @@ interface CastingData {
   showId: string | null;
   showData: any | null;
   roles: any[];
+  roleOperations: any[];
   auditionDetails: {
     auditionDates: string[];
     auditionLocation: string;
@@ -45,6 +46,7 @@ export default function NewCastingPage() {
     showId: null,
     showData: null,
     roles: [],
+    roleOperations: [],
     auditionDetails: {
       auditionDates: [],
       auditionLocation: '',
@@ -189,8 +191,49 @@ export default function NewCastingPage() {
               <RoleManager
                 showId={castingData.showId!}
                 roles={castingData.roles}
-                onUpdate={(roles) => {
-                  updateCastingData({ roles });
+                onUpdate={(operations) => {
+                  // Store the operations for later processing
+                  updateCastingData({ roleOperations: operations });
+
+                  // Also update the roles array to reflect current state for display
+                  const updatedRoles = [...castingData.roles];
+
+                  operations.forEach(operation => {
+                    switch (operation.type) {
+                      case 'create':
+                        if (operation.role) {
+                          updatedRoles.push({
+                            role_name: operation.role.role_name,
+                            description: operation.role.description,
+                            role_type: operation.role.role_type,
+                            gender: operation.role.gender,
+                            needs_understudy: operation.role.needs_understudy,
+                          });
+                        }
+                        break;
+                      case 'update':
+                        if (operation.roleId && operation.role) {
+                          const index = updatedRoles.findIndex(r => r.role_id === operation.roleId);
+                          if (index >= 0) {
+                            updatedRoles[index] = {
+                              ...updatedRoles[index],
+                              ...operation.role,
+                            };
+                          }
+                        }
+                        break;
+                      case 'delete':
+                        if (operation.roleId) {
+                          const index = updatedRoles.findIndex(r => r.role_id === operation.roleId);
+                          if (index >= 0) {
+                            updatedRoles.splice(index, 1);
+                          }
+                        }
+                        break;
+                    }
+                  });
+
+                  updateCastingData({ roles: updatedRoles });
                 }}
                 onNext={handleNext}
                 onBack={handleBack}

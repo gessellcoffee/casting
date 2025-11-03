@@ -8,6 +8,7 @@ interface DateArrayInputProps {
   label?: string;
   placeholder?: string;
   className?: string;
+  multiple?: boolean;
 }
 
 export default function DateArrayInput({
@@ -16,6 +17,7 @@ export default function DateArrayInput({
   label,
   placeholder = 'Select dates...',
   className = '',
+  multiple = true,
 }: DateArrayInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -139,10 +141,10 @@ export default function DateArrayInput({
         className={`
           h-10 flex items-center justify-center rounded-lg cursor-pointer select-none transition-all
           ${isSelected 
-            ? 'bg-[#5a8ff5] text-white font-semibold shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)]' 
-            : 'bg-white/80 text-neu-text-primary hover:bg-white shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]'
+            ? 'bg-neu-accent-primary text-white font-semibold shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)]' 
+            : 'bg-neu-surface text-neu-text-primary hover:bg-neu-surface-light shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]'
           }
-          ${isToday && !isSelected ? 'ring-2 ring-[#5a8ff5]/40' : ''}
+          ${isToday && !isSelected ? 'ring-2 ring-neu-accent-primary/40' : ''}
         `}
       >
         {day}
@@ -160,9 +162,11 @@ export default function DateArrayInput({
 
     // Show first and last date as range
     const sortedDates = [...value].sort();
-    const firstDate = new Date(sortedDates[0]);
-    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
-    
+    const sortedDatesLength = sortedDates.length;
+    const firstDate = new Date(sortedDates[1]);
+    const lastDate = new Date(sortedDates[sortedDatesLength-1]);
+    lastDate.setDate(lastDate.getDate() + 1);
+  
     return `${firstDate.toLocaleDateString()} - ${lastDate.toLocaleDateString()} (${value.length} days)`;
   };
 
@@ -235,7 +239,7 @@ export default function DateArrayInput({
             {value.length > 0 && (
               <button
                 onClick={clearAll}
-                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors border border-red-500/30"
+                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-neu-accent-danger/20 text-neu-accent-danger hover:bg-neu-accent-danger/30 transition-colors border border-neu-accent-danger/30"
               >
                 Clear All
               </button>
@@ -257,11 +261,13 @@ export default function DateArrayInput({
           </div>
 
           {/* Instructions */}
+          {multiple===true && (
           <div className="mt-3 pt-3 border-t border-neu-border">
             <p className="text-xs text-neu-text-primary/60 text-center">
               Click and drag to select/deselect multiple dates
             </p>
           </div>
+          )}
 
           {/* Selected Dates Summary */}
           {value.length > 0 && (

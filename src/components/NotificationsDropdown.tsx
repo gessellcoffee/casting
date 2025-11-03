@@ -253,15 +253,15 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 max-h-[calc(100vh-120px)] overflow-hidden rounded-xl bg-white/98 backdrop-blur-md  border-neu-border/60 shadow-2xl z-[9999] flex flex-col">
+        <div className="notification-dropdown fixed sm:absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 sm:w-96 w-[calc(100vw-2rem)] mx-4 sm:mx-0 max-h-[calc(100vh-120px)] overflow-hidden rounded-xl shadow-2xl z-[9999] flex flex-col">
           {/* Header */}
-          <div className="p-4 border-neu-border/60 bg-white/98 flex-shrink-0">
+          <div className="notification-dropdown-header p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-neu-text-primary">Notifications</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-neu-accent-primary hover:text-[#6a9fff] underline"
+                  className="text-xs text-neu-accent-primary hover:text-neu-accent-secondary underline transition-colors"
                 >
                   Mark all as read
                 </button>
@@ -272,13 +272,13 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           {/* Notifications List */}
           <div className="overflow-y-auto flex-1 relative" style={{ scrollBehavior: 'smooth' }}>
             {/* Fade indicator at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/98 to-transparent pointer-events-none z-10"></div>
+            <div className="notification-fade-bottom absolute bottom-0 left-0 right-0 h-12 pointer-events-none z-10"></div>
             {loading ? (
               <div className="p-8 text-center text-neu-text-primary/70">Loading...</div>
             ) : notifications.length === 0 ? (
               <EmptyState
                 icon={
-                  <svg className="w-12 h-12 mx-auto text-[#4a7bd9]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-12 h-12 mx-auto text-neu-accent-primary opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                   </svg>
                 }
@@ -289,8 +289,8 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
               notifications.map((notification) => (
                 <div
                   key={notification.notification_id}
-                  className={`notification-card  p-4  transition-colors ${
-                    !notification.is_read ? 'bg-[#4a7bd9]/5' : ''
+                  className={`notification-card p-4 transition-colors ${
+                    !notification.is_read ? 'notification-unread-bg' : ''
                   }`}
                   onClick={() => !notification.is_read && handleMarkAsRead(notification.notification_id)}
                 >
@@ -307,7 +307,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                           {notification.title}
                         </p>
                         {!notification.is_read && (
-                          <span className="flex-shrink-0 w-2 h-2 bg-[#5a8ff5] rounded-full mt-1"></span>
+                          <span className="notification-unread-dot flex-shrink-0 w-2 h-2 rounded-full mt-1"></span>
                         )}
                       </div>
                       <p className="text-sm text-neu-text-primary/80 mt-1">
@@ -331,14 +331,14 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                               View Requestor
                             </Link>
                           )}
-                          <div className="flex gap-4 ">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleReject(notification);
                               }}
                               disabled={processing === notification.notification_id}
-                              className="n-button-danger px-3 py-1 text-xs rounded-lg disabled:opacity-50"
+                              className="n-button-danger px-3 py-1 text-xs rounded-lg disabled:opacity-50 w-full sm:w-auto"
                             >
                               {processing === notification.notification_id ? 'Processing...' : 'Reject'}
                             </button>
@@ -348,7 +348,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                                 handleApprove(notification);
                               }}
                               disabled={processing === notification.notification_id}
-                              className="n-button-primary px-3 py-1 text-xs rounded-lg disabled:opacity-50"
+                              className="n-button-primary px-3 py-1 text-xs rounded-lg disabled:opacity-50 w-full sm:w-auto"
                             >
                               {processing === notification.notification_id ? 'Processing...' : 'Approve'}
                             </button>
@@ -371,7 +371,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       {notification.is_actionable && 
                        notification.reference_type === 'callback_invitation' && 
                        !notification.action_taken && (
-                        <div className="flex gap-4 mt-3">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-3">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -403,7 +403,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           </div>
 
           {/* View All Link */}
-          <div className="p-4  bg-neu-surface/30 border-gray-300 border-t">
+          <div className="notification-dropdown-footer p-4">
             <Link
               href="/notifications"
               className="block text-center text-sm font-semibold text-neu-accent-primary hover:text-neu-accent-secondary transition-colors"

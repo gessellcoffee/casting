@@ -45,6 +45,45 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark Mode - Deep Navy Cosmic Theme */
+[data-theme="dark"] {
+  /* Base colors - deep navy with cosmic purple accents */
+  --background: #0a0e27;
+  --foreground: #e0e7ff;
+  
+  /* Dark cosmic background with starry gradient */
+  --neu-bg-base: #0a0e27;
+  --neu-bg-gradient-start: #1a1f3a;
+  --neu-bg-gradient-end: #2d1b4e;
+  
+  /* Surface colors for cards and containers - deep navy tones */
+  --neu-surface: #151b35;
+  --neu-surface-light: #1f2847;
+  --neu-surface-dark: #0d1124;
+  
+  /* Shadows for dark neumorphic effect - softer, cosmic glow */
+  --neu-shadow-light: rgba(79, 93, 149, 0.15);
+  --neu-shadow-dark: rgba(0, 0, 0, 0.5);
+  --neu-shadow-inset-light: rgba(79, 93, 149, 0.1);
+  --neu-shadow-inset-dark: rgba(0, 0, 0, 0.4);
+  
+  /* Accent colors - cosmic purples and blues */
+  --neu-accent-primary: #7c3aed;
+  --neu-accent-secondary: #a78bfa;
+  --neu-accent-success: #34d399;
+  --neu-accent-danger: #f87171;
+  --neu-accent-warning: #fbbf24;
+  
+  /* Text colors - light on dark */
+  --neu-text-primary: #e0e7ff;
+  --neu-text-secondary: #c7d2fe;
+  --neu-text-muted: #a5b4fc;
+  
+  /* Border colors - subtle cosmic glow */
+  --neu-border: rgba(124, 58, 237, 0.2);
+  --neu-border-focus: rgba(167, 139, 250, 0.4);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     /* Keep light theme even in dark mode for neumorphic design */
@@ -66,6 +105,39 @@ body {
   position: relative;
   overflow-x: hidden;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Cosmic starfield effect for dark mode */
+[data-theme="dark"] body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(2px 2px at 60% 70%, rgba(167, 139, 250, 0.4), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(124, 58, 237, 0.3), transparent),
+    radial-gradient(1px 1px at 80% 10%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(2px 2px at 90% 60%, rgba(167, 139, 250, 0.3), transparent),
+    radial-gradient(1px 1px at 33% 80%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1px 1px at 15% 90%, rgba(124, 58, 237, 0.2), transparent);
+  background-size: 200% 200%;
+  background-position: 0% 0%;
+  animation: cosmicDrift 60s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes cosmicDrift {
+  0%, 100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
 }
 
 body > * {
@@ -89,6 +161,12 @@ body > * {
   z-index: 9999;
 }
 
+[data-theme="dark"] .neumorphic-header {
+  background: rgba(21, 27, 53, 0.95);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
+}
+
 @media (min-width: 1024px) {
   .neumorphic-header {
     padding: 20px 32px;
@@ -104,10 +182,16 @@ body > * {
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--neu-accent-primary);
   letter-spacing: -0.02em;
+}
+
+@media (min-width: 640px) {
+  .logo {
+    font-size: 1.5rem;
+  }
 }
 
 /* ===== NAVIGATION BUTTONS ===== */
@@ -154,18 +238,28 @@ body > * {
 .n-button-danger,
 .n-button-success {
   border: none;
-  padding: 12px 24px;
+  padding: 10px 16px;
   border-radius: 16px;
   background: var(--neu-surface);
   box-shadow: 
     6px 6px 12px var(--neu-shadow-dark),
     -6px -6px 12px var(--neu-shadow-light);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--neu-text-secondary);
   transition: all 0.3s ease;
   border: 1px solid var(--neu-border);
+}
+
+@media (min-width: 640px) {
+  .n-button-primary,
+  .n-button-secondary,
+  .n-button-danger,
+  .n-button-success {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+  }
 }
 
 .n-button-primary:hover {
@@ -213,8 +307,8 @@ body > * {
 
 /* ===== AVATAR ===== */
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--neu-surface);
   box-shadow: 
@@ -226,6 +320,14 @@ body > * {
   cursor: pointer;
   border: 2px solid var(--neu-border);
   transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .avatar {
+    width: 50px;
+    height: 50px;
+  }
 }
 
 .avatar:hover {
@@ -236,19 +338,37 @@ body > * {
 }
 
 .avatar img {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
 }
 
+@media (min-width: 640px) {
+  .avatar img {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 /* ===== NEUMORPHIC CARD ===== */
 .card {
-  border-radius: 30px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(163, 177, 198, 0.3);
   transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .card {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+@media (min-width: 640px) {
+  .card {
+    border-radius: 30px;
+  }
 }
 
 /* ===== NEUMORPHIC INPUT FIELDS ===== */
@@ -298,6 +418,15 @@ select.neu-input {
   transition: all 0.3s ease;
 }
 
+[data-theme="dark"] .neu-stat-card {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 
+    10px 10px 25px rgba(0, 0, 0, 0.5),
+    -10px -10px 25px rgba(79, 93, 149, 0.1),
+    0 0 30px rgba(124, 58, 237, 0.08);
+}
+
 .neu-stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 
@@ -305,10 +434,17 @@ select.neu-input {
     -12px -12px 24px var(--neu-shadow-light);
 }
 
+[data-theme="dark"] .neu-stat-card:hover {
+  box-shadow: 
+    12px 12px 30px rgba(0, 0, 0, 0.6),
+    -12px -12px 30px rgba(79, 93, 149, 0.15),
+    0 0 40px rgba(124, 58, 237, 0.12);
+}
+
 /* ===== NEUMORPHIC CONTAINER ===== */
 .neu-container {
-  padding: 2rem;
-  border-radius: 30px;
+  padding: 1.5rem;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   box-shadow: 
@@ -317,10 +453,26 @@ select.neu-input {
   border: 1px solid rgba(163, 177, 198, 0.3);
 }
 
+[data-theme="dark"] .neu-container {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 
+    15px 15px 35px rgba(0, 0, 0, 0.5),
+    -15px -15px 35px rgba(79, 93, 149, 0.1),
+    0 0 40px rgba(124, 58, 237, 0.1);
+}
+
+@media (min-width: 640px) {
+  .neu-container {
+    padding: 2rem;
+    border-radius: 30px;
+  }
+}
+
 /* ===== NEUMORPHIC ICON BUTTON ===== */
 .neu-icon-btn {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: var(--neu-surface);
   box-shadow: 
@@ -333,6 +485,14 @@ select.neu-input {
   cursor: pointer;
   transition: all 0.3s ease;
   color: var(--neu-text-secondary);
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .neu-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 .neu-icon-btn:hover {
@@ -392,6 +552,15 @@ select.neu-input {
     -15px -15px 30px var(--neu-shadow-light);
   border: 1px solid rgba(163, 177, 198, 0.3);
   padding: 0.5rem;
+}
+
+[data-theme="dark"] .neu-dropdown {
+  background: rgba(21, 27, 53, 0.95);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 
+    15px 15px 35px rgba(0, 0, 0, 0.5),
+    -15px -15px 35px rgba(79, 93, 149, 0.1),
+    0 0 30px rgba(124, 58, 237, 0.1);
 }
 
 .neu-dropdown-item {
@@ -567,6 +736,70 @@ select.neu-input {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
+/* Notification Dropdown Container */
+.notification-dropdown {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(163, 177, 198, 0.6);
+}
+
+[data-theme="dark"] .notification-dropdown {
+  background: rgba(21, 27, 53, 0.98);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(124, 58, 237, 0.15);
+}
+
+/* Notification Dropdown Header */
+.notification-dropdown-header {
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid rgba(163, 177, 198, 0.6);
+}
+
+[data-theme="dark"] .notification-dropdown-header {
+  background: rgba(21, 27, 53, 0.98);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+/* Notification Dropdown Footer */
+.notification-dropdown-footer {
+  background: rgba(230, 238, 249, 0.3);
+  border-top: 1px solid rgba(163, 177, 198, 0.3);
+}
+
+[data-theme="dark"] .notification-dropdown-footer {
+  background: rgba(13, 17, 36, 0.5);
+  border-top: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+/* Notification Fade Gradient */
+.notification-fade-bottom {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.98), transparent);
+}
+
+[data-theme="dark"] .notification-fade-bottom {
+  background: linear-gradient(to top, rgba(21, 27, 53, 0.98), transparent);
+}
+
+/* Unread Notification Highlight */
+.notification-unread-bg {
+  background: rgba(74, 123, 217, 0.05);
+}
+
+[data-theme="dark"] .notification-unread-bg {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+/* Unread Indicator Dot */
+.notification-unread-dot {
+  background: #5a8ff5;
+}
+
+[data-theme="dark"] .notification-unread-dot {
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+}
+
 .neu-input{
   width: 100%;
   padding: 0.75rem 1rem;
@@ -602,6 +835,15 @@ select.neu-input {
   transition: all 0.3s ease;
 }
 
+[data-theme="dark"] .neu-card-raised {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 
+    5px 5px 15px rgba(0, 0, 0, 0.5),
+    -5px -5px 15px rgba(79, 93, 149, 0.1),
+    0 0 20px rgba(124, 58, 237, 0.05);
+}
+
 /* Inset Container - Dark blue background with inset shadow (embossed paper effect) */
 .neu-inset {
   padding: 1rem;
@@ -625,13 +867,26 @@ select.neu-input {
   transition: all 0.15s ease;
 }
 
+[data-theme="dark"] .neu-form-input {
+  background: rgba(21, 27, 53, 0.5);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
 .neu-form-input::placeholder {
   color: rgba(197, 221, 255, 0.3);
+}
+
+[data-theme="dark"] .neu-form-input::placeholder {
+  color: var(--neu-text-muted);
 }
 
 .neu-form-input:focus {
   outline: none;
   border-color: #5a8ff5;
+}
+
+[data-theme="dark"] .neu-form-input:focus {
+  border-color: var(--neu-border-focus);
 }
 
 /* Stat Card - Small info box with inset styling */
@@ -645,6 +900,11 @@ select.neu-input {
     inset -2px -2px 5px var(--neu-shadow-light);
 }
 
+[data-theme="dark"] .neu-stat-box {
+  background: rgba(21, 27, 53, 0.5);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
 /* Info Box - Highlighted inset box for important info */
 .neu-info-box {
   padding: 1rem;
@@ -654,6 +914,12 @@ select.neu-input {
   box-shadow: inset 2px 2px 5px rgba(90, 143, 245, 0.1);
 }
 
+[data-theme="dark"] .neu-info-box {
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  box-shadow: inset 2px 2px 5px rgba(124, 58, 237, 0.2);
+}
+
 /* Error Box - Red tinted inset box */
 .neu-error-box {
   padding: 1rem;
@@ -661,6 +927,12 @@ select.neu-input {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   box-shadow: inset 2px 2px 5px rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="dark"] .neu-error-box {
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  box-shadow: inset 2px 2px 5px rgba(248, 113, 113, 0.1);
 }
 
 /* Badge - Status indicator with subtle neumorphic effect */
@@ -676,6 +948,12 @@ select.neu-input {
   display: inline-block;
 }
 
+[data-theme="dark"] .neu-badge-accepted {
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  box-shadow: inset 1px 1px 3px rgba(124, 58, 237, 0.2);
+}
+
 .neu-badge-pending {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -689,6 +967,12 @@ select.neu-input {
   display: inline-block;
 }
 
+[data-theme="dark"] .neu-badge-pending {
+  background: rgba(79, 93, 149, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  box-shadow: inset 1px 1px 3px rgba(79, 93, 149, 0.1);
+}
+
 .neu-badge-rejected {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -700,6 +984,12 @@ select.neu-input {
   border: 1px solid var(--neu-border);
   box-shadow: inset 1px 1px 3px var(--neu-shadow-dark);
   display: inline-block;
+}
+
+[data-theme="dark"] .neu-badge-rejected {
+  background: rgba(13, 17, 36, 0.5);
+  color: var(--neu-text-muted);
+  border: 1px solid rgba(79, 93, 149, 0.2);
 }
 
 /* Action Button - Raised button with hover effect */
@@ -717,9 +1007,17 @@ select.neu-input {
   cursor: pointer;
 }
 
+[data-theme="dark"] .neu-btn-action {
+  background: #7c3aed;
+}
+
 .neu-btn-action:hover:not(:disabled) {
   background: #4a7bd9;
   box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .neu-btn-action:hover:not(:disabled) {
+  background: #6d28d9;
 }
 
 .neu-btn-action:disabled {
@@ -748,6 +1046,10 @@ select.neu-input {
     inset -2px -2px 5px var(--neu-shadow-light);
 }
 
+[data-theme="dark"] .neu-btn-secondary:hover:not(:disabled) {
+  background: rgba(21, 27, 53, 0.5);
+}
+
 .neu-btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -769,11 +1071,20 @@ select.neu-input {
   cursor: pointer;
 }
 
+[data-theme="dark"] .neu-btn-small {
+  background: rgba(21, 27, 53, 0.5);
+}
+
 .neu-btn-small:hover:not(:disabled) {
   opacity: 1;
   background: rgba(230, 238, 249, 0.8);
   border-color: rgba(74, 123, 217, 0.4);
   box-shadow: inset 1px 1px 3px var(--neu-shadow-dark);
+}
+
+[data-theme="dark"] .neu-btn-small:hover:not(:disabled) {
+  background: rgba(31, 40, 71, 0.8);
+  border-color: rgba(124, 58, 237, 0.4);
 }
 
 .neu-btn-small:disabled {
@@ -801,6 +1112,10 @@ select.neu-input {
     inset -2px -2px 5px var(--neu-shadow-light);
 }
 
+[data-theme="dark"] .neu-btn-dashed:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
 /* Item Card - Individual item in a list with hover effect */
 .neu-item-card {
   padding: 1rem;
@@ -813,8 +1128,24 @@ select.neu-input {
   transition: all 0.3s ease;
 }
 
+[data-theme="dark"] .neu-item-card {
+  background: rgba(21, 27, 53, 0.5);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  box-shadow: 
+    5px 5px 12px rgba(0, 0, 0, 0.4),
+    -5px -5px 12px rgba(79, 93, 149, 0.08);
+}
+
 .neu-item-card:hover {
   border-color: var(--neu-border);
+}
+
+[data-theme="dark"] .neu-item-card:hover {
+  border-color: rgba(124, 58, 237, 0.4);
+  box-shadow: 
+    5px 5px 15px rgba(0, 0, 0, 0.5),
+    -5px -5px 15px rgba(79, 93, 149, 0.1),
+    0 0 20px rgba(124, 58, 237, 0.1);
 }
 
 /* Selected Item Card - Highlighted selected state */
@@ -826,6 +1157,14 @@ select.neu-input {
   box-shadow: inset 2px 2px 5px rgba(90, 143, 245, 0.2);
 }
 
+[data-theme="dark"] .neu-item-card-selected {
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  box-shadow: 
+    inset 2px 2px 5px rgba(124, 58, 237, 0.3),
+    0 0 25px rgba(124, 58, 237, 0.15);
+}
+
 /* Disabled Item Card - Grayed out state */
 .neu-item-card-disabled {
   padding: 1rem;
@@ -833,6 +1172,12 @@ select.neu-input {
   background: rgba(30, 46, 78, 0.3);
   border: 1px solid rgba(74, 123, 217, 0.1);
   opacity: 0.6;
+}
+
+[data-theme="dark"] .neu-item-card-disabled {
+  background: rgba(13, 17, 36, 0.4);
+  border: 1px solid rgba(79, 93, 149, 0.1);
+  opacity: 0.5;
 }
 
 /* The switch - the box around the slider */
@@ -926,4 +1271,175 @@ select.neu-input {
   box-shadow:
     -4px -4px 12px #ffffff,
     4px 4px 12px #9b9b9b;
+}
+
+/* ===== CALENDAR COMPONENT CLASSES ===== */
+/* Calendar Container */
+.calendar-container {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(163, 177, 198, 0.6);
+}
+
+[data-theme="dark"] .calendar-container {
+  background: rgba(21, 27, 53, 0.9);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+}
+
+/* Calendar Header Border */
+.calendar-header-border {
+  border-bottom: 1px solid rgba(163, 177, 198, 0.6);
+}
+
+[data-theme="dark"] .calendar-header-border {
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+/* Calendar Event Card */
+.calendar-event-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(107, 141, 214, 0.3);
+}
+
+[data-theme="dark"] .calendar-event-card {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.calendar-event-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .calendar-event-card:hover {
+  background: rgba(31, 40, 71, 0.9);
+}
+
+/* Calendar Personal Event Card */
+.calendar-personal-event {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+[data-theme="dark"] .calendar-personal-event {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.calendar-personal-event:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .calendar-personal-event:hover {
+  background: rgba(31, 40, 71, 0.9);
+}
+
+/* Calendar Callback Event Card */
+.calendar-callback-event {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(155, 135, 245, 0.3);
+}
+
+[data-theme="dark"] .calendar-callback-event {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.calendar-callback-event:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .calendar-callback-event:hover {
+  background: rgba(31, 40, 71, 0.9);
+}
+
+/* Calendar Add Event Button */
+.calendar-add-event-btn {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(163, 177, 198, 0.6);
+}
+
+[data-theme="dark"] .calendar-add-event-btn {
+  background: rgba(21, 27, 53, 0.8);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.calendar-add-event-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .calendar-add-event-btn:hover {
+  background: rgba(31, 40, 71, 0.9);
+}
+
+/* Calendar List Item */
+.calendar-list-item {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(163, 177, 198, 0.4);
+}
+
+[data-theme="dark"] .calendar-list-item {
+  background: rgba(21, 27, 53, 0.7);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.calendar-list-item:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(107, 141, 214, 0.6);
+}
+
+[data-theme="dark"] .calendar-list-item:hover {
+  background: rgba(31, 40, 71, 0.85);
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+/* Calendar Slot Card */
+.calendar-slot-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(163, 177, 198, 0.4);
+}
+
+[data-theme="dark"] .calendar-slot-card {
+  background: rgba(21, 27, 53, 0.7);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+/* Modal Background */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* Modal Content */
+.modal-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(74, 123, 217, 0.3);
+}
+
+[data-theme="dark"] .modal-content {
+  background: rgba(21, 27, 53, 0.95);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+}
+
+/* Modal Header */
+.modal-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(74, 123, 217, 0.2);
+}
+
+[data-theme="dark"] .modal-header {
+  background: rgba(21, 27, 53, 0.95);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
 }

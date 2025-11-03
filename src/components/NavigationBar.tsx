@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import Button from "./Button";
 import NotificationsDropdown from "./NotificationsDropdown";
+import ThemeToggle from "./ThemeToggle";
 import { GrClose } from "react-icons/gr";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { supabase, signOut, getUser } from "@/lib/supabase";
@@ -64,10 +65,12 @@ export default function NavigationBar() {
         <Button text="Cast" href="/cast" />
         <Button text="Shows" href="/shows" />
         <Button text="Company" href="/company" />
+        <Button text="Users" href="/users" />
       </>
     )}
   </div>
   <div className="flex items-center gap-2 xl:gap-4 flex-shrink-0">
+    <ThemeToggle />
     {user && <NotificationsDropdown userId={user.id} />}
     {user ? (
       <>
@@ -103,6 +106,7 @@ export default function NavigationBar() {
     
     {/* Mobile Right Section */}
     <div className="flex items-center gap-2">
+      <ThemeToggle />
       {user && (
         <>
           <NotificationsDropdown userId={user.id} />
@@ -146,6 +150,9 @@ export default function NavigationBar() {
               </Link>
               <Link href="/company" onClick={() => setShowMenu(false)}>
                 <button className="w-full n-button-primary text-left px-4 py-3">Company</button>
+              </Link>
+              <Link href="/users" onClick={() => setShowMenu(false)}>
+                <button className="w-full n-button-primary text-left px-4 py-3">Users</button>
               </Link>
               <div className="border-t border-neu-border my-2"></div>
               <button 

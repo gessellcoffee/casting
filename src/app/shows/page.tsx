@@ -105,11 +105,11 @@ export default function ShowsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-4xl font-bold text-neu-text-primary">Show Management</h1>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-neu-text-primary">Show Management</h1>
             <Link
-              href="/cast/new"
-              className="n-button-primary px-6 py-3 rounded-lg"
+              href="/shows/new"
+              className="n-button-primary px-6 py-3 rounded-lg text-center"
             >
               + Create New Show
             </Link>
@@ -158,7 +158,7 @@ export default function ShowsPage() {
             action={
               !searchQuery ? (
                 <Link
-                  href="/cast/new"
+                  href="/shows/new"
                   className="n-button-primary px-6 py-3 rounded-lg"
                 >
                   Create Your First Show
@@ -230,10 +230,10 @@ export default function ShowsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Link
                     href={`/shows/${show.show_id}`}
-                    className="n-button-primary flex-1 px-4 py-2 rounded-lg"
+                    className="n-button-primary flex-1 px-4 py-2 rounded-lg text-center"
                   >
                     View Details
                   </Link>
@@ -243,13 +243,13 @@ export default function ShowsPage() {
                         <div className="flex gap-2 flex-1">
                           <button
                             onClick={() => handleDelete(show.show_id)}
-                            className="n-button-danger flex-1 px-3 py-2 rounded-lg"
+                            className="n-button-danger flex-1 px-3 py-2 rounded-lg text-sm"
                           >
                             Confirm
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(null)}
-                            className="n-button-secondary flex-1 px-3 py-2 rounded-lg"
+                            className="n-button-secondary flex-1 px-3 py-2 rounded-lg text-sm"
                           >
                             Cancel
                           </button>
@@ -257,7 +257,7 @@ export default function ShowsPage() {
                       ) : (
                         <button
                           onClick={() => setDeleteConfirm(show.show_id)}
-                          className="n-button-danger px-4 py-2 rounded-lg"
+                          className="n-button-danger px-4 py-2 rounded-lg sm:w-auto w-full"
                         >
                           Delete
                         </button>
