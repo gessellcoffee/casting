@@ -11,6 +11,7 @@ import { uploadProfilePhoto } from '@/lib/supabase/storage';
 import type { Profile } from '@/lib/supabase/types';
 import Button from '@/components/Button';
 import SkillsSection from '@/components/SkillsSection';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -172,6 +173,11 @@ export default function ProfilePage() {
               
               {!isEditing ? (
                 <div className="nav-buttons">
+                  <Link href="/profile/update-password">
+                    <Button 
+                      text="Update Password"
+                    />
+                  </Link>
                   <Button 
                     onClick={() => setIsEditing(true)}
                     text="Edit Profile"
