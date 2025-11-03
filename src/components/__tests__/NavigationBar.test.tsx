@@ -38,6 +38,16 @@ jest.mock('@/lib/supabase/profile', () => ({
   getProfile: jest.fn(),
 }));
 
+// Mock ThemeContext
+jest.mock('@/contexts/ThemeContext', () => ({
+  useTheme: () => ({
+    theme: 'light',
+    toggleTheme: jest.fn(),
+    setTheme: jest.fn(),
+    isLoading: false,
+  }),
+}));
+
 jest.mock('@/lib/supabase/client', () => ({
   supabase: {
     auth: {
@@ -290,6 +300,53 @@ describe('NavigationBar', () => {
       await waitFor(() => {
         expect(screen.getByText('Sign Out')).toBeInTheDocument();
         expect(screen.getByAltText('Avatar')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should display Users link when user is authenticated', async () => {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        user_metadata: {},
+      };
+
+      const mockProfile = {
+        id: 'user-123',
+        username: 'testuser',
+        profile_photo_url: null,
+        first_name: 'Test',
+        last_name: 'User',
+        middle_name: null,
+        description: null,
+        resume_url: null,
+        image_gallery: null,
+        video_gallery: null,
+        skills: null,
+        education: null,
+        preferences: null,
+        created_at: '2024-01-01T00:00:00Z',
+        location: null,
+      };
+
+      (getUser as jest.Mock).mockResolvedValue(mockUser);
+      (getProfile as jest.Mock).mockResolvedValue(mockProfile);
+
+      render(<NavigationBar />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Users').length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should not display Users link when user is not authenticated', async () => {
+      (getUser as jest.Mock).mockResolvedValue(null);
+
+      render(<NavigationBar />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Users')).not.toBeInTheDocument();
       });
     });
   });

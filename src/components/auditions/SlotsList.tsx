@@ -114,7 +114,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
 
   if (!availableSlots || availableSlots.length === 0) {
     return (
-      <div className="p-6 rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60">
+      <div className="p-6 rounded-xl calendar-container">
         <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
           Audition Slots
         </h2>
@@ -127,7 +127,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
   }
 
   return (
-    <div className="p-6 rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60">
+    <div className="p-6 rounded-xl calendar-container">
       <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
         Available Audition Slots
       </h2>
@@ -205,7 +205,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
           return (
             <div
               key={slot.slot_id}
-              className="p-4 rounded-lg bg-white/70 backdrop-blur-sm border border-neu-border/40 flex items-center justify-between"
+              className="calendar-slot-card p-4 rounded-lg flex items-center justify-between"
             >
               <div className="flex-1">
                 <div className="text-neu-text-primary font-medium">

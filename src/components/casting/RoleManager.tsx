@@ -2,22 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { getShowRoles } from '@/lib/supabase/roles';
-import type { Role, RoleType, RoleGender } from '@/lib/supabase/types';
+import { getAuditionRoles } from '@/lib/supabase/auditionRoles';
+import type { Role, AuditionRole, RoleType, RoleGender } from '@/lib/supabase/types';
 import FormInput from '@/components/ui/forms/FormInput';
 import FormSelect from '@/components/ui/forms/FormSelect';
 import FormTextarea from '@/components/ui/forms/FormTextarea';
 import Alert from '@/components/ui/feedback/Alert';
 import WizardNavigation from '@/components/ui/navigation/WizardNavigation';
 
+interface RoleOperation {
+  type: 'create' | 'update' | 'delete';
+  role?: any;
+  roleId?: string;
+}
+
 interface RoleManagerProps {
   showId: string;
+  auditionId?: string | null; // If provided, work with audition roles
   roles: any[];
-  onUpdate: (roles: any[]) => void;
+  onUpdate: (operations: RoleOperation[]) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
 interface RoleFormData {
+  role_id?: string; // Optional for new roles, required for existing roles
   role_name: string;
   description: string | null;
   role_type: RoleType | null;
@@ -27,24 +36,69 @@ interface RoleFormData {
 
 export default function RoleManager({
   showId,
+  auditionId,
   roles,
   onUpdate,
   onNext,
   onBack,
 }: RoleManagerProps) {
   const [localRoles, setLocalRoles] = useState<RoleFormData[]>(roles.length > 0 ? roles : []);
+  const [existingRoles, setExistingRoles] = useState<(Role | AuditionRole)[]>([]);
+  const [roleOperations, setRoleOperations] = useState<RoleOperation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [useAuditionRoles] = useState(!!auditionId);
 
   useEffect(() => {
     loadExistingRoles();
-  }, [showId]);
+  }, [showId, auditionId]);
 
   const loadExistingRoles = async () => {
     setLoading(true);
-    const existingRoles = await getShowRoles(showId);
-    if (existingRoles.length > 0 && localRoles.length === 0) {
-      setLocalRoles(existingRoles);
+    
+    // If we have an audition ID, load audition-specific roles
+    // Otherwise, load show roles as templates
+    let existingRolesData: (Role | AuditionRole)[] = [];
+    
+    if (auditionId) {
+      existingRolesData = await getAuditionRoles(auditionId);
+    } else {
+      existingRolesData = await getShowRoles(showId);
+    }
+
+    if (existingRolesData.length > 0) {
+      setExistingRoles(existingRolesData);
+      // Use existing roles from database
+      const existingAsFormData = existingRolesData.map(role => {
+        // Handle both Role and AuditionRole types
+        const roleId = 'audition_role_id' in role ? role.audition_role_id : role.role_id;
+        return {
+          role_id: roleId,
+          role_name: role.role_name,
+          description: role.description,
+          role_type: role.role_type,
+          gender: role.gender,
+          needs_understudy: role.needs_understudy,
+        };
+      });
+      setLocalRoles(existingAsFormData);
+    } else if (roles.length > 0) {
+      // No existing roles in database, use roles from parent (if any)
+      setLocalRoles(roles);
+    } else if (!auditionId) {
+      // For new auditions without existing roles, load show roles as templates
+      const showRolesData = await getShowRoles(showId);
+      if (showRolesData.length > 0) {
+        const templatesAsFormData = showRolesData.map(role => ({
+          // Don't include role_id so they're treated as new roles
+          role_name: role.role_name,
+          description: role.description,
+          role_type: role.role_type,
+          gender: role.gender,
+          needs_understudy: role.needs_understudy,
+        }));
+        setLocalRoles(templatesAsFormData);
+      }
     }
     setLoading(false);
   };
@@ -76,13 +130,86 @@ export default function RoleManager({
   const handleNext = () => {
     // Validate at least one role with a name
     const validRoles = localRoles.filter((role) => role.role_name.trim());
-    
+
     if (validRoles.length === 0) {
       setError('Please add at least one role with a name');
       return;
     }
 
-    onUpdate(validRoles);
+    // Generate role operations by comparing current state with existing roles
+    const operations: RoleOperation[] = [];
+
+    // Create a map of existing roles by ID for quick lookup
+    const existingRolesMap = new Map(existingRoles.map(role => {
+      const roleId = 'audition_role_id' in role ? role.audition_role_id : role.role_id;
+      return [roleId, role];
+    }));
+
+    // Create a map of current roles by ID for quick lookup
+    const currentRolesMap = new Map(validRoles.map(role => [role.role_id, role]));
+
+    // Find deleted roles (existing roles not in current list)
+    existingRoles.forEach(existingRole => {
+      const roleId = 'audition_role_id' in existingRole ? existingRole.audition_role_id : existingRole.role_id;
+      if (!currentRolesMap.has(roleId)) {
+        operations.push({
+          type: 'delete',
+          roleId: roleId,
+        });
+      }
+    });
+
+    // Find new and updated roles
+    validRoles.forEach((role) => {
+      if (role.role_id) {
+        // Existing role - check if it has been modified
+        const existingRole = existingRolesMap.get(role.role_id);
+        if (existingRole) {
+          const hasChanges =
+            existingRole.description !== role.description ||
+            existingRole.role_type !== role.role_type ||
+            existingRole.gender !== role.gender ||
+            existingRole.needs_understudy !== role.needs_understudy ||
+            existingRole.role_name !== role.role_name;
+
+          if (hasChanges) {
+            operations.push({
+              type: 'update',
+              roleId: role.role_id,
+              role: {
+                role_name: role.role_name,
+                description: role.description,
+                role_type: role.role_type,
+                gender: role.gender,
+                needs_understudy: role.needs_understudy,
+              },
+            });
+          }
+        }
+      } else {
+        // New role - include audition_id if working with audition roles
+        const roleData: any = {
+          role_name: role.role_name,
+          description: role.description,
+          role_type: role.role_type,
+          gender: role.gender,
+          needs_understudy: role.needs_understudy,
+        };
+        
+        if (useAuditionRoles && auditionId) {
+          roleData.audition_id = auditionId;
+        } else {
+          roleData.show_id = showId;
+        }
+        
+        operations.push({
+          type: 'create',
+          role: roleData,
+        });
+      }
+    });
+
+    onUpdate(operations);
     onNext();
   };
 
@@ -100,7 +227,9 @@ export default function RoleManager({
           Manage Roles
         </h2>
         <p className="text-neu-text-primary/70 mb-6">
-          Add the roles you need to cast for this show. At least one role is required.
+          {useAuditionRoles 
+            ? 'Customize the roles for your audition. These changes won\'t affect the base show. At least one role is required.'
+            : 'Add the roles you need to cast for this show. At least one role is required.'}
         </p>
       </div>
 

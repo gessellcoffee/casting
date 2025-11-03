@@ -19,6 +19,10 @@ import {
   getAcceptedCastCount,
   isRoleFilled,
   bulkUpdateCastMemberStatus,
+  getEnsembleMembers,
+  getEnsembleMemberCount,
+  isUserInEnsemble,
+  getUserRolesInAudition,
 } from '../castMembers';
 import type { CastMember } from '../types';
 
@@ -36,6 +40,7 @@ describe('Cast Members Functions', () => {
     user_id: 'user-123',
     role_id: 'role-123',
     status: 'Offered',
+    is_understudy: false,
   };
 
   beforeEach(() => {
@@ -509,6 +514,151 @@ describe('Cast Members Functions', () => {
       expect(mockUpdate).toHaveBeenCalledWith({ status: 'Accepted' });
       expect(mockIn).toHaveBeenCalledWith('cast_member_id', castMemberIds);
       expect(result.error).toBeNull();
+    });
+  });
+
+  describe('getEnsembleMembers', () => {
+    it('should fetch ensemble members for an audition', async () => {
+      const mockEnsembleMember = { ...mockCastMember, role_id: null };
+      const mockMembers = [mockEnsembleMember];
+      const mockSelect = jest.fn().mockReturnThis();
+      const mockEq = jest.fn().mockReturnThis();
+      const mockIs = jest.fn().mockResolvedValue({ data: mockMembers, error: null });
+
+      (supabase.from as any).mockReturnValue({
+        select: mockSelect,
+      });
+      mockSelect.mockReturnValue({
+        eq: mockEq,
+      });
+      mockEq.mockReturnValue({
+        is: mockIs,
+      });
+
+      const result = await getEnsembleMembers('audition-123');
+
+      expect(supabase.from).toHaveBeenCalledWith('cast_members');
+      expect(mockEq).toHaveBeenCalledWith('audition_id', 'audition-123');
+      expect(mockIs).toHaveBeenCalledWith('role_id', null);
+      expect(result).toEqual(mockMembers);
+    });
+  });
+
+  describe('getEnsembleMemberCount', () => {
+    it('should return the count of ensemble members', async () => {
+      const mockSelect = jest.fn().mockReturnThis();
+      const mockEq = jest.fn().mockReturnThis();
+      const mockIs = jest.fn().mockResolvedValue({ count: 8, error: null });
+
+      (supabase.from as any).mockReturnValue({
+        select: mockSelect,
+      });
+      mockSelect.mockReturnValue({
+        eq: mockEq,
+      });
+      mockEq.mockReturnValue({
+        is: mockIs,
+      });
+
+      const result = await getEnsembleMemberCount('audition-123');
+
+      expect(mockSelect).toHaveBeenCalledWith('*', { count: 'exact', head: true });
+      expect(mockEq).toHaveBeenCalledWith('audition_id', 'audition-123');
+      expect(mockIs).toHaveBeenCalledWith('role_id', null);
+      expect(result).toBe(8);
+    });
+  });
+
+  describe('isUserInEnsemble', () => {
+    it('should return true when user is in ensemble', async () => {
+      const mockSelect = jest.fn().mockReturnThis();
+      const mockEq1 = jest.fn().mockReturnThis();
+      const mockEq2 = jest.fn().mockReturnThis();
+      const mockIs = jest.fn().mockReturnThis();
+      const mockLimit = jest.fn().mockResolvedValue({ data: [{ cast_member_id: 'cast-123' }], error: null });
+
+      (supabase.from as any).mockReturnValue({
+        select: mockSelect,
+      });
+      mockSelect.mockReturnValue({
+        eq: mockEq1,
+      });
+      mockEq1.mockReturnValue({
+        eq: mockEq2,
+      });
+      mockEq2.mockReturnValue({
+        is: mockIs,
+      });
+      mockIs.mockReturnValue({
+        limit: mockLimit,
+      });
+
+      const result = await isUserInEnsemble('user-123', 'audition-123');
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when user is not in ensemble', async () => {
+      const mockSelect = jest.fn().mockReturnThis();
+      const mockEq1 = jest.fn().mockReturnThis();
+      const mockEq2 = jest.fn().mockReturnThis();
+      const mockIs = jest.fn().mockReturnThis();
+      const mockLimit = jest.fn().mockResolvedValue({ data: [], error: null });
+
+      (supabase.from as any).mockReturnValue({
+        select: mockSelect,
+      });
+      mockSelect.mockReturnValue({
+        eq: mockEq1,
+      });
+      mockEq1.mockReturnValue({
+        eq: mockEq2,
+      });
+      mockEq2.mockReturnValue({
+        is: mockIs,
+      });
+      mockIs.mockReturnValue({
+        limit: mockLimit,
+      });
+
+      const result = await isUserInEnsemble('user-123', 'audition-123');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('getUserRolesInAudition', () => {
+    it('should fetch all roles a user is cast in for an audition', async () => {
+      const mockRoles = [
+        {
+          ...mockCastMember,
+          roles: { role_id: 'role-123', role_name: 'Lead', description: 'Main character', role_type: 'Principal' },
+        },
+      ];
+      const mockSelect = jest.fn().mockReturnThis();
+      const mockEq1 = jest.fn().mockReturnThis();
+      const mockEq2 = jest.fn().mockReturnThis();
+      const mockNot = jest.fn().mockResolvedValue({ data: mockRoles, error: null });
+
+      (supabase.from as any).mockReturnValue({
+        select: mockSelect,
+      });
+      mockSelect.mockReturnValue({
+        eq: mockEq1,
+      });
+      mockEq1.mockReturnValue({
+        eq: mockEq2,
+      });
+      mockEq2.mockReturnValue({
+        not: mockNot,
+      });
+
+      const result = await getUserRolesInAudition('user-123', 'audition-123');
+
+      expect(mockEq1).toHaveBeenCalledWith('user_id', 'user-123');
+      expect(mockEq2).toHaveBeenCalledWith('audition_id', 'audition-123');
+      expect(mockNot).toHaveBeenCalledWith('role_id', 'is', null);
+      expect(result).toEqual(mockRoles);
     });
   });
 });

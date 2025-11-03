@@ -8,7 +8,7 @@ import { deleteAudition } from '@/lib/supabase/auditions';
 import StarryContainer from '@/components/StarryContainer';
 import Link from 'next/link';
 import Button from '@/components/Button';
-import { MdEdit, MdDelete, MdVisibility, MdAssignment } from 'react-icons/md';
+import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd } from 'react-icons/md';
 
 export default function CastDashboard() {
   const router = useRouter();
@@ -73,9 +73,9 @@ export default function CastDashboard() {
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-neu-text-primary mb-2">
+              <h1 className="text-3xl sm:text-4xl font-bold text-neu-text-primary mb-2">
                 My Auditions
               </h1>
               <p className="text-neu-text-primary/70">
@@ -89,7 +89,7 @@ export default function CastDashboard() {
 
           {/* Auditions List */}
           {auditions.length === 0 ? (
-            <div className="text-center py-12 p-8 rounded-xl bg-white/90 backdrop-blur-md border border-neu-border/60">
+            <div className="text-center py-12 p-8 rounded-xl neu-card-raised">
               <div className="text-neu-text-primary/70 mb-4">
                 You haven't posted any auditions yet
               </div>
@@ -102,7 +102,7 @@ export default function CastDashboard() {
               {auditions.map((audition) => (
                 <div
                   key={audition.audition_id}
-                  className="p-6 rounded-xl bg-white/90 backdrop-blur-md border-white border-neu-border/60 shadow-neu-raised hover:shadow-neu-raised-lg transition-all duration-300"
+                  className="p-6 rounded-xl neu-card-raised hover:shadow-neu-raised-lg transition-all duration-300"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div className="flex-1">
@@ -138,7 +138,7 @@ export default function CastDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-row gap-2 lg:flex-shrink-0">
+                    <div className="flex flex-row flex-wrap gap-2 lg:flex-shrink-0">
                       <Link href={`/cast/edit/${audition.audition_id}`}>
                         <button className="neu-icon-btn" title="Edit Audition">
                           <MdEdit className="w-5 h-5" />
@@ -147,6 +147,11 @@ export default function CastDashboard() {
                       <Link href={`/auditions/${audition.audition_id}/callbacks`}>
                         <button className="neu-icon-btn" title="Manage Callbacks">
                           <MdAssignment className="w-5 h-5" />
+                        </button>
+                      </Link>
+                      <Link href={`/auditions/${audition.audition_id}/cast-show`}>
+                        <button className="neu-icon-btn" title="Cast Show">
+                          <MdOutlinePersonAdd className="w-5 h-5" />
                         </button>
                       </Link>
                       <Link href={`/auditions/${audition.audition_id}`}>
