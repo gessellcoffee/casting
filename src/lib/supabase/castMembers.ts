@@ -64,10 +64,19 @@ export async function getCastMemberWithDetails(castMemberId: string): Promise<an
 /**
  * Get all cast members for a specific audition
  */
-export async function getAuditionCastMembers(auditionId: string): Promise<CastMember[]> {
+export async function getAuditionCastMembers(auditionId: string): Promise<any[]> {
   const { data, error } = await supabase
     .from('cast_members')
-    .select('*')
+    .select(`
+      *,
+      profiles:user_id (
+        id,
+        first_name,
+        last_name,
+        username,
+        profile_photo_url
+      )
+    `)
     .eq('audition_id', auditionId);
 
   if (error) {
@@ -75,7 +84,14 @@ export async function getAuditionCastMembers(auditionId: string): Promise<CastMe
     return [];
   }
 
-  return data || [];
+  // Map the data to include full_name for easier access
+  return (data || []).map(member => ({
+    ...member,
+    full_name: member.profiles?.first_name && member.profiles.last_name
+      ? `${member.profiles.first_name} ${member.profiles.last_name}`
+      : member.profiles?.username || 'Unknown User',
+    profile_photo_url: member.profiles?.profile_photo_url || null,
+  }));
 }
 
 /**
@@ -110,12 +126,23 @@ export async function getUserCastMemberships(userId: string): Promise<any[]> {
           show_id,
           title,
           author
+        ),
+        companies (
+          company_id,
+          name
         )
       ),
       roles (
         role_id,
         role_name,
         description
+      ),
+      audition_roles:audition_role_id (
+        audition_role_id,
+        role_name,
+        description,
+        role_type,
+        gender
       )
     `)
     .eq('user_id', userId);
@@ -125,7 +152,13 @@ export async function getUserCastMemberships(userId: string): Promise<any[]> {
     return [];
   }
 
-  return data || [];
+  // Transform data to include proper role information
+  return (data || []).map(member => ({
+    ...member,
+    role_info: member.audition_roles || member.roles,
+    show_info: member.auditions?.shows,
+    company_info: member.auditions?.companies,
+  }));
 }
 
 /**
@@ -183,6 +216,8 @@ export async function updateCastMember(
 
   if (error) {
     console.error('Error updating cast member:', error);
+    console.error('Cast member ID:', castMemberId);
+    console.error('Updates:', updates);
     return { data: null, error };
   }
 

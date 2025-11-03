@@ -70,19 +70,37 @@ export async function getAuditionById(auditionId: string) {
     return { data: null, error: { message: 'Audition not found' } };
   }
 
-  // Fetch roles separately using the show_id (no direct FK between auditions and roles)
-  let roles: Role[] = [];
-  if (data.show_id) {
-    const { data: rolesData, error: rolesError } = await supabase
-      .from('roles')
-      .select('*')
-      .eq('show_id', data.show_id);
-    
-    if (rolesError) {
-      console.error('Error fetching roles:', rolesError);
-    }
-    
-    roles = rolesData || [];
+  // Fetch audition roles (which include audition_role_id) instead of base roles
+  let roles: any[] = [];
+  const { data: auditionRolesData, error: rolesError } = await supabase
+    .from('audition_roles')
+    .select(`
+      *,
+      roles (
+        role_name,
+        description,
+        role_type,
+        gender,
+        needs_understudy,
+        show_id
+      )
+    `)
+    .eq('audition_id', auditionId);
+  
+  if (rolesError) {
+    console.error('Error fetching audition roles:', rolesError);
+  } else {
+    // Flatten the structure for easier access
+    roles = (auditionRolesData || []).map(ar => ({
+      role_id: ar.role_id,
+      audition_role_id: ar.audition_role_id,
+      role_name: ar.roles?.role_name || 'Unknown Role',
+      description: ar.roles?.description,
+      role_type: ar.roles?.role_type,
+      gender: ar.roles?.gender,
+      needs_understudy: ar.needs_understudy,
+      show_id: ar.roles?.show_id,
+    }));
   }
 
   // Transform data to match expected structure

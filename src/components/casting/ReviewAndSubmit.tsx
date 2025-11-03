@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createAudition } from '@/lib/supabase/auditions';
 import { createAuditionRole, updateAuditionRole, deleteAuditionRole } from '@/lib/supabase/auditionRoles';
 import { createAuditionSlots } from '@/lib/supabase/auditionSlots';
+import { addProductionTeamMember, inviteProductionTeamMember } from '@/lib/supabase/productionTeamMembers';
 
 interface ReviewAndSubmitProps {
   castingData: any & {
@@ -131,6 +132,37 @@ export default function ReviewAndSubmit({
 
       if (slotsError) {
         throw new Error(`Failed to create audition slots - ${slotsError.message}`);
+      }
+
+      // Step 4: Create production team members
+      if (castingData.auditionDetails.productionTeam && castingData.auditionDetails.productionTeam.length > 0) {
+        for (const member of castingData.auditionDetails.productionTeam) {
+          if (member.userId) {
+            // Add existing user to production team
+            const { error: teamError } = await addProductionTeamMember(
+              audition.audition_id,
+              member.userId,
+              member.roleTitle,
+              userId
+            );
+            if (teamError) {
+              console.error('Failed to add production team member:', teamError);
+              // Don't throw - production team is optional
+            }
+          } else if (member.email) {
+            // Invite user by email
+            const { error: inviteError } = await inviteProductionTeamMember(
+              audition.audition_id,
+              member.email,
+              member.roleTitle,
+              userId
+            );
+            if (inviteError) {
+              console.error('Failed to invite production team member:', inviteError);
+              // Don't throw - production team is optional
+            }
+          }
+        }
       }
 
       // Success!

@@ -420,7 +420,9 @@ export default function AuditioneeSelector({
       {selectedUserId && (
         <UserProfileModal
           userId={selectedUserId}
+          auditionId={auditionId}
           onClose={() => setSelectedUserId(null)}
+          onActionComplete={onInvitationsSent}
         />
       )}
     </div>

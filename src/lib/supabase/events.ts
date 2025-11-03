@@ -68,15 +68,8 @@ export async function getEvents(startDate: Date, endDate: Date, userId: string):
   const nonRecurringEvents = (nonRecurringData || []).map(mapRow);
   const recurringEvents = (recurringData || []).map(mapRow);
 
-  console.log('[getEvents] Date range:', { startDate, endDate });
-  console.log('[getEvents] Non-recurring events:', nonRecurringEvents.length);
-  console.log('[getEvents] Recurring events (base):', recurringEvents.length);
-
   // Expand recurring events into instances within the date range
   const expandedRecurringEvents = expandRecurringEvents(recurringEvents, startDate, endDate);
-
-  console.log('[getEvents] Expanded recurring events:', expandedRecurringEvents.length);
-  console.log('[getEvents] Sample expanded events:', expandedRecurringEvents.slice(0, 3));
 
   // Combine and sort all events
   const allEvents = [...nonRecurringEvents, ...expandedRecurringEvents];

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { getUser } from '@/lib/supabase/auth';
+import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
 import CastShow from '@/components/casting/CastShow';
 import { Alert } from '@/components/ui/feedback';
@@ -73,8 +74,11 @@ export default function CastShowPage() {
         throw new Error('Audition not found');
       }
 
-      // Check if user owns this audition
-      if (auditionData.user_id !== currentUser.id) {
+      // Check if user owns this audition or is a production member
+      const isOwner = auditionData.user_id === currentUser.id;
+      const isMember = await isUserProductionMember(params.id as string, currentUser.id);
+      
+      if (!isOwner && !isMember) {
         throw new Error('You do not have permission to manage casting for this audition');
       }
 
@@ -83,8 +87,6 @@ export default function CastShowPage() {
         if (JSON.stringify(prevAudition) === JSON.stringify(auditionData)) {
           return prevAudition;
         }
-        console.log('CastShowPage - auditionData:', auditionData);
-        console.log('CastShowPage - show_id:', auditionData.show_id);
         return {
           ...auditionData,
           show: {

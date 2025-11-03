@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { getUser } from '@/lib/supabase/auth';
+import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
 import CallbackManagement from '@/components/callbacks/CallbackManagement';
+import CastingOffersPanel from '@/components/casting/CastingOffersPanel';
 
 export default function CallbackManagementPage() {
   const params = useParams();
@@ -14,6 +16,7 @@ export default function CallbackManagementPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'callbacks' | 'offers'>('callbacks');
 
   useEffect(() => {
     loadData();
@@ -43,8 +46,11 @@ export default function CallbackManagementPage() {
         throw new Error('Audition not found');
       }
 
-      // Check if user owns this audition
-      if (auditionData.user_id !== currentUser.id) {
+      // Check if user owns this audition or is a production member
+      const isOwner = auditionData.user_id === currentUser.id;
+      const isMember = await isUserProductionMember(params.id as string, currentUser.id);
+      
+      if (!isOwner && !isMember) {
         setError('You do not have permission to manage callbacks for this audition');
         return;
       }
@@ -108,19 +114,54 @@ export default function CallbackManagementPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-neu-text-primary mb-2">
-              Callback Management
+              Casting Management
             </h1>
             <p className="text-neu-text-primary/70">
               {audition.shows?.title || 'Untitled Show'}
             </p>
           </div>
 
-          {/* Callback Management Component */}
-          <CallbackManagement 
-            audition={audition} 
-            user={user}
-            onUpdate={loadData}
-          />
+          {/* Tabs */}
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setActiveTab('callbacks')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all border ${
+                activeTab === 'callbacks'
+                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark),inset_-4px_-4px_8px_var(--neu-shadow-light)] border-neu-accent-primary text-neu-accent-primary'
+                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
+              }`}
+              style={{ backgroundColor: 'var(--neu-surface)' }}
+            >
+              📋 Callbacks
+            </button>
+            <button
+              onClick={() => setActiveTab('offers')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all border ${
+                activeTab === 'offers'
+                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark),inset_-4px_-4px_8px_var(--neu-shadow-light)] border-neu-accent-primary text-neu-accent-primary'
+                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
+              }`}
+              style={{ backgroundColor: 'var(--neu-surface)' }}
+            >
+              🎭 Casting Offers
+            </button>
+          </div>
+
+          {/* Content */}
+          {activeTab === 'callbacks' && (
+            <CallbackManagement 
+              audition={audition} 
+              user={user}
+              onUpdate={loadData}
+            />
+          )}
+
+          {activeTab === 'offers' && (
+            <CastingOffersPanel
+              auditionId={audition.audition_id}
+              currentUserId={user.id}
+            />
+          )}
         </div>
       </div>
     </StarryContainer>

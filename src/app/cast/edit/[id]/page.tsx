@@ -49,7 +49,6 @@ export default function EditAuditionPage() {
 
   const loadAudition = async (userId: string) => {
     setLoading(true);
-    console.log('Loading audition:', params.id);
     
     const { data, error } = await getAuditionById(params.id as string);
     
@@ -59,8 +58,6 @@ export default function EditAuditionPage() {
       router.push('/cast');
       return;
     }
-
-    console.log('Loaded audition data:', data);
 
     // Check authorization
     if (data.user_id !== userId) {
@@ -87,9 +84,6 @@ export default function EditAuditionPage() {
       equityStatus: data.equity_status,
     };
     
-    console.log('Parsed audition details:', parsedDetails);
-    console.log('Loaded slots:', data.slots);
-    
     setAuditionDetails(parsedDetails);
     setSlots(data.slots || []);
     setLoading(false);
@@ -111,9 +105,6 @@ export default function EditAuditionPage() {
         equity_status: auditionDetails.equityStatus,
       };
 
-      console.log('Saving audition with updates:', updates);
-      console.log('Saving slots:', slotsToSave);
-
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);
 
       if (auditionError) {
@@ -121,18 +112,13 @@ export default function EditAuditionPage() {
         throw new Error('Failed to update audition details: ' + auditionError.message);
       }
 
-      console.log('Audition updated successfully:', updatedAudition);
-
       // Step 2: Update slots - delete all existing slots and recreate them
-      console.log('Deleting existing slots...');
       const { error: deleteError } = await deleteAuditionSlots(params.id as string);
 
       if (deleteError) {
         console.error('Delete slots error:', deleteError);
         throw new Error('Failed to delete existing slots: ' + deleteError.message);
       }
-
-      console.log('Slots deleted successfully');
 
       // Step 3: Create new slots if any exist
       if (slotsToSave.length > 0) {
@@ -144,21 +130,13 @@ export default function EditAuditionPage() {
           max_signups: slot.max_signups,
         }));
 
-        console.log('Creating new slots:', slotsData);
-
         const { data: createdSlots, error: slotsError } = await createAuditionSlots(slotsData);
 
         if (slotsError) {
           console.error('Create slots error:', slotsError);
           throw new Error('Failed to create new slots: ' + slotsError.message);
         }
-
-        console.log('Slots created successfully:', createdSlots);
-      } else {
-        console.log('No slots to create');
       }
-
-      console.log('All changes saved successfully!');
       
       // Success - redirect to dashboard
       router.push('/cast');
@@ -255,7 +233,6 @@ export default function EditAuditionPage() {
                   
                   // Clear slots if audition dates changed
                   if (datesChanged) {
-                    console.log('Audition dates changed - clearing existing slots');
                     setSlots([]);
                   }
                 }}

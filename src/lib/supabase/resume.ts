@@ -44,8 +44,6 @@ export async function getResumeEntry(resumeEntryId: string): Promise<UserResume 
 export async function createResumeEntry(
   resumeData: UserResumeInsert
 ): Promise<{ data: UserResume | null; error: any }> {
-  console.log('createResumeEntry called with data:', resumeData);
-  
   // Verify the authenticated user matches the userId being created
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -54,8 +52,6 @@ export async function createResumeEntry(
     return { data: null, error: authError || new Error('Not authenticated') };
   }
 
-  console.log('Authenticated user:', user.id);
-
   // Authorization check: user can only create their own resume entries
   if (user.id !== resumeData.user_id) {
     const unauthorizedError = new Error('Unauthorized: You can only create your own resume entries');
@@ -63,7 +59,6 @@ export async function createResumeEntry(
     return { data: null, error: unauthorizedError };
   }
 
-  console.log('About to insert into database...');
   const { data, error } = await supabase
     .from('user_resume')
     .insert(resumeData)
@@ -76,11 +71,8 @@ export async function createResumeEntry(
     return { data: null, error };
   }
 
-  console.log('Successfully created resume entry:', data);
-
   // If a company_id was provided, create an approval request
   if (data && resumeData.company_id) {
-    console.log('Creating approval request for company:', resumeData.company_id);
     const { error: approvalError } = await createApprovalRequest(
       data.resume_entry_id,
       resumeData.company_id,
@@ -141,7 +133,6 @@ export async function updateResumeEntry(
 
   // If company_id was updated and is different from before, create a new approval request
   if (data && updates.company_id && updates.company_id !== existingEntry.company_id) {
-    console.log('Company changed, creating new approval request');
     const { error: approvalError } = await createApprovalRequest(
       data.resume_entry_id,
       updates.company_id,

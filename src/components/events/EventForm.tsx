@@ -528,19 +528,14 @@ export default function EventForm({
 
                   <div className="mt-6 flex justify-end space-x-3">
                     <Button
-                      title="Cancel"
+                      text="Cancel"
                       type="button"
-                      className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-300 font-medium"
                       onClick={onClose}
-                    >
-                      Cancel
-                    </Button>
+                    />
                     <Button
+                      text={isEdit ? 'Update Event' : 'Create Event'}
                       type="submit"
-                      className="px-4 py-2 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium"
-                    >
-                      {isEdit ? 'Update Event' : 'Create Event'}
-                    </Button>
+                    />
                   </div>
                 </form>
               </Dialog.Panel>

@@ -149,7 +149,6 @@ export default function SkillsSection({ userId, isEditing }: SkillsSectionProps)
       for (const skillToAdd of skillsToAdd) {
         // Check for duplicates
         if (currentSkills.some(s => s.toLowerCase() === skillToAdd.toLowerCase())) {
-          console.log(`Skipping duplicate skill: ${skillToAdd}`);
           continue;
         }
 

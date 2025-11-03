@@ -14,8 +14,12 @@ export async function getUserAvailability(
   const startIso = startDate.toISOString();
   const endIso = endDate.toISOString();
 
-  console.log('[getUserAvailability] Fetching events for user:', userId);
-  console.log('[getUserAvailability] Date range:', { startDate, endDate, startIso, endIso });
+  // Debug: Check if user has ANY events at all
+  const { data: allUserEvents, error: allEventsError } = await (supabase as any)
+    .from('events')
+    .select('id, start_time, end_time, all_day')
+    .eq('user_id', userId)
+    .limit(5);
 
   // Fetch non-recurring events that overlap with the date range
   // An event overlaps if: event.start <= rangeEnd AND event.end >= rangeStart
@@ -33,8 +37,6 @@ export async function getUserAvailability(
     throw nonRecurringError;
   }
 
-  console.log('[getUserAvailability] Non-recurring events found:', nonRecurringData?.length || 0);
-
   // Fetch ALL recurring events for this user
   const { data: recurringData, error: recurringError } = await (supabase as any)
     .from('events')
@@ -47,8 +49,6 @@ export async function getUserAvailability(
     console.error('[getUserAvailability] Error fetching recurring events:', recurringError);
     throw recurringError;
   }
-
-  console.log('[getUserAvailability] Recurring events found:', recurringData?.length || 0);
 
   // Map events with hidden titles
   const mapEventWithoutTitle = (row: any): CalendarEvent => {
@@ -83,19 +83,11 @@ export async function getUserAvailability(
   const nonRecurringEvents = (nonRecurringData || []).map(mapEventWithoutTitle);
   const recurringEvents = (recurringData || []).map(mapEventWithoutTitle);
 
-  console.log('[getUserAvailability] Mapped non-recurring events:', nonRecurringEvents.length);
-  console.log('[getUserAvailability] Mapped recurring events:', recurringEvents.length);
-
   // Expand recurring events into instances within the date range
   const expandedRecurringEvents = expandRecurringEvents(recurringEvents, startDate, endDate);
 
-  console.log('[getUserAvailability] Expanded recurring events:', expandedRecurringEvents.length);
-
   // Combine and sort all events
   const allEvents = [...nonRecurringEvents, ...expandedRecurringEvents];
-  
-  console.log('[getUserAvailability] Total events returned:', allEvents.length);
-  console.log('[getUserAvailability] Sample events:', allEvents.slice(0, 3));
   
   return allEvents.sort((a, b) => {
     const aTime = new Date(a.start).getTime();

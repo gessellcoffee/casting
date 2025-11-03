@@ -15,6 +15,15 @@ import ReviewAndSubmit from '@/components/casting/ReviewAndSubmit';
 
 type CastingStep = 'company' | 'show' | 'roles' | 'details' | 'slots' | 'review';
 
+interface ProductionTeamMember {
+  userId?: string;
+  email?: string;
+  roleTitle: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 interface CastingData {
   companyId: string | null;
   isCompanyAudition: boolean;
@@ -31,6 +40,7 @@ interface CastingData {
     performanceLocation: string;
     ensembleSize: number | null;
     equityStatus: 'Equity' | 'Non-Equity' | 'Hybrid' | null;
+    productionTeam?: ProductionTeamMember[];
   };
   slots: any[];
 }
@@ -56,6 +66,7 @@ export default function NewCastingPage() {
       performanceLocation: '',
       ensembleSize: null,
       equityStatus: null,
+      productionTeam: [],
     },
     slots: [],
   });

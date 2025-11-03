@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { MdClose, MdCalendarToday, MdAccessTime, MdLocationOn, MdTheaters } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import { respondToCallbackInvitation } from '@/lib/supabase/callbackInvitations';
@@ -56,8 +57,32 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#9b87f5]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <Transition appear show={true} as={Fragment}>
+      <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#9b87f5]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-[#9b87f5]/20 p-4 sm:p-6 flex items-start justify-between">
           <div className="flex-1">
@@ -187,63 +212,11 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Change Response Confirmation Modal */}
-      {showChangeModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-neu-surface border border-neu-border rounded-xl shadow-2xl max-w-md w-full p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-bold text-neu-text-primary mb-2">
-              Decline Callback?
-            </h3>
-            <p className="text-neu-text-primary/70 mb-4 text-sm">
-              Are you sure you want to change your response to declined? The casting director will be notified.
-            </p>
-
-            {error && (
-              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
-                {error}
-              </div>
-            )}
-
-            {/* Comment Field */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-neu-text-primary mb-2">
-                Reason for declining (optional)
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="e.g., I have a scheduling conflict. Thank you for considering me."
-                rows={3}
-                className="neu-form-input resize-none"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => {
-                  setShowChangeModal(false);
-                  setComment('');
-                  setError(null);
-                }}
-                disabled={isUpdating}
-                className="n-btn-secondary flex-1"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDecline}
-                disabled={isUpdating}
-                className="n-button-primary flex-1"
-              >
-                {isUpdating ? 'Declining...' : 'Confirm Decline'}
-              </button>
-            </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
         </div>
-      )}
-    </div>
+      </Dialog>
+    </Transition>
   );
 }

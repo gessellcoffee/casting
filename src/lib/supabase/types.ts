@@ -211,12 +211,70 @@ export type Database = {
           }
         ];
       };
+      company_members: {
+        Row: {
+          member_id: string;
+          company_id: string;
+          user_id: string;
+          role: 'owner' | 'moderator' | 'admin' | 'member' | 'viewer';
+          invited_by: string | null;
+          invited_at: string;
+          joined_at: string;
+          status: 'active' | 'inactive' | 'pending';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          member_id?: string;
+          company_id: string;
+          user_id: string;
+          role?: 'owner' | 'moderator' | 'admin' | 'member' | 'viewer';
+          invited_by?: string | null;
+          invited_at?: string;
+          joined_at?: string;
+          status?: 'active' | 'inactive' | 'pending';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          member_id?: string;
+          company_id?: string;
+          user_id?: string;
+          role?: 'owner' | 'moderator' | 'admin' | 'member' | 'viewer';
+          invited_by?: string | null;
+          invited_at?: string;
+          joined_at?: string;
+          status?: 'active' | 'inactive' | 'pending';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'company_members_company_id_fkey';
+            columns: ['company_id'];
+            referencedRelation: 'companies';
+            referencedColumns: ['company_id'];
+          },
+          {
+            foreignKeyName: 'company_members_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'company_members_invited_by_fkey';
+            columns: ['invited_by'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       notifications: {
         Row: {
           notification_id: string;
           recipient_id: string;
           sender_id: string | null;
-          type: 'company_approval' | 'user_affiliation' | 'casting_decision' | 'general';
+          type: 'company_approval' | 'user_affiliation' | 'casting_decision' | 'casting_offer' | 'general';
           title: string;
           message: string;
           action_url: string | null;
@@ -232,7 +290,7 @@ export type Database = {
           notification_id?: string;
           recipient_id: string;
           sender_id?: string | null;
-          type: 'company_approval' | 'user_affiliation' | 'casting_decision' | 'general';
+          type: 'company_approval' | 'user_affiliation' | 'casting_decision' | 'casting_offer' | 'general';
           title: string;
           message: string;
           action_url?: string | null;
@@ -248,7 +306,7 @@ export type Database = {
           notification_id?: string;
           recipient_id?: string;
           sender_id?: string | null;
-          type?: 'company_approval' | 'user_affiliation' | 'casting_decision' | 'general';
+          type?: 'company_approval' | 'user_affiliation' | 'casting_decision' | 'casting_offer' | 'general';
           title?: string;
           message?: string;
           action_url?: string | null;
@@ -716,6 +774,149 @@ export type Database = {
           }
         ];
       };
+      production_team_members: {
+        Row: {
+          production_team_member_id: string;
+          audition_id: string;
+          user_id: string | null;
+          role_title: string;
+          invited_email: string | null;
+          status: 'pending' | 'active' | 'declined';
+          invited_by: string | null;
+          invited_at: string;
+          joined_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          production_team_member_id?: string;
+          audition_id: string;
+          user_id?: string | null;
+          role_title: string;
+          invited_email?: string | null;
+          status?: 'pending' | 'active' | 'declined';
+          invited_by?: string | null;
+          invited_at?: string;
+          joined_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          production_team_member_id?: string;
+          audition_id?: string;
+          user_id?: string | null;
+          role_title?: string;
+          invited_email?: string | null;
+          status?: 'pending' | 'active' | 'declined';
+          invited_by?: string | null;
+          invited_at?: string;
+          joined_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'production_team_members_audition_id_fkey';
+            columns: ['audition_id'];
+            referencedRelation: 'auditions';
+            referencedColumns: ['audition_id'];
+          },
+          {
+            foreignKeyName: 'production_team_members_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'production_team_members_invited_by_fkey';
+            columns: ['invited_by'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      casting_offers: {
+        Row: {
+          offer_id: string;
+          cast_member_id: string;
+          audition_id: string;
+          user_id: string;
+          role_id: string | null;
+          sent_by: string;
+          offer_message: string | null;
+          offer_notes: string | null;
+          sent_at: string;
+          responded_at: string | null;
+          email_sent: boolean;
+          email_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          offer_id?: string;
+          cast_member_id: string;
+          audition_id: string;
+          user_id: string;
+          role_id?: string | null;
+          sent_by: string;
+          offer_message?: string | null;
+          offer_notes?: string | null;
+          sent_at?: string;
+          responded_at?: string | null;
+          email_sent?: boolean;
+          email_sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          offer_id?: string;
+          cast_member_id?: string;
+          audition_id?: string;
+          user_id?: string;
+          role_id?: string | null;
+          sent_by?: string;
+          offer_message?: string | null;
+          offer_notes?: string | null;
+          sent_at?: string;
+          responded_at?: string | null;
+          email_sent?: boolean;
+          email_sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'casting_offers_cast_member_id_fkey';
+            columns: ['cast_member_id'];
+            referencedRelation: 'cast_members';
+            referencedColumns: ['cast_member_id'];
+          },
+          {
+            foreignKeyName: 'casting_offers_audition_id_fkey';
+            columns: ['audition_id'];
+            referencedRelation: 'auditions';
+            referencedColumns: ['audition_id'];
+          },
+          {
+            foreignKeyName: 'casting_offers_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'casting_offers_role_id_fkey';
+            columns: ['role_id'];
+            referencedRelation: 'roles';
+            referencedColumns: ['role_id'];
+          },
+          {
+            foreignKeyName: 'casting_offers_sent_by_fkey';
+            columns: ['sent_by'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       // Add more tables as needed
     };
     Views: {
@@ -760,7 +961,7 @@ export type CompanyApprovalRequestUpdate = Database['public']['Tables']['company
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update'];
-export type NotificationType = 'company_approval' | 'user_affiliation' | 'casting_decision' | 'general';
+export type NotificationType = 'company_approval' | 'user_affiliation' | 'casting_decision' | 'casting_offer' | 'general';
 
 // Show types for easier use
 export type Show = Database['public']['Tables']['shows']['Row'];
@@ -842,6 +1043,24 @@ export type UserSignupsWithDetails = AuditionSignup & {
   } | null;
 };
 
+// Company Member types for easier use
+export type CompanyMember = Database['public']['Tables']['company_members']['Row'];
+export type CompanyMemberInsert = Database['public']['Tables']['company_members']['Insert'];
+export type CompanyMemberUpdate = Database['public']['Tables']['company_members']['Update'];
+export type CompanyMemberRole = 'owner' | 'moderator' | 'admin' | 'member' | 'viewer';
+export type CompanyMemberStatus = 'active' | 'inactive' | 'pending';
+
+// Company Member with profile details (for joins)
+export type CompanyMemberWithProfile = CompanyMember & {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    username: string;
+    profile_photo_url: string | null;
+  } | null;
+};
+
 // Audition Role types for easier use
 export type AuditionRole = Database['public']['Tables']['audition_roles']['Row'];
 export type AuditionRoleInsert = Database['public']['Tables']['audition_roles']['Insert'];
@@ -863,6 +1082,57 @@ export type CallbackInvitation = Database['public']['Tables']['callback_invitati
 export type CallbackInvitationInsert = Database['public']['Tables']['callback_invitations']['Insert'];
 export type CallbackInvitationUpdate = Database['public']['Tables']['callback_invitations']['Update'];
 export type CallbackInvitationStatus = 'pending' | 'accepted' | 'rejected';
+
+// Production Team Member types for easier use
+export type ProductionTeamMember = Database['public']['Tables']['production_team_members']['Row'];
+export type ProductionTeamMemberInsert = Database['public']['Tables']['production_team_members']['Insert'];
+export type ProductionTeamMemberUpdate = Database['public']['Tables']['production_team_members']['Update'];
+export type ProductionTeamMemberStatus = 'pending' | 'active' | 'declined';
+
+// Production Team Member with profile details (for joins)
+export type ProductionTeamMemberWithProfile = ProductionTeamMember & {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    username: string;
+    profile_photo_url: string | null;
+  } | null;
+};
+
+// Casting Offer types for easier use
+export type CastingOffer = Database['public']['Tables']['casting_offers']['Row'];
+export type CastingOfferInsert = Database['public']['Tables']['casting_offers']['Insert'];
+export type CastingOfferUpdate = Database['public']['Tables']['casting_offers']['Update'];
+
+// Casting Offer with related data (for joins)
+export type CastingOfferWithDetails = CastingOffer & {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    username: string;
+    profile_photo_url: string | null;
+  } | null;
+  roles: {
+    role_id: string;
+    role_name: string;
+    description: string | null;
+  } | null;
+  auditions: {
+    audition_id: string;
+    shows: {
+      show_id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  } | null;
+  cast_members: {
+    cast_member_id: string;
+    status: CastStatus | null;
+    is_understudy: boolean;
+  } | null;
+};
 
 // Auth-related types
 export interface AuthError {

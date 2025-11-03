@@ -10,6 +10,7 @@ import { createCompany, getUserCompanies, updateCompany, deleteCompany } from '@
 import type { Company } from '@/lib/supabase/types';
 import Button from '@/components/Button';
 import AddressInput from '@/components/ui/AddressInput';
+import CompanyMembersModal from '@/components/company/CompanyMembersModal';
 
 export default function CompanyPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function CompanyPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedCompanyForMembers, setSelectedCompanyForMembers] = useState<Company | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -377,6 +379,10 @@ export default function CompanyPage() {
                             </div>
                             <div className="nav-buttons">
                               <Button
+                                onClick={() => setSelectedCompanyForMembers(company)}
+                                text="Manage Members"
+                              />
+                              <Button
                                 onClick={() => handleEdit(company)}
                                 text="Edit"
                               />
@@ -444,6 +450,16 @@ export default function CompanyPage() {
           </div>
         </StarryContainer>
       </div>
+
+      {/* Company Members Modal */}
+      {selectedCompanyForMembers && user?.id && (
+        <CompanyMembersModal
+          companyId={selectedCompanyForMembers.company_id}
+          companyName={selectedCompanyForMembers.name}
+          currentUserId={user.id}
+          onClose={() => setSelectedCompanyForMembers(null)}
+        />
+      )}
     </ProtectedRoute>
   );
 }

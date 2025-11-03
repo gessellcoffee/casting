@@ -1,5 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { getProductionTeamMembers } from '@/lib/supabase/productionTeamMembers';
+import type { ProductionTeamMemberWithProfile } from '@/lib/supabase/types';
+
 interface AuditionInfoProps {
   audition: any;
 }
@@ -15,6 +19,24 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
     ensemble_size,
     equity_status,
   } = audition;
+
+  const [productionTeam, setProductionTeam] = useState<ProductionTeamMemberWithProfile[]>([]);
+  const [loadingTeam, setLoadingTeam] = useState(true);
+
+  useEffect(() => {
+    const loadProductionTeam = async () => {
+      if (audition.audition_id) {
+        setLoadingTeam(true);
+        const members = await getProductionTeamMembers(audition.audition_id);
+        // Filter to only show active (confirmed) members
+        const activeMembers = members.filter(member => member.status === 'active');
+        setProductionTeam(activeMembers);
+        setLoadingTeam(false);
+      }
+    };
+
+    loadProductionTeam();
+  }, [audition.audition_id]);
 
   return (
     <div className="p-6 rounded-xl bg-neu-surface/50 border border-neu-border sticky top-8">
@@ -102,6 +124,57 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
             </h3>
             <div className="text-sm text-neu-text-primary/70">
               {ensemble_size} performers
+            </div>
+          </div>
+        )}
+
+        {/* Production Team */}
+        {!loadingTeam && productionTeam.length > 0 && (
+          <div className="pt-4 border-t border-neu-border">
+            <h3 className="text-sm font-medium text-neu-text-primary mb-3">
+              Production Team
+            </h3>
+            <div className="space-y-2">
+              {productionTeam.map((member) => (
+                <div 
+                  key={member.production_team_member_id}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  {member.profiles ? (
+                    <>
+                      {member.profiles.profile_photo_url ? (
+                        <img
+                          src={member.profiles.profile_photo_url}
+                          alt={member.profiles.username}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
+                          <span className="text-neu-accent-primary font-medium text-xs">
+                            {member.profiles.username.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="text-neu-text-primary font-medium">
+                          {member.profiles.first_name && member.profiles.last_name
+                            ? `${member.profiles.first_name} ${member.profiles.last_name}`
+                            : `@${member.profiles.username}`}
+                        </div>
+                        <div className="text-neu-text-primary/60 text-xs">
+                          {member.role_title}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex-1">
+                      <div className="text-neu-text-primary font-medium">
+                        {member.role_title}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}

@@ -200,7 +200,7 @@ export default function DateArrayInput({
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full min-w-[320px] neu-card-raised">
+        <div className="absolute z-[10000] mt-2 w-full min-w-[320px] neu-card-raised">
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-4">
             <button

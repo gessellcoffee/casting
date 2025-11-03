@@ -1,14 +1,59 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { getAuditionCastMembers } from '@/lib/supabase/castMembers';
 
 interface RolesListProps {
   roles: any[];
   showId: string;
+  auditionId: string;
 }
 
-export default function RolesList({ roles, showId }: RolesListProps) {
+interface CastMemberWithProfile {
+  cast_member_id: string;
+  user_id: string;
+  role_id: string | null;
+  audition_role_id: string | null;
+  status: 'Offered' | 'Accepted' | 'Declined' | null;
+  is_understudy: boolean;
+  full_name: string;
+  profile_photo_url: string | null;
+}
+
+export default function RolesList({ roles, showId, auditionId }: RolesListProps) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(true);
+  const [castMembers, setCastMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCastMembers();
+  }, [auditionId]);
+
+  const loadCastMembers = async () => {
+    try {
+      const members = await getAuditionCastMembers(auditionId);
+      
+      // Only include accepted cast members
+      const acceptedMembers = members.filter(m => m.status === 'Accepted');
+      
+      setCastMembers(acceptedMembers);
+    } catch (error) {
+      console.error('Error loading cast members:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get cast members for a specific role (using audition_role_id)
+  const getRoleCastMembers = (auditionRoleId: string) => {
+    return castMembers.filter(m => m.audition_role_id === auditionRoleId && !m.is_understudy);
+  };
+
+  const getRoleUnderstudies = (auditionRoleId: string) => {
+    return castMembers.filter(m => m.audition_role_id === auditionRoleId && m.is_understudy);
+  };
 
   if (!roles || roles.length === 0) {
     return null;
@@ -30,36 +75,100 @@ export default function RolesList({ roles, showId }: RolesListProps) {
 
       {isExpanded && (
         <div className="space-y-4">
-        {roles.map((role) => (
-          <div
-            key={role.role_id}
-            className="p-4 rounded-lg bg-neu-surface/50 border border-[#4a7bd9]/10"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-lg font-semibold text-neu-text-primary">
-                {role.role_name}
-              </h3>
-              <div className="flex gap-2">
-                {role.role_type && (
-                  <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border-focus text-neu-text-primary shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
-                    {role.role_type}
-                  </span>
-                )}
-                {role.gender && (
-                  <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border text-neu-accent-secondary capitalize shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
-                    {role.gender}
-                  </span>
-                )}
+        {roles.map((role) => {
+          const principals = getRoleCastMembers(role.audition_role_id);
+          const understudies = getRoleUnderstudies(role.audition_role_id);
+          
+          return (
+            <div
+              key={role.role_id}
+              className="p-4 rounded-lg bg-neu-surface/50 border border-[#4a7bd9]/10"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="text-lg font-semibold text-neu-text-primary">
+                  {role.role_name}
+                </h3>
+                <div className="flex gap-2">
+                  {role.role_type && (
+                    <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border-focus text-neu-text-primary shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
+                      {role.role_type}
+                    </span>
+                  )}
+                  {role.gender && (
+                    <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border text-neu-accent-secondary capitalize shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
+                      {role.gender}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {role.description && (
-              <p className="text-neu-text-primary/70 text-sm">
-                {role.description}
-              </p>
-            )}
-          </div>
-        ))}
+              {role.description && (
+                <p className="text-neu-text-primary/70 text-sm mb-3">
+                  {role.description}
+                </p>
+              )}
+
+              {/* Cast Members */}
+              {(principals.length > 0 || understudies.length > 0) && (
+                <div className="mt-3 pt-3 border-t border-neu-border/30">
+                  {/* Principals */}
+                  {principals.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs font-semibold text-neu-text-primary/70 uppercase mb-2">Cast</p>
+                      <div className="flex flex-wrap gap-2">
+                        {principals.map((member) => (
+                          <button
+                            key={member.cast_member_id}
+                            onClick={() => router.push(`/profile/${member.user_id}`)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors group"
+                          >
+                            {member.profile_photo_url && (
+                              <img 
+                                src={member.profile_photo_url} 
+                                alt={member.full_name}
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                            )}
+                            <span className="text-sm text-green-400 group-hover:text-green-300">
+                              {member.full_name}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Understudies */}
+                  {understudies.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-neu-text-primary/70 uppercase mb-2">Understudy</p>
+                      <div className="flex flex-wrap gap-2">
+                        {understudies.map((member) => (
+                          <button
+                            key={member.cast_member_id}
+                            onClick={() => router.push(`/profile/${member.user_id}`)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-colors group"
+                          >
+                            {member.profile_photo_url && (
+                              <img 
+                                src={member.profile_photo_url} 
+                                alt={member.full_name}
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                            )}
+                            <span className="text-sm text-purple-400 group-hover:text-purple-300">
+                              {member.full_name}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
         </div>
       )}
     </div>

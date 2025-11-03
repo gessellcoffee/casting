@@ -177,7 +177,6 @@ export default function SlotScheduler({
     
     // Set initial position
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    console.log('MouseDown - Rect:', rect);
     setPopupPosition({ 
       x: rect.left + rect.width / 2, 
       y: rect.bottom 
@@ -577,7 +576,7 @@ export default function SlotScheduler({
 
       {/* Single Slot Modal */}
       {showSlotModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-[10000]">
           <div 
             data-modal="slot-modal"
             className="neu-card-raised p-6 rounded-xl border border-neu-border max-w-md w-full mx-4"
@@ -679,7 +678,7 @@ export default function SlotScheduler({
 
       {/* Multi-Slot Modal */}
       {showMultiSlotModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-[10000]">
           <div className="neu-card-raised p-6 rounded-xl border border-neu-border max-w-md w-full mx-4">
             <h3 className="text-xl font-semibold text-neu-text-primary mb-4">Generate Multiple Slots</h3>
             

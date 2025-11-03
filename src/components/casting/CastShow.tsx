@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAuditionRoles, updateAuditionRole } from '@/lib/supabase/auditionRoles';
 import type { AuditionRole, User, CastMember, Audition } from '@/lib/supabase/types';
 import FormSelect from '@/components/ui/forms/FormSelect';
@@ -6,8 +6,14 @@ import { Alert } from '@/components/ui/feedback';
 import StarryContainer from '../StarryContainer';
 import { getAuditionSignups } from '@/lib/supabase/auditionSignups';
 import { createCastMember, getAuditionCastMembers, deleteCastMember } from '@/lib/supabase/castMembers';
+import { createBulkCastingOffers, createCastingOffer, getAuditionOffers, revokeCastingOffer } from '@/lib/supabase/castingOffers';
+import type { CastingOfferWithDetails } from '@/lib/supabase/types';
 import { X } from 'lucide-react';
 import UserProfileModal from './UserProfileModal';
+import SendOfferModal from './SendOfferModal';
+import SendCastingOfferModal from './SendCastingOfferModal';
+import RevokeOfferModal from './RevokeOfferModal';
+import Button from '../Button';
 
 interface CastShowProps {
   audition: Audition & {
@@ -50,8 +56,8 @@ export default function CastShow({
   const [error, setError] = useState<string | null>(null);
   const [roles, setRoles] = useState<RoleWithCast[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [roleSelections, setRoleSelections] = useState<Record<string, string[]>>({});
-  const [understudySelections, setUnderstudySelections] = useState<Record<string, string[]>>({});
+  const [roleSelections, setRoleSelections] = useState<Record<string, string>>({});
+  const [understudySelections, setUnderstudySelections] = useState<Record<string, string>>({});
   const [ensembleMembers, setEnsembleMembers] = useState<EnsembleMember[]>([]);
   const [availableActors, setAvailableActors] = useState<Array<{
     user_id: string;
@@ -60,23 +66,38 @@ export default function CastShow({
   }>>([]);
   const [selectedEnsembleActor, setSelectedEnsembleActor] = useState<string>('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showSendOffersModal, setShowSendOffersModal] = useState(false);
+  const [sendingOffers, setSendingOffers] = useState(false);
+  const [sendingIndividualOffer, setSendingIndividualOffer] = useState<string | null>(null);
+  const [castingOffers, setCastingOffers] = useState<CastingOfferWithDetails[]>([]);
+  
+  // Individual offer modal state
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerModalData, setOfferModalData] = useState<{
+    userId: string;
+    auditionRoleId: string;
+    isUnderstudy: boolean;
+    roleName: string;
+    actorName: string;
+  } | null>(null);
+
+  // Revoke offer modal state
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
+  const [revokeModalData, setRevokeModalData] = useState<{
+    offerId: string;
+    roleName: string;
+    actorName: string;
+  } | null>(null);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
 
-      console.log('CastShow - audition data:', audition);
-      console.log('CastShow - audition_id:', audition.audition_id);
-
       // Get all audition-specific roles
       const auditionRoles = await getAuditionRoles(audition.audition_id);
-      console.log('CastShow - auditionRoles:', auditionRoles);
-      console.log('CastShow - auditionRoles length:', auditionRoles.length);
 
       // Get all signups for this audition
       const signups = await getAuditionSignups(audition.audition_id);
-      console.log('CastShow - signups:', signups);
-      console.log('CastShow - signups length:', signups.length);
 
       // Get existing cast members
       const castMembers = await getAuditionCastMembers(audition.audition_id);
@@ -90,8 +111,8 @@ export default function CastShow({
               user_id: s.user_id,
               full_name: s.profiles?.first_name && s.profiles.last_name
                 ? `${s.profiles.first_name} ${s.profiles.last_name}`
-                : s.profiles?.email || 'Unknown User',
-              email: s.profiles?.email || 'No email',
+                : s.profiles?.username || 'Unknown User',
+              email: s.profiles?.username || 'No email',
             },
           ])
         ).values()
@@ -116,21 +137,20 @@ export default function CastShow({
             user_id: s.user_id,
             full_name: s.profiles?.first_name && s.profiles.last_name
               ? `${s.profiles.first_name} ${s.profiles.last_name}`
-              : s.profiles?.email || 'Unknown User',
-            email: s.profiles?.email || 'No email',
+              : s.profiles?.username || 'Unknown User',
+            email: s.profiles?.username || 'No email',
             signup_id: s.signup_id,
           })),
         };
       });
 
-      // Initialize selections with existing cast (multiple per role)
-      const initialSelections: Record<string, string[]> = {};
-      const initialUnderstudySelections: Record<string, string[]> = {};
+      // Initialize selections with existing cast (single per role)
+      const initialSelections: Record<string, string> = {};
+      const initialUnderstudySelections: Record<string, string> = {}; 
       rolesWithCast.forEach((role) => {
-        initialSelections[role.audition_role_id] = role.castMembers.map((cm) => cm.user_id);
-        initialUnderstudySelections[role.audition_role_id] = role.understudyCastMembers.map(
-          (cm) => cm.user_id
-        );
+        // Take the first cast member if multiple exist
+        initialSelections[role.audition_role_id] = role.castMembers[0]?.user_id || '';
+        initialUnderstudySelections[role.audition_role_id] = role.understudyCastMembers[0]?.user_id || '';
       });
       setRoleSelections(initialSelections);
       setUnderstudySelections(initialUnderstudySelections);
@@ -149,6 +169,10 @@ export default function CastShow({
         });
       setEnsembleMembers(ensemble);
 
+      // Get all casting offers for this audition
+      const offers = await getAuditionOffers(audition.audition_id);
+      setCastingOffers(offers);
+
       setRoles(rolesWithCast);
       setError(null);
     } catch (err) {
@@ -165,48 +189,218 @@ export default function CastShow({
     loadData();
   }, [audition.audition_id]);
 
-  const handleAddRoleCast = (roleId: string, userId: string) => {
-    if (!userId) return;
+  // Helper function to get offer status for a cast member
+  const getOfferStatus = (userId: string, auditionRoleId?: string | null, isUnderstudy?: boolean) => {
+    // Find the cast member first
+    const castMember = roles
+      .flatMap(r => [...r.castMembers, ...r.understudyCastMembers])
+      .find(cm => {
+        if (auditionRoleId) {
+          return cm.user_id === userId && cm.audition_role_id === auditionRoleId && cm.is_understudy === (isUnderstudy || false);
+        } else {
+          // For ensemble
+          const ensembleMember = ensembleMembers.find(em => em.user_id === userId);
+          return ensembleMember && cm.user_id === userId && !cm.audition_role_id;
+        }
+      });
 
-    setRoleSelections((prev) => {
-      const current = prev[roleId] || [];
-      if (current.includes(userId)) {
-        return prev; // Already added
-      }
-      return {
-        ...prev,
-        [roleId]: [...current, userId],
-      };
-    });
+    if (!castMember) {
+      return null;
+    }
+
+    // Find offer by cast_member_id
+    const offer = castingOffers.find(o => o.cast_member_id === castMember.cast_member_id);
+
+    if (!offer) {
+      return null;
+    }
+
+    return {
+      exists: true,
+      status: offer.cast_members?.status || 'Offered',
+      respondedAt: offer.responded_at,
+    };
   };
 
-  const handleRemoveRoleCast = (roleId: string, userId: string) => {
+  const handleRoleCastChange = (roleId: string, userId: string) => {
     setRoleSelections((prev) => ({
       ...prev,
-      [roleId]: (prev[roleId] || []).filter((id) => id !== userId),
+      [roleId]: userId,
     }));
   };
 
-  const handleAddUnderstudyCast = (roleId: string, userId: string) => {
-    if (!userId) return;
-
-    setUnderstudySelections((prev) => {
-      const current = prev[roleId] || [];
-      if (current.includes(userId)) {
-        return prev; // Already added
-      }
-      return {
-        ...prev,
-        [roleId]: [...current, userId],
-      };
-    });
-  };
-
-  const handleRemoveUnderstudyCast = (roleId: string, userId: string) => {
+  const handleUnderstudyCastChange = (roleId: string, userId: string) => {
     setUnderstudySelections((prev) => ({
       ...prev,
-      [roleId]: (prev[roleId] || []).filter((id) => id !== userId),
+      [roleId]: userId,
     }));
+  };
+
+  // Generate default offer message
+  const generateOfferMessage = (actorName: string, roleName: string, isUnderstudy: boolean) => {
+    const showTitle = audition.show?.title || 'this production';
+    const rolePhrase = isUnderstudy ? `the understudy role for ${roleName}` : `the role of ${roleName}`;
+    
+    return `Thank you ${actorName} for auditioning for this production of ${showTitle}. We are so proud to offer you ${rolePhrase}. Please accept in the Belong Here Theater Casting application to confirm your involvement with the production.`;
+  };
+
+  // Open the send offer modal
+  const openSendOfferModal = (userId: string, roleId: string, isUnderstudy: boolean) => {
+    const role = roles.find((r) => r.audition_role_id === roleId);
+    const actor = availableActors.find(a => a.user_id === userId);
+    
+    if (!role || !actor) return;
+
+    setOfferModalData({
+      userId,
+      auditionRoleId: roleId,
+      isUnderstudy,
+      roleName: role.role_name,
+      actorName: actor.full_name,
+    });
+    setShowOfferModal(true);
+  };
+
+  // Confirm and send the offer
+  const handleConfirmSendOffer = async (offerMessage: string) => {
+    if (!offerModalData) return;
+
+    try {
+      setSendingIndividualOffer(offerModalData.userId);
+      
+      const role = roles.find((r) => r.audition_role_id === offerModalData.auditionRoleId);
+      if (!role) {
+        throw new Error('Role not found');
+      }
+
+      // Send the offer
+      const { data, error } = await createCastingOffer({
+        auditionId: audition.audition_id,
+        userId: offerModalData.userId,
+        roleId: role.role_id || null,
+        auditionRoleId: offerModalData.auditionRoleId,
+        isUnderstudy: offerModalData.isUnderstudy,
+        sentBy: user.id,
+        offerMessage: offerMessage,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Close modal and show success
+      setShowOfferModal(false);
+      setOfferModalData(null);
+      setError(null);
+      
+      // Refresh data to update status
+      await loadData();
+      
+      alert(`Casting offer sent successfully to ${offerModalData.actorName}!`);
+    } catch (err) {
+      console.error('Error sending casting offer:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send casting offer';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setSendingIndividualOffer(null);
+    }
+  };
+
+  // Open the revoke offer modal
+  const openRevokeOfferModal = (userId: string, auditionRoleId: string, isUnderstudy: boolean) => {
+    const role = roles.find((r) => r.audition_role_id === auditionRoleId);
+    const actor = availableActors.find(a => a.user_id === userId);
+    const offerStatus = getOfferStatus(userId, auditionRoleId, isUnderstudy);
+    
+    if (!role || !actor || !offerStatus) return;
+
+    // Find the offer ID
+    const castMember = roles
+      .flatMap(r => [...r.castMembers, ...r.understudyCastMembers])
+      .find(cm => cm.user_id === userId && cm.audition_role_id === auditionRoleId && cm.is_understudy === isUnderstudy);
+    
+    if (!castMember) return;
+
+    const offer = castingOffers.find(o => o.cast_member_id === castMember.cast_member_id);
+    if (!offer) return;
+
+    setRevokeModalData({
+      offerId: offer.offer_id,
+      roleName: role.role_name,
+      actorName: actor.full_name,
+    });
+    setShowRevokeModal(true);
+  };
+
+  // Confirm and revoke the offer
+  const handleConfirmRevokeOffer = async (revokeMessage: string) => {
+    if (!revokeModalData) return;
+
+    try {
+      setSendingIndividualOffer('revoking');
+
+      const { error } = await revokeCastingOffer(
+        revokeModalData.offerId,
+        user.id,
+        revokeMessage
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      // Close modal and show success
+      setShowRevokeModal(false);
+      setRevokeModalData(null);
+      setError(null);
+      alert(`Offer revoked successfully for ${revokeModalData.actorName}!`);
+      
+      // Refresh data to update status
+      await loadData();
+    } catch (err) {
+      console.error('Error revoking offer:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to revoke offer';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setSendingIndividualOffer(null);
+    }
+  };
+
+  const handleSendEnsembleOffer = async (userId: string) => {
+    try {
+      setSendingIndividualOffer(userId);
+
+      // Send the offer (cast member must already exist from save)
+      const { data, error } = await createCastingOffer({
+        auditionId: audition.audition_id,
+        userId: userId,
+        roleId: null,
+        auditionRoleId: null,
+        isUnderstudy: false,
+        sentBy: user.id,
+        offerMessage: `You have been offered an ensemble role in ${audition.show?.title || 'this production'}.`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Show success message
+      setError(null);
+      alert(`Casting offer sent successfully to ${availableActors.find(a => a.user_id === userId)?.full_name || 'the actor'}!`);
+      
+      // Refresh data to update status
+      await loadData();
+    } catch (err) {
+      console.error('Error sending casting offer:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send casting offer';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setSendingIndividualOffer(null);
+    }
   };
 
   const handleToggleUnderstudy = async (roleId: string, currentValue: boolean) => {
@@ -264,64 +458,84 @@ export default function CastShow({
       const existingCast = await getAuditionCastMembers(audition.audition_id);
 
       // Process role assignments (principals)
-      for (const [auditionRoleId, userIds] of Object.entries(roleSelections)) {
+      for (const [auditionRoleId, userId] of Object.entries(roleSelections)) {
         const role = roles.find((r) => r.audition_role_id === auditionRoleId);
         if (!role) continue;
 
         const existingForRole = existingCast.filter(
           (cm) => cm.audition_role_id === auditionRoleId && !cm.is_understudy
         );
-        const existingUserIds = existingForRole.map((cm) => cm.user_id);
 
-        // Add new cast members
-        for (const userId of userIds) {
-          if (!existingUserIds.includes(userId)) {
-            await createCastMember({
+        // If a user is selected
+        if (userId) {
+          const existingCastForUser = existingForRole.find((cm) => cm.user_id === userId);
+          
+          // Add new cast member if not already assigned
+          if (!existingCastForUser) {
+            const { error: createError } = await createCastMember({
               audition_id: audition.audition_id,
-              role_id: role.role_id,
+              role_id: role.role_id || null,
               audition_role_id: auditionRoleId,
               user_id: userId,
               status: 'Offered',
               is_understudy: false,
             });
+            if (createError) {
+              throw new Error(`Failed to assign ${role.role_name}: ${createError.message}`);
+            }
           }
-        }
-
-        // Remove cast members no longer selected
-        for (const existing of existingForRole) {
-          if (!userIds.includes(existing.user_id)) {
+          
+          // Remove any other cast members for this role
+          for (const existing of existingForRole) {
+            if (existing.user_id !== userId) {
+              await deleteCastMember(existing.cast_member_id);
+            }
+          }
+        } else {
+          // No user selected, remove all cast members for this role
+          for (const existing of existingForRole) {
             await deleteCastMember(existing.cast_member_id);
           }
         }
       }
 
       // Process understudy assignments
-      for (const [auditionRoleId, userIds] of Object.entries(understudySelections)) {
+      for (const [auditionRoleId, userId] of Object.entries(understudySelections)) {
         const role = roles.find((r) => r.audition_role_id === auditionRoleId);
         if (!role) continue;
 
         const existingForRole = existingCast.filter(
           (cm) => cm.audition_role_id === auditionRoleId && cm.is_understudy
         );
-        const existingUserIds = existingForRole.map((cm) => cm.user_id);
 
-        // Add new understudy cast members
-        for (const userId of userIds) {
-          if (!existingUserIds.includes(userId)) {
-            await createCastMember({
+        // If a user is selected
+        if (userId) {
+          const existingCastForUser = existingForRole.find((cm) => cm.user_id === userId);
+          
+          // Add new understudy cast member if not already assigned
+          if (!existingCastForUser) {
+            const { error: createError } = await createCastMember({
               audition_id: audition.audition_id,
-              role_id: role.role_id,
+              role_id: role.role_id || null,
               audition_role_id: auditionRoleId,
               user_id: userId,
               status: 'Offered',
               is_understudy: true,
             });
+            if (createError) {
+              throw new Error(`Failed to assign understudy for ${role.role_name}: ${createError.message}`);
+            }
           }
-        }
-
-        // Remove understudy cast members no longer selected
-        for (const existing of existingForRole) {
-          if (!userIds.includes(existing.user_id)) {
+          
+          // Remove any other understudy cast members for this role
+          for (const existing of existingForRole) {
+            if (existing.user_id !== userId) {
+              await deleteCastMember(existing.cast_member_id);
+            }
+          }
+        } else {
+          // No user selected, remove all understudy cast members for this role
+          for (const existing of existingForRole) {
             await deleteCastMember(existing.cast_member_id);
           }
         }
@@ -335,7 +549,7 @@ export default function CastShow({
       // Add new ensemble members
       for (const member of ensembleMembers) {
         if (!existingEnsembleUserIds.includes(member.user_id)) {
-          await createCastMember({
+          const { error: createError } = await createCastMember({
             audition_id: audition.audition_id,
             role_id: null as any,
             audition_role_id: null as any,
@@ -343,6 +557,9 @@ export default function CastShow({
             status: 'Offered',
             is_understudy: false,
           });
+          if (createError) {
+            throw new Error(`Failed to add ensemble member ${member.full_name}: ${createError.message}`);
+          }
         }
       }
 
@@ -353,31 +570,48 @@ export default function CastShow({
         }
       }
 
-      // Refresh data to show updates
+      // Only refresh data if save was successful
       await loadData();
+      setError(null);
       onSave();
     } catch (err) {
       console.error('Error saving cast:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to save cast assignments';
       setError(errorMessage);
       onError(errorMessage);
+      // Don't reload data on error to preserve user's selections
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Calculate statistics
+  const totalCastMembers = roles.reduce((acc, role) => 
+    acc + role.castMembers.length + role.understudyCastMembers.length, 0
+  ) + ensembleMembers.length;
+
+  const totalOffers = castingOffers.length;
+  const pendingOffers = castingOffers.filter(o => 
+    o.cast_members?.status === 'Offered' && !o.responded_at
+  ).length;
+  const acceptedOffers = castingOffers.filter(o => 
+    o.cast_members?.status === 'Accepted'
+  ).length;
+  const declinedOffers = castingOffers.filter(o => 
+    o.cast_members?.status === 'Declined'
+  ).length;
+
   if (isLoading) {
     return (
       <StarryContainer>
-        <div className="max-w-4xl mx-auto p-6 neu-card-raised rounded-xl bg-neu-surface/50 border border-neu-border">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-neu-surface rounded w-1/3"></div>
-            <div className="h-4 bg-neu-surface rounded w-1/2"></div>
-            <div className="space-y-4 mt-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-neu-surface/50 rounded-md"></div>
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="animate-pulse space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-24 bg-neu-surface/50 rounded-xl"></div>
               ))}
             </div>
+            <div className="h-64 bg-neu-surface/50 rounded-xl"></div>
           </div>
         </div>
       </StarryContainer>
@@ -386,22 +620,92 @@ export default function CastShow({
 
   return (
     <StarryContainer>
-      <div className="max-w-4xl mx-auto p-6 neu-card-raised rounded-xl bg-neu-surface/50 border border-neu-border">
-        <h1 className="text-2xl font-bold mb-2 text-neu-text-primary">Cast Show: {audition.show?.title}</h1>
-        {audition.show?.author && (
-          <p className="text-neu-text-primary/70 mb-6">by {audition.show.author}</p>
-        )}
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-neu-text-primary">Cast Show</h1>
+            <p className="text-neu-text-primary/70 mt-1">{audition.show?.title}</p>
+          </div>
+        </div>
 
+        {/* Statistics Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Total Cast */}
+          <div className="neu-card-raised rounded-xl p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neu-text-primary/70 uppercase tracking-wide">Total Cast</p>
+                <p className="text-4xl font-bold text-blue-400 mt-2">{totalCastMembers}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending Offers */}
+          <div className="neu-card-raised rounded-xl p-6 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neu-text-primary/70 uppercase tracking-wide">Pending</p>
+                <p className="text-4xl font-bold text-yellow-400 mt-2">{pendingOffers}</p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Accepted */}
+          <div className="neu-card-raised rounded-xl p-6 bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neu-text-primary/70 uppercase tracking-wide">Accepted</p>
+                <p className="text-4xl font-bold text-green-400 mt-2">{acceptedOffers}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Declined */}
+          <div className="neu-card-raised rounded-xl p-6 bg-gradient-to-br from-red-500/10 to-red-600/5 border border-red-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neu-text-primary/70 uppercase tracking-wide">Declined</p>
+                <p className="text-4xl font-bold text-red-400 mt-2">{declinedOffers}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Display */}
         {error && (
-          <Alert variant="error" className="mb-6">
-            {error}
-          </Alert>
+          <Alert variant="error">{error}</Alert>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-6 neu-card-raised">
           {/* Roles Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-neu-text-primary">Cast Roles</h2>
+            <h2 className="text-xl font-semibold mb-4 text-neu-text-primary flex items-center gap-2">
+              <svg className="w-6 h-6 text-neu-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Cast Roles
+            </h2>
             <div className="overflow-hidden border border-neu-border rounded-lg">
               <table className="min-w-full divide-y divide-neu-border">
                 <thead className="bg-neu-surface/30">
@@ -410,15 +714,15 @@ export default function CastShow({
                       Role
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neu-text-primary/70 uppercase tracking-wider">
-                      Cast Members
+                    Cast Members
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-neu-surface/20 divide-y divide-neu-border">
                   {roles.length > 0 ? (
                     roles.map((role) => {
-                      const selectedActors = roleSelections[role.audition_role_id] || [];
-                      const selectedUnderstudies = understudySelections[role.audition_role_id] || [];
+                      const selectedActor = roleSelections[role.audition_role_id] || '';
+                      const selectedUnderstudy = understudySelections[role.audition_role_id] || '';
                       return (
                         <tr key={role.audition_role_id} className="hover:bg-neu-surface/30 transition-colors">
                           <td className="px-6 py-4">
@@ -445,101 +749,159 @@ export default function CastShow({
                             <div className="space-y-4">
                               {/* Principal Cast */}
                               <div>
-                                <div className="text-xs font-semibold text-neu-text-primary/70 mb-1 uppercase">Principal</div>
-                                {selectedActors.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 mb-2">
-                                    {selectedActors.map((userId) => {
-                                      const actor = availableActors.find((a) => a.user_id === userId);
-                                      return actor ? (
-                                        <div key={userId} className="flex items-center gap-1 bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary px-2 py-1 rounded-md text-sm">
-                                          <button
-                                            type="button"
-                                            onClick={() => setSelectedUserId(userId)}
-                                            className="text-neu-text-primary hover:text-[#5a8ff5] hover:underline transition-colors"
-                                          >
-                                            {actor.full_name}
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleRemoveRoleCast(role.audition_role_id, userId)}
-                                            className="text-[#5a8ff5] hover:text-[#4a7bd9] transition-colors"
-                                          >
-                                            <X size={14} />
-                                          </button>
-                                        </div>
-                                      ) : null;
-                                    })}
-                                  </div>
-                                )}
+                                <div className="text-xs font-semibold text-neu-text-primary/70 mb-2 uppercase">Principal</div>
                                 <FormSelect
-                                  value=""
-                                  onChange={(e) => handleAddRoleCast(role.audition_role_id, e.target.value)}
-                                  className="mt-1 block w-full"
+                                  value={selectedActor}
+                                  onChange={(e) => handleRoleCastChange(role.audition_role_id, e.target.value)}
+                                  className="block w-full"
                                   disabled={availableActors.length === 0}
                                 >
                                   <option value="">
                                     {availableActors.length === 0
                                       ? 'No actors available'
-                                      : 'Add principal actor...'}
+                                      : 'Select principal actor...'}
                                   </option>
                                   {availableActors
-                                    .filter((actor) => !selectedActors.includes(actor.user_id) && !selectedUnderstudies.includes(actor.user_id))
+                                    .filter((actor) => actor.user_id === selectedActor || (actor.user_id !== selectedUnderstudy))
                                     .map((actor) => (
                                       <option key={actor.user_id} value={actor.user_id}>
                                         {actor.full_name} ({actor.email})
                                       </option>
                                     ))}
                                 </FormSelect>
+                                {selectedActor && (() => {
+                                  const offerStatus = getOfferStatus(selectedActor, role.audition_role_id, false);
+                                  return (
+                                    <div className="mt-2 flex gap-3 items-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedUserId(selectedActor)}
+                                        className="text-sm text-[#5a8ff5] hover:text-[#4a7bd9] hover:underline transition-colors"
+                                      >
+                                        View Profile
+                                      </button>
+                                      {offerStatus ? (
+                                        <>
+                                          <span className={`text-xs px-2 py-1 rounded-full ${
+                                            offerStatus.status === 'Accepted' ? 'bg-green-500/20 text-green-400' :
+                                            offerStatus.status === 'Declined' ? 'bg-red-500/20 text-red-400' :
+                                            'bg-yellow-500/20 text-yellow-400'
+                                          }`}>
+                                            {offerStatus.status === 'Accepted' ? '✓ Accepted' :
+                                             offerStatus.status === 'Declined' ? '✗ Declined' :
+                                             '⏳ Pending'}
+                                          </span>
+                                          {!offerStatus.respondedAt && (
+                                            <button
+                                              type="button"
+                                              onClick={() => openRevokeOfferModal(selectedActor, role.audition_role_id, false)}
+                                              disabled={sendingIndividualOffer === 'revoking'}
+                                              className="text-sm text-red-600 hover:text-red-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                              {sendingIndividualOffer === 'revoking' ? 'Revoking...' : '🚫 Revoke Offer'}
+                                            </button>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const exists = role.castMembers.some(cm => cm.user_id === selectedActor);
+                                            if (!exists) {
+                                              alert('Please save the cast assignment first before sending an offer.');
+                                              return;
+                                            }
+                                            openSendOfferModal(selectedActor, role.audition_role_id, false);
+                                          }}
+                                          disabled={sendingIndividualOffer === selectedActor}
+                                          className="text-sm text-green-600 hover:text-green-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title={role.castMembers.some(cm => cm.user_id === selectedActor) ? 'Send casting offer' : 'Save cast first'}
+                                        >
+                                          {sendingIndividualOffer === selectedActor ? 'Sending...' : '📧 Send Offer'}
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
                               </div>
 
                               {/* Understudy Cast */}
                               {role.needs_understudy && (
                                 <div className="border-t border-neu-border pt-3">
-                                  <div className="text-xs font-semibold text-neu-text-primary/70 mb-1 uppercase">Understudy</div>
-                                  {selectedUnderstudies.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                      {selectedUnderstudies.map((userId) => {
-                                        const actor = availableActors.find((a) => a.user_id === userId);
-                                        return actor ? (
-                                          <div key={userId} className="flex items-center gap-1 bg-purple-500/20 border border-purple-500/30 text-neu-text-primary px-2 py-1 rounded-md text-sm">
-                                            <button
-                                              type="button"
-                                              onClick={() => setSelectedUserId(userId)}
-                                              className="text-neu-text-primary hover:text-purple-400 hover:underline transition-colors"
-                                            >
-                                              {actor.full_name}
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleRemoveUnderstudyCast(role.audition_role_id, userId)}
-                                              className="text-purple-400 hover:text-purple-300 transition-colors"
-                                            >
-                                              <X size={14} />
-                                            </button>
-                                          </div>
-                                        ) : null;
-                                      })}
-                                    </div>
-                                  )}
+                                  <div className="text-xs font-semibold text-neu-text-primary/70 mb-2 uppercase">Understudy</div>
                                   <FormSelect
-                                    value=""
-                                    onChange={(e) => handleAddUnderstudyCast(role.audition_role_id, e.target.value)}
-                                    className="mt-1 block w-full"
+                                    value={selectedUnderstudy}
+                                    onChange={(e) => handleUnderstudyCastChange(role.audition_role_id, e.target.value)}
+                                    className="block w-full"
                                     disabled={availableActors.length === 0}
                                   >
                                     <option value="">
                                       {availableActors.length === 0
                                         ? 'No actors available'
-                                        : 'Add understudy actor...'}
+                                        : 'Select understudy actor...'}
                                     </option>
                                     {availableActors
-                                      .filter((actor) => !selectedActors.includes(actor.user_id) && !selectedUnderstudies.includes(actor.user_id))
+                                      .filter((actor) => actor.user_id === selectedUnderstudy || (actor.user_id !== selectedActor))
                                       .map((actor) => (
                                         <option key={actor.user_id} value={actor.user_id}>
                                           {actor.full_name} ({actor.email})
                                         </option>
                                       ))}
                                   </FormSelect>
+                                  {selectedUnderstudy && (() => {
+                                    const offerStatus = getOfferStatus(selectedUnderstudy, role.audition_role_id, true);
+                                    return (
+                                      <div className="mt-2 flex gap-3 items-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedUserId(selectedUnderstudy)}
+                                          className="text-sm text-purple-400 hover:text-purple-300 hover:underline transition-colors"
+                                        >
+                                          View Profile
+                                        </button>
+                                        {offerStatus ? (
+                                          <>
+                                            <span className={`text-xs px-2 py-1 rounded-full ${
+                                              offerStatus.status === 'Accepted' ? 'bg-green-500/20 text-green-400' :
+                                              offerStatus.status === 'Declined' ? 'bg-red-500/20 text-red-400' :
+                                              'bg-yellow-500/20 text-yellow-400'
+                                            }`}>
+                                              {offerStatus.status === 'Accepted' ? '✓ Accepted' :
+                                               offerStatus.status === 'Declined' ? '✗ Declined' :
+                                               '⏳ Pending'}
+                                            </span>
+                                            {!offerStatus.respondedAt && (
+                                              <button
+                                                type="button"
+                                                onClick={() => openRevokeOfferModal(selectedUnderstudy, role.audition_role_id, true)}
+                                                disabled={sendingIndividualOffer === 'revoking'}
+                                                className="text-sm text-red-600 hover:text-red-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                              >
+                                                {sendingIndividualOffer === 'revoking' ? 'Revoking...' : '🚫 Revoke Offer'}
+                                              </button>
+                                            )}
+                                          </>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const exists = role.understudyCastMembers.some(cm => cm.user_id === selectedUnderstudy);
+                                              if (!exists) {
+                                                alert('Please save the cast assignment first before sending an offer.');
+                                                return;
+                                              }
+                                              openSendOfferModal(selectedUnderstudy, role.audition_role_id, true);
+                                            }}
+                                            disabled={sendingIndividualOffer === selectedUnderstudy}
+                                            className="text-sm text-green-600 hover:text-green-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title={role.understudyCastMembers.some(cm => cm.user_id === selectedUnderstudy) ? 'Send casting offer' : 'Save cast first'}
+                                          >
+                                            {sendingIndividualOffer === selectedUnderstudy ? 'Sending...' : '📧 Send Offer'}
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               )}
                             </div>
@@ -565,7 +927,10 @@ export default function CastShow({
           {/* Ensemble Section */}
           {audition.ensemble_size && audition.ensemble_size > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-4 text-neu-text-primary">
+              <h2 className="text-xl font-semibold mb-4 text-neu-text-primary flex items-center gap-2">
+                <svg className="w-6 h-6 text-neu-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
                 Ensemble (Size: {audition.ensemble_size})
               </h2>
               <div className="border border-neu-border rounded-lg p-6 bg-neu-surface/30">
@@ -574,7 +939,7 @@ export default function CastShow({
                   {ensembleMembers.length > 0 && (
                     <div>
                       <h3 className="text-sm font-medium text-neu-text-primary mb-2">
-                        Cast Members ({ensembleMembers.length}/{audition.ensemble_size})
+                        Ensemble Members ({ensembleMembers.length}/{audition.ensemble_size})
                       </h3>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {ensembleMembers.map(member => (
@@ -621,14 +986,12 @@ export default function CastShow({
                             </option>
                           ))}
                       </FormSelect>
-                      <button
+                      <Button
                         type="button"
+                        text="Add to Ensemble"
                         onClick={handleAddEnsembleMember}
                         disabled={!selectedEnsembleActor}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-neu-surface/50 disabled:text-neu-text-primary/30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Add to Ensemble
-                      </button>
+                      />
                     </div>
                   )}
                   
@@ -642,23 +1005,30 @@ export default function CastShow({
             </div>
           )}
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-between items-center">
             <button
               type="button"
               onClick={loadData}
               className="n-button-secondary px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium disabled:opacity-50"
-              disabled={isSaving}
+              disabled={isSaving || sendingOffers}
             >
               Refresh
             </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="n-button-primary px-6 py-3 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save Cast'}
-            </button>
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={handleSave}
+                className="n-button-primary px-6 py-3 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSaving || sendingOffers}
+              >
+                {isSaving ? 'Saving...' : 'Save Cast'}
+              </button>
+              <Button
+                text="Send Offers"
+                onClick={() => setShowSendOffersModal(true)}
+                disabled={isSaving || sendingOffers}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -667,7 +1037,95 @@ export default function CastShow({
       {selectedUserId && (
         <UserProfileModal
           userId={selectedUserId}
+          auditionId={audition.audition_id}
           onClose={() => setSelectedUserId(null)}
+          onActionComplete={loadData}
+        />
+      )}
+
+      {/* Send Offers Modal */}
+      {showSendOffersModal && (
+        <SendOfferModal
+          auditionId={audition.audition_id}
+          users={[
+            ...Object.entries(roleSelections)
+              .filter(([_, userId]) => userId) // Only include roles with selected users
+              .map(([roleId, userId]) => {
+                const actor = availableActors.find(a => a.user_id === userId);
+                return actor ? {
+                  userId: actor.user_id,
+                  firstName: actor.full_name.split(' ')[0] || null,
+                  lastName: actor.full_name.split(' ').slice(1).join(' ') || null,
+                  username: actor.full_name,
+                  email: actor.email,
+                } : null;
+              })
+              .filter(Boolean),
+            ...Object.entries(understudySelections)
+              .filter(([_, userId]) => userId) // Only include roles with selected understudies
+              .map(([roleId, userId]) => {
+                const actor = availableActors.find(a => a.user_id === userId);
+                return actor ? {
+                  userId: actor.user_id,
+                  firstName: actor.full_name.split(' ')[0] || null,
+                  lastName: actor.full_name.split(' ').slice(1).join(' ') || null,
+                  username: actor.full_name,
+                  email: actor.email,
+                } : null;
+              })
+              .filter(Boolean),
+            ...ensembleMembers.map(member => ({
+              userId: member.user_id,
+              firstName: member.full_name.split(' ')[0] || null,
+              lastName: member.full_name.split(' ').slice(1).join(' ') || null,
+              username: member.full_name,
+              email: member.email,
+            }))
+          ].filter((user, index, self) => 
+            user && self.findIndex(u => u && u.userId === user.userId) === index
+          ) as any}
+          currentUserId={user.id}
+          onClose={() => setShowSendOffersModal(false)}
+          onSuccess={() => {
+            setShowSendOffersModal(false);
+            loadData();
+            onSave();
+          }}
+        />
+      )}
+
+      {/* Send Casting Offer Modal */}
+      {showOfferModal && offerModalData && (
+        <SendCastingOfferModal
+          isOpen={showOfferModal}
+          onClose={() => {
+            setShowOfferModal(false);
+            setOfferModalData(null);
+          }}
+          onConfirm={handleConfirmSendOffer}
+          defaultMessage={generateOfferMessage(
+            offerModalData.actorName,
+            offerModalData.roleName,
+            offerModalData.isUnderstudy
+          )}
+          roleName={offerModalData.roleName}
+          actorName={offerModalData.actorName}
+          isSubmitting={sendingIndividualOffer !== null}
+        />
+      )}
+
+      {/* Revoke Offer Modal */}
+      {showRevokeModal && revokeModalData && (
+        <RevokeOfferModal
+          isOpen={showRevokeModal}
+          onClose={() => {
+            setShowRevokeModal(false);
+            setRevokeModalData(null);
+          }}
+          onConfirm={handleConfirmRevokeOffer}
+          roleName={revokeModalData.roleName}
+          actorName={revokeModalData.actorName}
+          isSubmitting={sendingIndividualOffer === 'revoking'}
         />
       )}
     </StarryContainer>

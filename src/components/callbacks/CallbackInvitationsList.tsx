@@ -353,7 +353,9 @@ export default function CallbackInvitationsList({
       {selectedUserId && (
         <UserProfileModal
           userId={selectedUserId}
+          auditionId={auditionId}
           onClose={() => setSelectedUserId(null)}
+          onActionComplete={onUpdate}
         />
       )}
     </div>

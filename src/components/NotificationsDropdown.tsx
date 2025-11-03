@@ -13,6 +13,7 @@ import {
 } from '@/lib/supabase/notifications';
 import { updateApprovalRequest } from '@/lib/supabase/companyApprovals';
 import { respondToCallbackInvitation } from '@/lib/supabase/callbackInvitations';
+import { acceptCastingOffer, declineCastingOffer } from '@/lib/supabase/castingOffers';
 import Link from 'next/link';
 import { useClickOutside } from '@/lib/hooks/useClickOutside';
 import { formatTimeAgo } from '@/lib/utils/dateUtils';
@@ -52,23 +53,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   const loadNotifications = async () => {
     setLoading(true);
-    console.log('Loading notifications for userId:', userId);
     const data = await getUserNotifications(userId, 20);
-    console.log('Loaded notifications - count:', data?.length || 0);
-    console.log('Loaded notifications - data:', data);
-    // Log sender_id for company approval notifications
-    data.forEach(notif => {
-      if (notif.type === 'company_approval') {
-        console.log('Company approval notification:', {
-          id: notif.notification_id,
-          sender_id: notif.sender_id,
-          reference_id: notif.reference_id,
-          message: notif.message,
-          action_taken: notif.action_taken,
-          is_actionable: notif.is_actionable
-        });
-      }
-    });
     setNotifications(data);
     setLoading(false);
   };
@@ -193,6 +178,48 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     }
   };
 
+  const handleAcceptCastingOffer = async (notification: any) => {
+    if (!notification.reference_id) return;
+
+    setProcessing(notification.notification_id);
+    try {
+      const { error } = await acceptCastingOffer(notification.reference_id, userId);
+      if (error) throw error;
+
+      // Mark notification as handled
+      await handleNotificationAction(notification.notification_id, 'accepted');
+      
+      loadNotifications();
+      loadUnreadCount();
+    } catch (err: any) {
+      console.error('Error accepting casting offer:', err);
+      alert('Failed to accept offer: ' + err.message);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDeclineCastingOffer = async (notification: any) => {
+    if (!notification.reference_id) return;
+
+    setProcessing(notification.notification_id);
+    try {
+      const { error } = await declineCastingOffer(notification.reference_id, userId);
+      if (error) throw error;
+
+      // Mark notification as handled
+      await handleNotificationAction(notification.notification_id, 'declined');
+      
+      loadNotifications();
+      loadUnreadCount();
+    } catch (err: any) {
+      console.error('Error declining casting offer:', err);
+      alert('Failed to decline offer: ' + err.message);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'company_approval':
@@ -211,6 +238,12 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
         return (
           <svg className="w-5 h-5 text-neu-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        );
+      case 'casting_offer':
+        return (
+          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
       default:
@@ -391,6 +424,34 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                             className="n-button-danger flex-1 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 text-xs font-semibold "
                           >
                             Decline
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Action Buttons for Casting Offers */}
+                      {notification.is_actionable && 
+                       notification.type === 'casting_offer' && 
+                       !notification.action_taken && (
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAcceptCastingOffer(notification);
+                            }}
+                            disabled={processing === notification.notification_id}
+                            className="n-button-primary flex-1 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 text-xs font-semibold"
+                          >
+                            {processing === notification.notification_id ? 'Processing...' : 'Accept Offer'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeclineCastingOffer(notification);
+                            }}
+                            disabled={processing === notification.notification_id}
+                            className="n-button-danger flex-1 px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 text-xs font-semibold"
+                          >
+                            {processing === notification.notification_id ? 'Processing...' : 'Decline Offer'}
                           </button>
                         </div>
                       )}

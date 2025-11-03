@@ -19,13 +19,6 @@ export function expandRecurringEvent(
   const eventEnd = new Date(event.end);
   const duration = eventEnd.getTime() - eventStart.getTime();
 
-  console.log('[expandRecurringEvent] Processing event:', {
-    title: event.title,
-    eventStart,
-    recurrenceRule,
-    dateRange: { startDate, endDate }
-  });
-
   try {
     // Map frequency string to RRule frequency
     const frequencyMap: Record<string, Frequency> = {
@@ -83,8 +76,6 @@ export function expandRecurringEvent(
     // Create RRule and generate occurrences
     const rule = new RRule(rruleOptions);
     const occurrences = rule.between(startDate, endDate, true);
-
-    console.log('[expandRecurringEvent] Generated occurrences:', occurrences.length, occurrences.slice(0, 3));
 
     // Map occurrences to event instances
     return occurrences.map((occurrenceDate, index) => {

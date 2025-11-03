@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import StarryContainer from '@/components/StarryContainer';
 import { getProfile } from '@/lib/supabase/profile';
 import { getUserResumes } from '@/lib/supabase/resume';
+import { getUserCastMemberships } from '@/lib/supabase/castMembers';
 import type { Profile, UserResume } from '@/lib/supabase/types';
 import Link from 'next/link';
 
@@ -14,6 +15,7 @@ export default function UserProfilePage() {
   
   const [profile, setProfile] = useState<Profile | null>(null);
   const [resumes, setResumes] = useState<UserResume[]>([]);
+  const [castMemberships, setCastMemberships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +38,12 @@ export default function UserProfilePage() {
         // Fetch resume entries
         const resumeData = await getUserResumes(userId);
         setResumes(resumeData);
+        
+        // Fetch cast memberships (roles from auditions)
+        const castData = await getUserCastMemberships(userId);
+        // Only show accepted cast members
+        const acceptedCast = castData.filter(m => m.status === 'Accepted');
+        setCastMemberships(acceptedCast);
       } catch (err) {
         console.error('Error fetching user profile:', err);
         setError('Failed to load profile');
@@ -182,7 +190,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Resume Section */}
-            {resumes.length > 0 && (
+            {(resumes.length > 0 || castMemberships.length > 0) && (
               <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                 <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] mb-4">
                   Resume
@@ -202,9 +210,65 @@ export default function UserProfilePage() {
                   </div>
                 )}
 
+                {/* Cast Memberships from Auditions */}
+                {castMemberships.length > 0 && (
+                  <div className="space-y-4 mb-4">
+                    {castMemberships.map((member) => (
+                      <div
+                        key={member.cast_member_id}
+                        className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-semibold text-neu-text-primary mb-1">
+                                {member.show_info?.title || 'Untitled Production'}
+                              </h3>
+                              <svg
+                                className="w-5 h-5 text-green-400 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <title>Verified from audition</title>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            </div>
+                            <p className="text-neu-accent-primary font-medium">
+                              {member.role_info?.role_name || 'Ensemble'}
+                              {member.is_understudy && ' (Understudy)'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 text-sm text-neu-text-primary/80">
+                          {member.company_info?.name && (
+                            <p>
+                              <span className="text-neu-text-primary/60">Company: </span>
+                              {member.company_info.name}
+                            </p>
+                          )}
+                          {member.show_info?.author && (
+                            <p>
+                              <span className="text-neu-text-primary/60">Author: </span>
+                              {member.show_info.author}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Resume Entries */}
-                <div className="space-y-4">
-                  {resumes.map((resume) => (
+                {resumes.length > 0 && (
+                  <div className="space-y-4">
+                    {resumes.map((resume) => (
                     <div
                       key={resume.resume_entry_id}
                       className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border"
@@ -269,8 +333,9 @@ export default function UserProfilePage() {
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

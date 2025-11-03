@@ -51,7 +51,6 @@ export default function AddressInput({
           placesService.current = new (window as any).google.maps.places.PlacesService(
             document.createElement('div')
           );
-          console.log('Google Places API initialized successfully');
         } catch (err) {
           console.error('Failed to initialize Google Places API:', err);
           setError('Address verification unavailable');
@@ -246,7 +245,7 @@ export default function AddressInput({
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-50 w-full mt-2 bg-neu-surface border-neu-border rounded-xl shadow-2xl max-h-60 overflow-y-auto"
+          className="absolute z-[10000] w-full mt-2 bg-neu-surface border-neu-border rounded-xl shadow-2xl max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion) => (
             <button

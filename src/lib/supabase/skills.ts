@@ -58,8 +58,6 @@ export async function addSkill(
   userId: string,
   skillName: string
 ): Promise<{ data: string[] | null; error: any }> {
-  console.log('addSkill called with:', { userId, skillName });
-  
   // Verify the authenticated user matches the userId
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -96,7 +94,6 @@ export async function addSkill(
     return { data: null, error };
   }
 
-  console.log('Successfully added skill');
   return { data: updatedSkills, error: null };
 }
 

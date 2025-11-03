@@ -68,7 +68,6 @@ export default function RecurringEventForm({ onSave, onClose }: Props) {
       recurrenceRule: frequency === 'Daily' ? null : rule, // Assuming 'Daily' means no rule for simplicity
     };
     
-    console.log('Saving event:', eventToSave);
     // This is where you would call your API
     // await fetch('/api/events', { method: 'POST', body: JSON.stringify(eventToSave) });
     onSave(eventToSave);

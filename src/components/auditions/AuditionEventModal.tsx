@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { MdClose, MdCalendarToday, MdAccessTime, MdLocationOn, MdPerson, MdDelete } from 'react-icons/md';
 import { deleteAuditionSignup } from '@/lib/supabase/auditionSignups';
 import { useRouter } from 'next/navigation';
@@ -51,8 +52,32 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#4a7bd9]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <Transition appear show={true} as={Fragment}>
+      <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#4a7bd9]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-[#4a7bd9]/20 p-4 sm:p-6 flex items-start justify-between">
           <div className="flex-1">
@@ -239,7 +264,11 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
             {isDeleting ? 'Canceling...' : 'Cancel Signup'}
           </button>
         </div>
-      </div>
-    </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }
