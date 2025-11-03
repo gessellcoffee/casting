@@ -12,6 +12,7 @@ import type { Profile } from '@/lib/supabase/types';
 import type { LocationData } from '@/lib/google-maps/types';
 import Button from '@/components/Button';
 import SkillsSection from '@/components/SkillsSection';
+import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 
 export default function ProfilePage() {
@@ -195,6 +196,11 @@ export default function ProfilePage() {
               
               {!isEditing ? (
                 <div className="nav-buttons">
+                  <Link href="/profile/update-password">
+                    <Button 
+                      text="Update Password"
+                    />
+                  </Link>
                   <Button 
                     onClick={() => setIsEditing(true)}
                     text="Edit Profile"
