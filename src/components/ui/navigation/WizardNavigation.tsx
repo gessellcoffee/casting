@@ -23,6 +23,18 @@ export default function WizardNavigation({
   showNext = true,
   className = '',
 }: WizardNavigationProps) {
+  const handleNext = () => {
+    if (onNext) {
+      onNext();
+      // Delay scroll to allow DOM to update after state changes
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 0);
+      });
+    }
+  };
+
   return (
     <div className={`flex justify-between pt-6 ${className}`}>
       {showBack && onBack ? (
@@ -38,7 +50,7 @@ export default function WizardNavigation({
       )}
       {showNext && onNext && (
         <button
-          onClick={onNext}
+          onClick={handleNext}
           disabled={nextDisabled}
           className="n-button-primary px-6 py-3 rounded-xl border-none disabled:opacity-50 disabled:cursor-not-allowed"
         >

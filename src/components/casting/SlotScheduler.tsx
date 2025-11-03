@@ -85,6 +85,23 @@ export default function SlotScheduler({
   const [bufferTime, setBufferTime] = useState(0); // minutes
   const [defaultLocation, setDefaultLocation] = useState('');
   const [defaultMaxSignups, setDefaultMaxSignups] = useState(1);
+  
+  // Time increment configuration
+  const [timeIncrement, setTimeIncrement] = useState(5); // minutes per grid row
+  
+  // Ref for scrollable container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Scroll to 9AM on mount
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      // Calculate rows before 9AM: 9 hours * (60 / timeIncrement) rows per hour
+      const rowsBeforeNineAM = 9 * (60 / timeIncrement);
+      // Each row is 48px (h-12)
+      const scrollPosition = rowsBeforeNineAM * 48;
+      scrollContainerRef.current.scrollTop = scrollPosition;
+    }
+  }, [timeIncrement]);
 
   // Helper functions
   const getDayDate = (dayOffset: number): Date => {
@@ -161,8 +178,8 @@ export default function SlotScheduler({
     const start = new Date(slot.start_time);
     const end = new Date(slot.end_time);
     const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-    // Each 5-minute block is h-12 (48px), so calculate proportional height
-    return (durationMinutes / 5) * 48;
+    // Each time block is h-12 (48px), so calculate proportional height based on current increment
+    return (durationMinutes / timeIncrement) * 48;
   };
 
   const handleMouseDown = (day: number, hour: number, minute: number, e: React.MouseEvent) => {
@@ -306,10 +323,10 @@ export default function SlotScheduler({
     setCurrentWeekStart(newDate);
   };
 
-  // Generate time blocks (5-minute intervals)
+  // Generate time blocks (dynamic intervals based on timeIncrement)
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  const minutes = Array.from({ length: 60 / timeIncrement }, (_, i) => i * timeIncrement);
 
   return (
     <div className="space-y-6">
@@ -332,7 +349,23 @@ export default function SlotScheduler({
       {/* Default Settings */}
       <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
         <h3 className="text-lg font-medium text-neu-text-primary">Default Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
+              Time Increment
+            </label>
+            <select
+              value={timeIncrement}
+              onChange={(e) => setTimeIncrement(parseInt(e.target.value))}
+              className="neu-input"
+            >
+              <option value={5}>5 minutes</option>
+              <option value={10}>10 minutes</option>
+              <option value={15}>15 minutes</option>
+              <option value={20}>20 minutes</option>
+              <option value={30}>30 minutes</option>
+            </select>
+          </div>
           <AddressInput
             label="Location"
             value={defaultLocation}
@@ -386,9 +419,14 @@ export default function SlotScheduler({
             </select>
           </div>
         </div>
-        <p className="text-xs text-neu-text-primary/60">
-          Buffer time adds a gap between consecutive slots when generating multiple slots.
-        </p>
+        <div className="space-y-1">
+          <p className="text-xs text-neu-text-primary/60">
+            <strong>Time Increment:</strong> Controls the grid spacing on the calendar (smaller = more precise, larger = easier to view).
+          </p>
+          <p className="text-xs text-neu-text-primary/60">
+            <strong>Buffer Time:</strong> Adds a gap between consecutive slots when generating multiple slots.
+          </p>
+        </div>
       </div>
 
       {/* Week Navigation */}
@@ -411,12 +449,12 @@ export default function SlotScheduler({
       </div>
 
       {/* Calendar Grid */}
-      <div className="relative overflow-x-auto overflow-y-auto" style={{ maxHeight: '80vh' }}>
+      <div ref={scrollContainerRef} className="relative overflow-x-auto overflow-y-auto" style={{ maxHeight: '80vh' }}>
         <div className="inline-block min-w-full">
           {/* Sticky Header Row */}
           <div className="sticky top-0 z-30 text-black bg-(--neu-surface)">
-            <div className="grid grid-cols-8 gap-px bg-neu-surface border-t border-x border-neu-border rounded-t-xl">
-              <div className="bg-neu-surface p-2 text-center text-sm font-medium text-neu-text-primary">
+            <div className="grid grid-cols-8 gap-1 bg-neu-border/60 border-2 border-neu-border rounded-t-xl">
+              <div className="bg-neu-surface p-2 text-center text-sm font-medium text-neu-text-primary border border-neu-border">
                 <div>Time</div>
                 {localSlots.length > 0 && (
                   <button
@@ -435,7 +473,7 @@ export default function SlotScheduler({
                 return (
                   <div 
                     key={day} 
-                    className={`bg-neu-surface p-2 text-center ${!isAvailable ? 'opacity-40' : ''}`}
+                    className={`bg-neu-surface p-2 text-center border border-neu-border ${!isAvailable ? 'opacity-40' : ''}`}
                   >
                     <div className="text-sm font-medium text-neu-text-primary">{day}</div>
                     <div className="text-xs text-neu-text-primary/60">
@@ -451,7 +489,7 @@ export default function SlotScheduler({
           </div>
           
           {/* Scrollable Grid Body */}
-          <div className="grid grid-cols-8 gap-px bg-[#4a7bd9]/20 border-b border-x border-neu-border rounded-b-xl overflow-hidden">
+          <div className="grid grid-cols-8 gap-1 bg-neu-border/60 border-2 border-t-0 border-neu-border rounded-b-xl overflow-hidden">
             {/* Time Rows */}
             {hours.map((hour) =>
               minutes.map((minute) => (
@@ -478,13 +516,13 @@ export default function SlotScheduler({
                         onMouseDown={(e) => handleMouseDown(dayIndex, hour, minute, e)}
                         onMouseEnter={(e) => handleMouseEnter(dayIndex, hour, minute, e)}
                         onMouseUp={(e) => handleMouseUp(dayIndex, hour, minute, e)}
-                        className={`h-12 transition-colors relative ${
+                        className={`h-12 transition-colors relative border border-neu-border ${
                           !isAvailable
                             ? 'bg-[#1e2e4e]/50 cursor-not-allowed opacity-40'
                             : hasSlot && !slotAtBlock
-                            ? ' cursor-pointer border border-black'
+                            ? ' cursor-pointer border-2 border-black'
                             : isSelected
-                            ? 'bg-[#5a8ff5]/20 border border-black cursor-pointer'
+                            ? 'bg-[#5a8ff5]/20 border-2 border-[#5a8ff5] cursor-pointer'
                             : 'bg-neu-surface/30 hover:bg-neu-surface/60 cursor-pointer'
                         }`}
                       >
