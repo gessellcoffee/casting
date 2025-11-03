@@ -108,7 +108,7 @@ export default function ShowsPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-4xl font-bold text-neu-text-primary">Show Management</h1>
             <Link
-              href="/cast/new"
+              href="/shows/new"
               className="n-button-primary px-6 py-3 rounded-lg"
             >
               + Create New Show
@@ -158,7 +158,7 @@ export default function ShowsPage() {
             action={
               !searchQuery ? (
                 <Link
-                  href="/cast/new"
+                  href="/shows/new"
                   className="n-button-primary px-6 py-3 rounded-lg"
                 >
                   Create Your First Show

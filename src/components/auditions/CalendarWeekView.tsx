@@ -7,6 +7,8 @@ import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
 import { isToday } from '@/lib/utils/dateUtils';
 import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
+import PersonalEventModal from '@/components/events/PersonalEventModal';
+import type { CalendarEvent } from '@/lib/supabase/types';
 
 interface CalendarWeekViewProps {
   signups: any[];
@@ -20,6 +22,8 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Generate week days
@@ -149,7 +153,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
 
               {/* Events for this day */}
               <div className="space-y-2">
-                {daySignups.length === 0 && dayCallbacks.length === 0 ? (
+                {daySignups.length === 0 && dayCallbacks.length === 0 && dayPersonal.length === 0 ? (
                   <div className="text-xs text-neu-text-primary/40 text-center py-4">
                     No events
                   </div>
@@ -199,9 +203,10 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                     const startTime = new Date(evt.start);
                     const endTime = evt.end ? new Date(evt.end) : null;
                     return (
-                      <div
+                      <button
                         key={evt.id || `${evt.title}-${evt.start}`}
-                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-green-400/40"
+                        onClick={() => setSelectedPersonalEvent(evt)}
+                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-green-400/40 hover:bg-white/90 transition-all duration-200"
                       >
                         <div className="text-xs font-semibold text-green-600 mb-1">
                           {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
@@ -215,7 +220,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                             📍 {evt.location}
                           </div>
                         )}
-                      </div>
+                      </button>
                     );
                   })}
 
@@ -277,13 +282,43 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
           onUpdate={onRefresh}
         />
       )}
-      {showPersonalEventsModal && (
+      {showPersonalEventsModal && !editingPersonalEvent && (
         <EventForm
           isOpen={showPersonalEventsModal}
           onClose={() => setShowPersonalEventsModal(false)}
           onSave={() => loadEvents(weekRange.start, weekRange.end)}
           selectedDate={selectedDate || undefined}
           userId={userId}
+        />
+      )}
+      {editingPersonalEvent && (
+        <EventForm
+          isOpen={true}
+          onClose={() => {
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          onSave={() => {
+            loadEvents(weekRange.start, weekRange.end);
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          event={editingPersonalEvent}
+          userId={userId}
+        />
+      )}
+      {selectedPersonalEvent && !editingPersonalEvent && (
+        <PersonalEventModal
+          event={selectedPersonalEvent}
+          userId={userId}
+          onClose={() => setSelectedPersonalEvent(null)}
+          onDelete={() => {
+            loadEvents(weekRange.start, weekRange.end);
+            setSelectedPersonalEvent(null);
+          }}
+          onEdit={(event) => {
+            setEditingPersonalEvent(event);
+          }}
         />
       )}
     </>

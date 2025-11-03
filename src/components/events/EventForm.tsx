@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { X } from 'lucide-react';
-import { EventFormData, EventFrequency } from '@/lib/supabase/types';
-import { createEvent, updateEvent, CalendarEvent } from '@/lib/supabase/events';
+import { EventFormData, EventFrequency, CalendarEvent } from '@/lib/supabase/types';
+import { createEvent, updateEvent } from '@/lib/supabase/events';
 import DateArrayInput from '../ui/DateArrayInput';
+import AddressInput from '../ui/AddressInput';
+import { FormSelect } from '../ui/forms';
 
 const frequencyOptions = [
   { value: 'NONE', label: 'Does not repeat' },
@@ -15,6 +17,12 @@ const frequencyOptions = [
   { value: 'MONTHLY', label: 'Monthly' },
   { value: 'YEARLY', label: 'Yearly' },
   { value: 'CUSTOM', label: 'Custom...' },
+];
+
+const customFrequencyOptions = [
+  { value: 'WEEKLY', label: 'week' },
+  { value: 'MONTHLY', label: 'month' },
+  { value: 'YEARLY', label: 'year' },
 ];
 
 const dayOptions = [
@@ -62,6 +70,7 @@ export default function EventForm({
     isRecurring: false,
     recurrence: {
       frequency: 'WEEKLY',
+      customFrequencyType: 'WEEKLY',
       interval: 1,
       byDay: [],
       byMonthDay: [],
@@ -75,6 +84,11 @@ export default function EventForm({
   // Initialize form with event data when in edit mode
   useEffect(() => {
     if (initialEvent) {
+      const actualFrequency = (initialEvent.recurrenceRule?.frequency as EventFrequency) || 'WEEKLY';
+      // Determine if this was a custom recurrence (has byDay selections and interval > 1 or specific pattern)
+      const hasCustomPattern = initialEvent.recurrenceRule?.byDay && initialEvent.recurrenceRule.byDay.length > 0;
+      const isCustom = hasCustomPattern && (actualFrequency === 'WEEKLY' || actualFrequency === 'MONTHLY' || actualFrequency === 'YEARLY');
+      
       setFormData({
         title: initialEvent.title,
         description: initialEvent.description || '',
@@ -85,7 +99,8 @@ export default function EventForm({
         color: initialEvent.color || '#3b82f6',
         isRecurring: initialEvent.isRecurring || false,
         recurrence: {
-          frequency: (initialEvent.recurrenceRule?.frequency as EventFrequency) || 'WEEKLY',
+          frequency: isCustom ? 'CUSTOM' : actualFrequency,
+          customFrequencyType: (actualFrequency as 'WEEKLY' | 'MONTHLY' | 'YEARLY'),
           interval: initialEvent.recurrenceRule?.interval || 1,
           byDay: initialEvent.recurrenceRule?.byDay || [],
           byMonthDay: initialEvent.recurrenceRule?.byMonthDay || [],
@@ -173,9 +188,16 @@ export default function EventForm({
         onSave(result);
         onClose();
       }
-    } catch (error) {
-      console.error('Error saving event:', error);
-      // Handle error (show toast, etc.)
+    } catch (error: any) {
+      console.error('Error saving event:', {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error
+      });
+      // TODO: Show user-friendly error message (toast notification)
+      alert(`Failed to save event: ${error?.message || 'Unknown error'}`);
     }
   };
 
@@ -188,7 +210,7 @@ export default function EventForm({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Repeats
           </label>
-          <select
+          <FormSelect
             className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             value={formData.recurrence.frequency}
             onChange={(e) => handleRecurrenceChange('frequency', e.target.value as EventFrequency)}
@@ -198,7 +220,7 @@ export default function EventForm({
                 {option.label}
               </option>
             ))}
-          </select>
+          </FormSelect>
         </div>
 
         {formData.recurrence.frequency === 'CUSTOM' && (
@@ -207,7 +229,7 @@ export default function EventForm({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Every
               </label>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <input
                   type="number"
                   min="1"
@@ -215,11 +237,17 @@ export default function EventForm({
                   value={formData.recurrence.interval}
                   onChange={(e) => handleRecurrenceChange('interval', parseInt(e.target.value) || 1)}
                 />
-                <span className="ml-2">
-                  {formData.recurrence.interval === 1
-                    ? frequencyOptions.find(f => f.value === formData.recurrence.frequency)?.label?.toLowerCase() || 'day(s)'
-                    : frequencyOptions.find(f => f.value === formData.recurrence.frequency)?.label?.toLowerCase() + 's' || 'days'}
-                </span>
+                <FormSelect
+                  className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  value={formData.recurrence.customFrequencyType || 'WEEKLY'}
+                  onChange={(e) => handleRecurrenceChange('customFrequencyType', e.target.value as 'WEEKLY' | 'MONTHLY' | 'YEARLY')}
+                >
+                  {customFrequencyOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {formData.recurrence.interval === 1 ? option.label : option.label + 's'}
+                    </option>
+                  ))}
+                </FormSelect>
               </div>
             </div>
 
@@ -279,7 +307,7 @@ export default function EventForm({
                     <span className="text-sm text-gray-700 mr-2">On</span>
                     <input
                       type="date"
-                      className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      className="neu-input"
                       value={formData.recurrence.endDate}
                       onChange={(e) => handleRecurrenceChange('endDate', e.target.value)}
                       disabled={formData.recurrence.endType !== 'on'}
@@ -292,7 +320,7 @@ export default function EventForm({
                     type="radio"
                     id="endAfter"
                     name="endType"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    className="neu-input"
                     checked={formData.recurrence.endType === 'after'}
                     onChange={() => handleRecurrenceChange('endType', 'after')}
                   />
@@ -301,7 +329,7 @@ export default function EventForm({
                     <input
                       type="number"
                       min="1"
-                      className="w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      className="neu-input"
                       value={formData.recurrence.occurrences}
                       onChange={(e) => handleRecurrenceChange('occurrences', parseInt(e.target.value) || 1)}
                       disabled={formData.recurrence.endType !== 'after'}
@@ -319,7 +347,7 @@ export default function EventForm({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+      <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -332,8 +360,8 @@ export default function EventForm({
           <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className="fixed inset-0 overflow-y-auto pt-24">
+          <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -367,7 +395,7 @@ export default function EventForm({
                       id="title"
                       name="title"
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="neu-input"
                       value={formData.title}
                       onChange={handleInputChange}
                     />
@@ -381,7 +409,7 @@ export default function EventForm({
                       id="description"
                       name="description"
                       rows={3}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="neu-input"
                       value={formData.description}
                       onChange={handleInputChange}
                     />
@@ -397,12 +425,12 @@ export default function EventForm({
                         id="start"
                         name="start"
                         required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="neu-input w-auto"
                         value={formData.start}
                         onChange={handleInputChange}
                       />
                     </div>
-
+        <br/>
                     <div>
                       <label htmlFor="end" className="block text-sm font-medium text-gray-700">
                         End <span className="text-red-500">*</span>
@@ -412,7 +440,7 @@ export default function EventForm({
                         id="end"
                         name="end"
                         required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="neu-input w-auto"
                         value={formData.end}
                         onChange={handleInputChange}
                         min={formData.start}
@@ -425,7 +453,6 @@ export default function EventForm({
                       type="checkbox"
                       id="allDay"
                       name="allDay"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       checked={formData.allDay}
                       onChange={handleInputChange}
                     />
@@ -435,12 +462,11 @@ export default function EventForm({
                   </div>
 
                   <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                      Location
-                    </label>
-                    <DateArrayInput
-                      value={formData.recurrence.byDay}
-                      onChange={handleDateChange}
+                    <AddressInput
+                      value={formData.location || ''}
+                      onChange={(value, isVerified, placeDetails) => {
+                        setFormData((prev) => ({ ...prev, location: value }));
+                      }}
                     />
                   </div>
 
@@ -453,12 +479,11 @@ export default function EventForm({
                         type="color"
                         id="color"
                         name="color"
-                        className="h-8 w-8 rounded border border-gray-300 cursor-pointer"
-                        value={formData.color}
+                        value={formData.color || '#3b82f6'}
                         onChange={handleInputChange}
                       />
                       <span className="ml-2 text-sm text-gray-500">
-                        {formData.color.toUpperCase()}
+                        {formData.color?.toUpperCase() || '#3B82F6'}
                       </span>
                     </div>
                   </div>

@@ -8,6 +8,8 @@ import EmptyState from '@/components/ui/feedback/EmptyState';
 import Badge from '@/components/ui/feedback/Badge';
 import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
+import PersonalEventModal from '@/components/events/PersonalEventModal';
+import type { CalendarEvent } from '@/lib/supabase/types';
 
 interface CalendarListViewProps {
   signups: any[];
@@ -21,6 +23,8 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Load a broad range of personal events initially
@@ -224,11 +228,16 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                   const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
 
                   const Wrapper: any = 'button';
-                  const clickable = !isPersonal; // avoid opening audition modal for personal
                   return (
                     <Wrapper
                       key={isCallback ? event.invitation_id : event.signup_id || event.id || `${event.title}-${event.start}`}
-                      onClick={clickable ? () => setSelectedEvent(isCallback ? { ...event, isCallback: true } : event) : undefined}
+                      onClick={() => {
+                        if (isPersonal) {
+                          setSelectedPersonalEvent(event);
+                        } else {
+                          setSelectedEvent(isCallback ? { ...event, isCallback: true } : event);
+                        }
+                      }}
                       className="w-full text-left p-3 sm:p-4 rounded-lg bg-white/70 backdrop-blur-sm border border-neu-border/40 hover:border-neu-border-focus hover:bg-white/85 transition-all duration-200"
                     >
                       <div className="flex items-start justify-between gap-2 sm:gap-4">

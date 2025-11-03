@@ -487,12 +487,65 @@ export type Database = {
           }
         ];
       };
+      audition_roles: {
+        Row: {
+          audition_role_id: string;
+          audition_id: string;
+          role_id: string | null;
+          role_name: string;
+          description: string | null;
+          role_type: Database['public']['Enums']['role_type_enum'] | null;
+          gender: Database['public']['Enums']['role_genders'] | null;
+          needs_understudy: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          audition_role_id?: string;
+          audition_id: string;
+          role_id?: string | null;
+          role_name: string;
+          description?: string | null;
+          role_type?: Database['public']['Enums']['role_type_enum'] | null;
+          gender?: Database['public']['Enums']['role_genders'] | null;
+          needs_understudy?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          audition_role_id?: string;
+          audition_id?: string;
+          role_id?: string | null;
+          role_name?: string;
+          description?: string | null;
+          role_type?: Database['public']['Enums']['role_type_enum'] | null;
+          gender?: Database['public']['Enums']['role_genders'] | null;
+          needs_understudy?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'audition_roles_audition_id_fkey';
+            columns: ['audition_id'];
+            referencedRelation: 'auditions';
+            referencedColumns: ['audition_id'];
+          },
+          {
+            foreignKeyName: 'audition_roles_role_id_fkey';
+            columns: ['role_id'];
+            referencedRelation: 'roles';
+            referencedColumns: ['role_id'];
+          }
+        ];
+      };
       cast_members: {
         Row: {
           cast_member_id: string;
           audition_id: string;
           user_id: string;
           role_id: string | null;
+          audition_role_id: string | null;
           status: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy: boolean;
         };
@@ -501,6 +554,7 @@ export type Database = {
           audition_id: string;
           user_id: string;
           role_id?: string | null;
+          audition_role_id?: string | null;
           status?: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy?: boolean;
         };
@@ -509,6 +563,7 @@ export type Database = {
           audition_id?: string;
           user_id?: string;
           role_id?: string | null;
+          audition_role_id?: string | null;
           status?: Database['public']['Enums']['cast_status_enum'] | null;
           is_understudy?: boolean;
         };
@@ -530,6 +585,12 @@ export type Database = {
             columns: ['role_id'];
             referencedRelation: 'roles';
             referencedColumns: ['role_id'];
+          },
+          {
+            foreignKeyName: 'cast_members_audition_role_id_fkey';
+            columns: ['audition_role_id'];
+            referencedRelation: 'audition_roles';
+            referencedColumns: ['audition_role_id'];
           }
         ];
       };
@@ -772,6 +833,11 @@ export type UserSignupsWithDetails = AuditionSignup & {
   } | null;
 };
 
+// Audition Role types for easier use
+export type AuditionRole = Database['public']['Tables']['audition_roles']['Row'];
+export type AuditionRoleInsert = Database['public']['Tables']['audition_roles']['Insert'];
+export type AuditionRoleUpdate = Database['public']['Tables']['audition_roles']['Update'];
+
 // Cast Member types for easier use
 export type CastMember = Database['public']['Tables']['cast_members']['Row'];
 export type CastMemberInsert = Database['public']['Tables']['cast_members']['Insert'];
@@ -848,6 +914,7 @@ export interface EventFormData {
   isRecurring: boolean;
   recurrence: {
     frequency: EventFrequency;
+    customFrequencyType?: 'WEEKLY' | 'MONTHLY' | 'YEARLY'; // Used when frequency is CUSTOM
     interval: number;
     byDay: string[];      // e.g. ['MO','WE']
     byMonthDay: number[]; // specific days of month
@@ -870,4 +937,8 @@ export interface CalendarEvent {
   color?: string | null;
   isRecurring?: boolean;
   recurrenceRule?: any | null;
+  // Metadata for recurring event instances
+  _isInstance?: boolean;
+  _originalEventId?: string;
+  _instanceDate?: string;
 }

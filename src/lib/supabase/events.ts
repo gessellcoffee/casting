@@ -1,22 +1,23 @@
 import { supabase } from './client';
-import type { EventFormData } from './types';
-
-export type CalendarEvent = {
-  id: string;
-  userId: string;
-  title: string;
-  description?: string | null;
-  start: string | Date; // stored as ISO string from DB, UI may convert to Date
-  end: string | Date;
-  allDay?: boolean;
-  location?: string | null;
-  color?: string | null;
-  isRecurring?: boolean;
-  recurrenceRule?: any | null;
-};
+import type { EventFormData, CalendarEvent } from './types';
+import { expandRecurringEvents } from '@/lib/utils/recurrenceUtils';
 
 // Map a DB row to the CalendarEvent shape expected by UI
 function mapRow(row: any): CalendarEvent {
+  // Map recurrence rule from the joined table or recurrence_rule_id
+  let recurrenceRule = null;
+  if (row.recurrence_rules) {
+    recurrenceRule = {
+      frequency: row.recurrence_rules.frequency,
+      interval: row.recurrence_rules.interval,
+      byDay: row.recurrence_rules.by_day || [],
+      byMonthDay: row.recurrence_rules.by_month_day || [],
+      byMonth: row.recurrence_rules.by_month || [],
+      until: row.recurrence_rules.until,
+      count: row.recurrence_rules.count,
+    };
+  }
+
   return {
     id: row.id,
     userId: row.user_id,
@@ -27,8 +28,8 @@ function mapRow(row: any): CalendarEvent {
     allDay: row.all_day ?? false,
     location: row.location ?? null,
     color: row.color ?? null,
-    isRecurring: !!row.recurrence_rule,
-    recurrenceRule: row.recurrence_rule ?? null,
+    isRecurring: !!row.recurrence_rule_id,
+    recurrenceRule: recurrenceRule,
   };
 }
 
@@ -36,88 +37,234 @@ export async function getEvents(startDate: Date, endDate: Date, userId: string):
   const startIso = startDate.toISOString();
   const endIso = endDate.toISOString();
 
-  const { data, error } = await (supabase as any)
+  // Fetch non-recurring events within the date range
+  const { data: nonRecurringData, error: nonRecurringError } = await (supabase as any)
     .from('events')
-    .select('*')
+    .select('*, recurrence_rules(*)')
     .eq('user_id', userId)
+    .is('recurrence_rule_id', null)
     .gte('start_time', startIso)
     .lte('start_time', endIso)
     .order('start_time', { ascending: true });
 
-  if (error) {
-    throw error;
+  if (nonRecurringError) {
+    throw nonRecurringError;
   }
-  return (data || []).map(mapRow);
+
+  // Fetch ALL recurring events for this user (regardless of start date)
+  // We need to expand them to see which instances fall within the date range
+  const { data: recurringData, error: recurringError } = await (supabase as any)
+    .from('events')
+    .select('*, recurrence_rules(*)')
+    .eq('user_id', userId)
+    .not('recurrence_rule_id', 'is', null)
+    .order('start_time', { ascending: true });
+
+  if (recurringError) {
+    throw recurringError;
+  }
+
+  // Map all events
+  const nonRecurringEvents = (nonRecurringData || []).map(mapRow);
+  const recurringEvents = (recurringData || []).map(mapRow);
+
+  console.log('[getEvents] Date range:', { startDate, endDate });
+  console.log('[getEvents] Non-recurring events:', nonRecurringEvents.length);
+  console.log('[getEvents] Recurring events (base):', recurringEvents.length);
+
+  // Expand recurring events into instances within the date range
+  const expandedRecurringEvents = expandRecurringEvents(recurringEvents, startDate, endDate);
+
+  console.log('[getEvents] Expanded recurring events:', expandedRecurringEvents.length);
+  console.log('[getEvents] Sample expanded events:', expandedRecurringEvents.slice(0, 3));
+
+  // Combine and sort all events
+  const allEvents = [...nonRecurringEvents, ...expandedRecurringEvents];
+  return allEvents.sort((a, b) => {
+    const aTime = new Date(a.start).getTime();
+    const bTime = new Date(b.start).getTime();
+    return aTime - bTime;
+  });
 }
 
 export async function createEvent(form: EventFormData, userId: string): Promise<CalendarEvent | null> {
-  const payload: any = {
-    user_id: userId,
-    title: form.title,
-    description: form.description ?? null,
-    start_time: form.start,
-    end_time: form.end,
-    all_day: !!form.allDay,
-    location: form.location ?? null,
-    color: form.color ?? null,
-    recurrence_rule: form.isRecurring ? {
-      frequency: form.recurrence.frequency,
-      interval: form.recurrence.interval,
-      byDay: form.recurrence.byDay,
-      byMonthDay: form.recurrence.byMonthDay,
-      byMonth: form.recurrence.byMonth,
-      endType: form.recurrence.endType,
-      endDate: form.recurrence.endDate,
-      occurrences: form.recurrence.occurrences,
-    } : null,
-  };
+  try {
+    let recurrenceRuleId: string | null = null;
 
-  const { data, error } = await (supabase as any)
-    .from('events')
-    .insert(payload)
-    .select('*')
-    .single();
+    // If recurring, create the recurrence rule first
+    if (form.isRecurring && form.recurrence.frequency !== 'NONE') {
+      // Use customFrequencyType when frequency is CUSTOM, otherwise use frequency
+      const actualFrequency = form.recurrence.frequency === 'CUSTOM' 
+        ? form.recurrence.customFrequencyType || 'WEEKLY'
+        : form.recurrence.frequency;
+      
+      const recurrencePayload: any = {
+        frequency: actualFrequency,
+        interval: form.recurrence.interval,
+        by_day: form.recurrence.byDay.length > 0 ? form.recurrence.byDay : null,
+        by_month_day: form.recurrence.byMonthDay.length > 0 ? form.recurrence.byMonthDay : null,
+        by_month: form.recurrence.byMonth.length > 0 ? form.recurrence.byMonth : null,
+      };
 
-  if (error) {
+      // Add end conditions
+      if (form.recurrence.endType === 'on' && form.recurrence.endDate) {
+        recurrencePayload.until = new Date(form.recurrence.endDate).toISOString();
+      } else if (form.recurrence.endType === 'after' && form.recurrence.occurrences) {
+        recurrencePayload.count = form.recurrence.occurrences;
+      }
+
+      const { data: ruleData, error: ruleError } = await (supabase as any)
+        .from('recurrence_rules')
+        .insert(recurrencePayload)
+        .select('id')
+        .single();
+
+      if (ruleError) {
+        console.error('Error creating recurrence rule:', ruleError);
+        throw ruleError;
+      }
+
+      recurrenceRuleId = ruleData.id;
+    }
+
+    // Create the event
+    const payload: any = {
+      user_id: userId,
+      title: form.title,
+      description: form.description ?? null,
+      start_time: form.start,
+      end_time: form.end,
+      all_day: !!form.allDay,
+      location: form.location ?? null,
+      color: form.color ?? null,
+      recurrence_rule_id: recurrenceRuleId,
+    };
+
+    const { data, error } = await (supabase as any)
+      .from('events')
+      .insert(payload)
+      .select('*, recurrence_rules(*)')
+      .single();
+
+    if (error) {
+      console.error('Error creating event:', error);
+      throw error;
+    }
+    return data ? mapRow(data) : null;
+  } catch (error) {
+    console.error('Error in createEvent:', error);
     throw error;
   }
-  return data ? mapRow(data) : null;
 }
 
 export async function updateEvent(eventId: string, form: EventFormData, userId: string): Promise<CalendarEvent | null> {
-  const updates: any = {
-    title: form.title,
-    description: form.description ?? null,
-    start_time: form.start,
-    end_time: form.end,
-    all_day: !!form.allDay,
-    location: form.location ?? null,
-    color: form.color ?? null,
-    recurrence_rule: form.isRecurring ? {
-      frequency: form.recurrence.frequency,
-      interval: form.recurrence.interval,
-      byDay: form.recurrence.byDay,
-      byMonthDay: form.recurrence.byMonthDay,
-      byMonth: form.recurrence.byMonth,
-      endType: form.recurrence.endType,
-      endDate: form.recurrence.endDate,
-      occurrences: form.recurrence.occurrences,
-    } : null,
-    updated_at: new Date().toISOString(),
-  };
+  try {
+    // Get the current event to check if it has a recurrence rule
+    const { data: currentEvent, error: fetchError } = await (supabase as any)
+      .from('events')
+      .select('recurrence_rule_id')
+      .eq('id', eventId)
+      .eq('user_id', userId)
+      .single();
 
-  const { data, error } = await (supabase as any)
-    .from('events')
-    .update(updates)
-    .eq('id', eventId)
-    .eq('user_id', userId)
-    .select('*')
-    .single();
+    if (fetchError) {
+      console.error('Error fetching current event:', fetchError);
+      throw fetchError;
+    }
 
-  if (error) {
+    let recurrenceRuleId: string | null = null;
+
+    // Handle recurrence rule updates
+    if (form.isRecurring && form.recurrence.frequency !== 'NONE') {
+      // Use customFrequencyType when frequency is CUSTOM, otherwise use frequency
+      const actualFrequency = form.recurrence.frequency === 'CUSTOM' 
+        ? form.recurrence.customFrequencyType || 'WEEKLY'
+        : form.recurrence.frequency;
+      
+      const recurrencePayload: any = {
+        frequency: actualFrequency,
+        interval: form.recurrence.interval,
+        by_day: form.recurrence.byDay.length > 0 ? form.recurrence.byDay : null,
+        by_month_day: form.recurrence.byMonthDay.length > 0 ? form.recurrence.byMonthDay : null,
+        by_month: form.recurrence.byMonth.length > 0 ? form.recurrence.byMonth : null,
+      };
+
+      // Add end conditions
+      if (form.recurrence.endType === 'on' && form.recurrence.endDate) {
+        recurrencePayload.until = new Date(form.recurrence.endDate).toISOString();
+      } else if (form.recurrence.endType === 'after' && form.recurrence.occurrences) {
+        recurrencePayload.count = form.recurrence.occurrences;
+      }
+
+      if (currentEvent.recurrence_rule_id) {
+        // Update existing rule
+        const { error: ruleError } = await (supabase as any)
+          .from('recurrence_rules')
+          .update(recurrencePayload)
+          .eq('id', currentEvent.recurrence_rule_id);
+
+        if (ruleError) {
+          console.error('Error updating recurrence rule:', ruleError);
+          throw ruleError;
+        }
+        recurrenceRuleId = currentEvent.recurrence_rule_id;
+      } else {
+        // Create new rule
+        const { data: ruleData, error: ruleError } = await (supabase as any)
+          .from('recurrence_rules')
+          .insert(recurrencePayload)
+          .select('id')
+          .single();
+
+        if (ruleError) {
+          console.error('Error creating recurrence rule:', ruleError);
+          throw ruleError;
+        }
+        recurrenceRuleId = ruleData.id;
+      }
+    } else if (currentEvent.recurrence_rule_id) {
+      // Delete the recurrence rule if it exists and is no longer needed
+      const { error: deleteError } = await (supabase as any)
+        .from('recurrence_rules')
+        .delete()
+        .eq('id', currentEvent.recurrence_rule_id);
+
+      if (deleteError) {
+        console.error('Error deleting recurrence rule:', deleteError);
+        // Don't throw here, just log the error
+      }
+    }
+
+    // Update the event
+    const updates: any = {
+      title: form.title,
+      description: form.description ?? null,
+      start_time: form.start,
+      end_time: form.end,
+      all_day: !!form.allDay,
+      location: form.location ?? null,
+      color: form.color ?? null,
+      recurrence_rule_id: recurrenceRuleId,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await (supabase as any)
+      .from('events')
+      .update(updates)
+      .eq('id', eventId)
+      .eq('user_id', userId)
+      .select('*, recurrence_rules(*)')
+      .single();
+
+    if (error) {
+      console.error('Error updating event:', error);
+      throw error;
+    }
+    return data ? mapRow(data) : null;
+  } catch (error) {
+    console.error('Error in updateEvent:', error);
     throw error;
   }
-  return data ? mapRow(data) : null;
 }
 
 export async function deleteEvent(eventId: string, userId: string): Promise<boolean> {

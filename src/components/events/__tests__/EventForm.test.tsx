@@ -71,5 +71,49 @@ describe('EventForm', () => {
       // Check that day options are not rendered
       expect(screen.queryByText('On days')).not.toBeInTheDocument();
     });
+
+    it('should render custom frequency type selector when frequency is CUSTOM', () => {
+      render(
+        <EventForm {...defaultProps} />
+      );
+
+      // Enable recurring events
+      const recurringToggle = screen.getByRole('switch', { name: /enable recurrence/i });
+      fireEvent.click(recurringToggle);
+
+      // Select CUSTOM frequency
+      const frequencySelect = screen.getByRole('combobox');
+      fireEvent.change(frequencySelect, { target: { value: 'CUSTOM' } });
+
+      // Check that custom frequency type selector is rendered
+      const customFrequencySelects = screen.getAllByRole('combobox');
+      expect(customFrequencySelects.length).toBeGreaterThan(1);
+      
+      // Verify the options include week, month, year
+      const customTypeSelect = customFrequencySelects[1];
+      expect(customTypeSelect).toBeInTheDocument();
+    });
+
+    it('should update custom frequency type when changed', () => {
+      render(
+        <EventForm {...defaultProps} />
+      );
+
+      // Enable recurring events
+      const recurringToggle = screen.getByRole('switch', { name: /enable recurrence/i });
+      fireEvent.click(recurringToggle);
+
+      // Select CUSTOM frequency
+      const frequencySelect = screen.getByRole('combobox');
+      fireEvent.change(frequencySelect, { target: { value: 'CUSTOM' } });
+
+      // Change custom frequency type to MONTHLY
+      const customFrequencySelects = screen.getAllByRole('combobox');
+      const customTypeSelect = customFrequencySelects[1];
+      fireEvent.change(customTypeSelect, { target: { value: 'MONTHLY' } });
+
+      // Verify the value changed
+      expect(customTypeSelect).toHaveValue('MONTHLY');
+    });
   });
 });

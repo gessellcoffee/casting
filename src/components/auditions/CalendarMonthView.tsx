@@ -6,9 +6,11 @@ import CallbackDetailsModal from '@/components/callbacks/CallbackDetailsModal';
 import PersonalEvents from './PersonalEvents';
 import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
+import PersonalEventModal from '@/components/events/PersonalEventModal';
 import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
 import { isToday } from '@/lib/utils/dateUtils';
 import { useRouter } from 'next/navigation';
+import type { CalendarEvent } from '@/lib/supabase/types';
 
 
 interface CalendarMonthViewProps {
@@ -24,6 +26,8 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Generate calendar grid
@@ -204,9 +208,13 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                 {dayPersonal.slice(0, Math.max(0, 3 - daySignups.length)).map((evt: any) => {
                   const startTime = new Date(evt.start);
                   return (
-                    <div
+                    <button
                       key={evt.id || `${evt.title}-${evt.start}`}
-                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-green-400/40 text-neu-text-primary truncate"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPersonalEvent(evt);
+                      }}
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-green-400/40 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
                       title={evt.title}
                     >
                       <div className="font-medium truncate">{evt.title}</div>
@@ -216,7 +224,7 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                           minute: '2-digit',
                         })}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
 
@@ -286,7 +294,7 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
           onUpdate={onRefresh}
         />
       )}
-      {showPersonalEventsModal && (
+      {showPersonalEventsModal && !editingPersonalEvent && (
         <EventForm
           isOpen={showPersonalEventsModal}
           onClose={() => setShowPersonalEventsModal(false)}
@@ -297,6 +305,40 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
           }}
           selectedDate={selectedDate || undefined}
           userId={userId}
+        />
+      )}
+      {editingPersonalEvent && (
+        <EventForm
+          isOpen={true}
+          onClose={() => {
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          onSave={() => {
+            if (monthRange) {
+              loadEvents(monthRange.start, monthRange.end);
+            }
+            setEditingPersonalEvent(null);
+            setSelectedPersonalEvent(null);
+          }}
+          event={editingPersonalEvent}
+          userId={userId}
+        />
+      )}
+      {selectedPersonalEvent && !editingPersonalEvent && (
+        <PersonalEventModal
+          event={selectedPersonalEvent}
+          userId={userId}
+          onClose={() => setSelectedPersonalEvent(null)}
+          onDelete={() => {
+            if (monthRange) {
+              loadEvents(monthRange.start, monthRange.end);
+            }
+            setSelectedPersonalEvent(null);
+          }}
+          onEdit={(event) => {
+            setEditingPersonalEvent(event);
+          }}
         />
       )}
     </>
