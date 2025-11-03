@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { deleteCallbackInvitation } from '@/lib/supabase/callbackInvitations';
+import UserProfileModal from '@/components/casting/UserProfileModal';
 
 interface CallbackInvitationsListProps {
   auditionId: string;
@@ -20,6 +21,7 @@ export default function CallbackInvitationsList({
   const [slotFilter, setSlotFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Flatten all invitations from all slots
   const allInvitations = useMemo(() => {
@@ -274,9 +276,12 @@ export default function CallbackInvitationsList({
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
-                              <h4 className="text-base font-semibold text-neu-text-primary mb-1">
+                              <button
+                                onClick={() => setSelectedUserId(invitation.user_id)}
+                                className="text-base font-semibold text-neu-accent-primary hover:text-neu-accent-secondary hover:underline transition-colors text-left"
+                              >
                                 {profile?.first_name} {profile?.last_name}
-                              </h4>
+                              </button>
                               {role && (
                                 <p className="text-sm text-neu-text-primary/70 mb-2">
                                   Role: {role.role_name}
@@ -343,6 +348,14 @@ export default function CallbackInvitationsList({
           </div>
         )}
       </div>
+
+      {/* User Profile Modal */}
+      {selectedUserId && (
+        <UserProfileModal
+          userId={selectedUserId}
+          onClose={() => setSelectedUserId(null)}
+        />
+      )}
     </div>
   );
 }

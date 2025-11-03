@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { sendCallbackInvitations } from '@/lib/supabase/callbackInvitations';
 import type { CallbackInvitationInsert } from '@/lib/supabase/types';
+import UserProfileModal from '@/components/casting/UserProfileModal';
 
 interface AuditoneeSelectorProps {
   auditionId: string;
@@ -31,6 +32,7 @@ export default function AuditioneeSelector({
   const [filterRole, setFilterRole] = useState<string>('all');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Get unique roles for filtering
   const roles = useMemo(() => {
@@ -284,9 +286,12 @@ export default function AuditioneeSelector({
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className="text-lg font-semibold text-neu-text-primary">
+                          <button
+                            onClick={() => setSelectedUserId(auditionee.user_id)}
+                            className="text-lg font-semibold text-neu-accent-primary hover:text-neu-accent-secondary hover:underline transition-colors text-left"
+                          >
                             {profile?.first_name} {profile?.last_name}
-                          </h3>
+                          </button>
                           {profile?.username && (
                             <p className="text-sm text-neu-text-primary/50 mb-1">
                               @{profile.username}
@@ -410,6 +415,14 @@ export default function AuditioneeSelector({
           </button>
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      {selectedUserId && (
+        <UserProfileModal
+          userId={selectedUserId}
+          onClose={() => setSelectedUserId(null)}
+        />
+      )}
     </div>
   );
 }

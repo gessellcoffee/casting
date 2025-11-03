@@ -5,6 +5,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { X, Edit, Trash2, Calendar, Clock, MapPin } from 'lucide-react';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import { deleteEvent } from '@/lib/supabase/events';
+import Button from '../Button';
 
 interface PersonalEventModalProps {
   event: CalendarEvent;
@@ -75,7 +76,7 @@ export default function PersonalEventModal({
           <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto pt-24">
+        <div className="fixed inset-0 overflow-y-auto pt-24 neu-card-raised">
           <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
@@ -86,7 +87,7 @@ export default function PersonalEventModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-neu-surface border border-neu-border p-6 text-left align-middle shadow-xl transition-all">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -97,14 +98,14 @@ export default function PersonalEventModal({
                       {event.title}
                     </Dialog.Title>
                     {isRecurringInstance && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#5a8ff5]/20 border border-[#5a8ff5]/50 text-[#5a8ff5]">
                         🔁 Recurring Event
                       </span>
                     )}
                   </div>
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-500"
+                    className=" text-neu-text-primary/60 hover:text-neu-text-primary transition-colors"
                     onClick={onClose}
                   >
                     <X className="h-6 w-6" />
@@ -115,7 +116,7 @@ export default function PersonalEventModal({
                 <div className="space-y-4">
                   {/* Date and Time */}
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <Calendar className="w-5 h-5 text-neu-text-primary/60 mt-0.5" />
                     <div>
                       <div className="text-sm font-medium text-neu-text-primary">
                         {startTime.toLocaleDateString('en-US', {
@@ -125,7 +126,7 @@ export default function PersonalEventModal({
                           day: 'numeric',
                         })}
                       </div>
-                      <div className="text-sm text-gray-600 mt-1 space-y-1">
+                      <div className="text-sm text-neu-text-primary/70 mt-1 space-y-1">
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
                           <span>
@@ -151,7 +152,7 @@ export default function PersonalEventModal({
                   {/* Location */}
                   {event.location && (
                     <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                      <MapPin className="w-5 h-5 text-neu-text-primary/60 mt-0.5" />
                       <div className="text-sm text-neu-text-primary">
                         {event.location}
                       </div>
@@ -160,8 +161,8 @@ export default function PersonalEventModal({
 
                   {/* Description */}
                   {event.description && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    <div className="pt-2 border-t border-neu-border">
+                      <p className="text-sm text-neu-text-primary/70 whitespace-pre-wrap">
                         {event.description}
                       </p>
                     </div>
@@ -169,9 +170,9 @@ export default function PersonalEventModal({
 
                   {/* Recurrence Info */}
                   {event.isRecurring && event.recurrenceRule && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Repeats:</span>{' '}
+                    <div className="pt-2 border-t border-neu-border">
+                      <div className="text-sm text-neu-text-primary/70">
+                        <span className="font-medium text-neu-text-primary">Repeats:</span>{' '}
                         {event.recurrenceRule.frequency}
                         {event.recurrenceRule.interval > 1 &&
                           ` (every ${event.recurrenceRule.interval})`}
@@ -192,27 +193,29 @@ export default function PersonalEventModal({
 
                 {/* Delete Confirmation */}
                 {showDeleteConfirm && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-800 mb-3">
+                  <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <p className="text-sm text-red-400 mb-3">
                       {isRecurringInstance
                         ? 'This will delete all occurrences of this recurring event. Are you sure?'
                         : 'Are you sure you want to delete this event?'}
                     </p>
                     <div className="flex gap-2">
-                      <button
+                      <Button
+                        title="Delete"
                         onClick={handleDelete}
                         disabled={isDeleting}
-                        className="flex-1 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="neu-button-primary flex-1 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {isDeleting ? 'Deleting...' : 'Yes, Delete'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        title="Cancel"
                         onClick={() => setShowDeleteConfirm(false)}
                         disabled={isDeleting}
-                        className="flex-1 px-3 py-2 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                        className="flex-1 px-3 py-2 bg-neu-surface text-neu-text-primary text-sm font-medium rounded-md border border-neu-border hover:bg-neu-surface/70 disabled:opacity-50 transition-colors"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -220,20 +223,21 @@ export default function PersonalEventModal({
                 {/* Action Buttons */}
                 {!showDeleteConfirm && (
                   <div className="mt-6 flex gap-3">
-                    <button
+                    <Button
+                      text="Edit"
+                      variant="primary"
                       onClick={handleEdit}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      className='w-full'
                     >
                       <Edit className="w-4 h-4" />
                       Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      text="Delete"
+                      variant="danger"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
+                      className='w-full'
+                    />
                   </div>
                 )}
               </Dialog.Panel>

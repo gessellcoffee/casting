@@ -144,7 +144,7 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                 <div className="mt-2">
                   <button
                     onClick={() => { setSelectedDate(date); setShowPersonalEventsModal(true); }}
-                    className="w-full text-center px-2 py-1 rounded text-xs bg-white/80 backdrop-blur-sm border border-neu-border/60 text-neu-text-primary hover:bg-white/90 transition-all duration-200"
+                    className="w-full text-center px-2 py-1 rounded text-xs bg-neu-surface/80 backdrop-blur-sm border border-neu-border-focus text-neu-text-primary hover:bg-neu-surface hover:text-neu-accent-primary transition-all duration-200"
                   >
                     + Add Personal Event
                   </button>
@@ -170,9 +170,9 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                       <button
                         key={signup.signup_id}
                         onClick={() => setSelectedEvent(signup)}
-                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-neu-accent-primary/30 hover:bg-white/90 transition-all duration-200"
+                        className="w-full text-left p-2 rounded-lg bg-[#5a8ff5]/20 backdrop-blur-sm border border-[#5a8ff5]/50 hover:bg-[#5a8ff5]/30 hover:border-[#5a8ff5]/70 transition-all duration-200"
                       >
-                        <div className="text-xs font-semibold text-neu-accent-primary mb-1">
+                        <div className="text-xs font-semibold text-[#5a8ff5] mb-1">
                           {startTime.toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',
@@ -206,9 +206,9 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                       <button
                         key={evt.id || `${evt.title}-${evt.start}`}
                         onClick={() => setSelectedPersonalEvent(evt)}
-                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-green-400/40 hover:bg-white/90 transition-all duration-200"
+                        className="w-full text-left p-2 rounded-lg bg-green-500/20 backdrop-blur-sm border border-green-500/50 hover:bg-green-500/30 hover:border-green-500/70 transition-all duration-200"
                       >
-                        <div className="text-xs font-semibold text-green-600 mb-1">
+                        <div className="text-xs font-semibold text-green-400 mb-1">
                           {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           {endTime ? ` - ${endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
                         </div>
@@ -234,9 +234,9 @@ export default function CalendarWeekView({ signups, callbacks = [], currentDate,
                       <button
                         key={callback.invitation_id}
                         onClick={() => setSelectedEvent({ ...callback, isCallback: true })}
-                        className="w-full text-left p-2 rounded-lg bg-white/80 backdrop-blur-sm border border-purple-400/30 hover:bg-white/90 transition-all duration-200"
+                        className="w-full text-left p-2 rounded-lg bg-purple-500/20 backdrop-blur-sm border border-purple-500/50 hover:bg-purple-500/30 hover:border-purple-500/70 transition-all duration-200"
                       >
-                        <div className="text-xs font-semibold text-[#9b87f5] mb-1">
+                        <div className="text-xs font-semibold text-purple-400 mb-1">
                           {startTime.toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',

@@ -7,6 +7,7 @@ import StarryContainer from '../StarryContainer';
 import { getAuditionSignups } from '@/lib/supabase/auditionSignups';
 import { createCastMember, getAuditionCastMembers, deleteCastMember } from '@/lib/supabase/castMembers';
 import { X } from 'lucide-react';
+import UserProfileModal from './UserProfileModal';
 
 interface CastShowProps {
   audition: Audition & {
@@ -58,6 +59,7 @@ export default function CastShow({
     email: string;
   }>>([]);
   const [selectedEnsembleActor, setSelectedEnsembleActor] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -367,13 +369,13 @@ export default function CastShow({
   if (isLoading) {
     return (
       <StarryContainer>
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="max-w-4xl mx-auto p-6 neu-card-raised rounded-xl bg-neu-surface/50 border border-neu-border">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-8 bg-neu-surface rounded w-1/3"></div>
+            <div className="h-4 bg-neu-surface rounded w-1/2"></div>
             <div className="space-y-4 mt-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-gray-100 rounded-md"></div>
+                <div key={i} className="h-16 bg-neu-surface/50 rounded-md"></div>
               ))}
             </div>
           </div>
@@ -384,10 +386,10 @@ export default function CastShow({
 
   return (
     <StarryContainer>
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-2">Cast Show: {audition.show?.title}</h1>
+      <div className="max-w-4xl mx-auto p-6 neu-card-raised rounded-xl bg-neu-surface/50 border border-neu-border">
+        <h1 className="text-2xl font-bold mb-2 text-neu-text-primary">Cast Show: {audition.show?.title}</h1>
         {audition.show?.author && (
-          <p className="text-gray-600 mb-6">by {audition.show.author}</p>
+          <p className="text-neu-text-primary/70 mb-6">by {audition.show.author}</p>
         )}
 
         {error && (
@@ -399,41 +401,41 @@ export default function CastShow({
         <div className="space-y-6">
           {/* Roles Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4">Cast Roles</h2>
-            <div className="overflow-hidden border border-gray-200 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <h2 className="text-xl font-semibold mb-4 text-neu-text-primary">Cast Roles</h2>
+            <div className="overflow-hidden border border-neu-border rounded-lg">
+              <table className="min-w-full divide-y divide-neu-border">
+                <thead className="bg-neu-surface/30">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neu-text-primary/70 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neu-text-primary/70 uppercase tracking-wider">
                       Cast Members
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-neu-surface/20 divide-y divide-neu-border">
                   {roles.length > 0 ? (
                     roles.map((role) => {
                       const selectedActors = roleSelections[role.audition_role_id] || [];
                       const selectedUnderstudies = understudySelections[role.audition_role_id] || [];
                       return (
-                        <tr key={role.audition_role_id} className="hover:bg-gray-50">
+                        <tr key={role.audition_role_id} className="hover:bg-neu-surface/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-medium text-gray-900">{role.role_name}</div>
+                            <div className="font-medium text-neu-text-primary">{role.role_name}</div>
                             {role.description && (
-                              <div className="text-sm text-gray-500">{role.description}</div>
+                              <div className="text-sm text-neu-text-primary/60">{role.description}</div>
                             )}
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-neu-text-primary/50 mt-1">
                               {role.auditionees.length} auditionee{role.auditionees.length !== 1 ? 's' : ''}
                             </div>
                             <div className="mt-2">
-                              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                              <label className="flex items-center gap-2 text-sm text-neu-text-primary cursor-pointer">
                                 <input
                                   type="checkbox"
                                   checked={role.needs_understudy}
                                   onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy)}
-                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  className="rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                                 />
                                 <span>Needs Understudy</span>
                               </label>
@@ -443,18 +445,24 @@ export default function CastShow({
                             <div className="space-y-4">
                               {/* Principal Cast */}
                               <div>
-                                <div className="text-xs font-semibold text-gray-600 mb-1 uppercase">Principal</div>
+                                <div className="text-xs font-semibold text-neu-text-primary/70 mb-1 uppercase">Principal</div>
                                 {selectedActors.length > 0 && (
                                   <div className="flex flex-wrap gap-2 mb-2">
                                     {selectedActors.map((userId) => {
                                       const actor = availableActors.find((a) => a.user_id === userId);
                                       return actor ? (
-                                        <div key={userId} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
-                                          <span>{actor.full_name}</span>
+                                        <div key={userId} className="flex items-center gap-1 bg-[#5a8ff5]/20 border border-neu-border-focus text-neu-text-primary px-2 py-1 rounded-md text-sm">
+                                          <button
+                                            type="button"
+                                            onClick={() => setSelectedUserId(userId)}
+                                            className="text-neu-text-primary hover:text-[#5a8ff5] hover:underline transition-colors"
+                                          >
+                                            {actor.full_name}
+                                          </button>
                                           <button
                                             type="button"
                                             onClick={() => handleRemoveRoleCast(role.audition_role_id, userId)}
-                                            className="text-blue-600 hover:text-blue-800"
+                                            className="text-[#5a8ff5] hover:text-[#4a7bd9] transition-colors"
                                           >
                                             <X size={14} />
                                           </button>
@@ -486,19 +494,25 @@ export default function CastShow({
 
                               {/* Understudy Cast */}
                               {role.needs_understudy && (
-                                <div className="border-t border-gray-200 pt-3">
-                                  <div className="text-xs font-semibold text-gray-600 mb-1 uppercase">Understudy</div>
+                                <div className="border-t border-neu-border pt-3">
+                                  <div className="text-xs font-semibold text-neu-text-primary/70 mb-1 uppercase">Understudy</div>
                                   {selectedUnderstudies.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-2">
                                       {selectedUnderstudies.map((userId) => {
                                         const actor = availableActors.find((a) => a.user_id === userId);
                                         return actor ? (
-                                          <div key={userId} className="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm">
-                                            <span>{actor.full_name}</span>
+                                          <div key={userId} className="flex items-center gap-1 bg-purple-500/20 border border-purple-500/30 text-neu-text-primary px-2 py-1 rounded-md text-sm">
+                                            <button
+                                              type="button"
+                                              onClick={() => setSelectedUserId(userId)}
+                                              className="text-neu-text-primary hover:text-purple-400 hover:underline transition-colors"
+                                            >
+                                              {actor.full_name}
+                                            </button>
                                             <button
                                               type="button"
                                               onClick={() => handleRemoveUnderstudyCast(role.audition_role_id, userId)}
-                                              className="text-purple-600 hover:text-purple-800"
+                                              className="text-purple-400 hover:text-purple-300 transition-colors"
                                             >
                                               <X size={14} />
                                             </button>
@@ -535,7 +549,7 @@ export default function CastShow({
                     })
                   ) : (
                     <tr>
-                      <td colSpan={2} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={2} className="px-6 py-4 text-center text-neu-text-primary/60">
                         <div className="space-y-2">
                           <p className="font-medium">No roles found for this show.</p>
                           <p className="text-sm">Please add roles to the show before casting actors.</p>
@@ -551,25 +565,31 @@ export default function CastShow({
           {/* Ensemble Section */}
           {audition.ensemble_size && audition.ensemble_size > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">
+              <h2 className="text-xl font-semibold mb-4 text-neu-text-primary">
                 Ensemble (Size: {audition.ensemble_size})
               </h2>
-              <div className="border border-gray-200 rounded-lg p-6">
+              <div className="border border-neu-border rounded-lg p-6 bg-neu-surface/30">
                 <div className="space-y-4">
                   {/* Current ensemble members */}
                   {ensembleMembers.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      <h3 className="text-sm font-medium text-neu-text-primary mb-2">
                         Cast Members ({ensembleMembers.length}/{audition.ensemble_size})
                       </h3>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {ensembleMembers.map(member => (
-                          <div key={member.user_id} className="flex items-center gap-1 bg-green-100 text-green-800 px-3 py-2 rounded-md">
-                            <span>{member.full_name}</span>
+                          <div key={member.user_id} className="flex items-center gap-1 bg-green-500/20 border border-green-500/30 text-neu-text-primary px-3 py-2 rounded-md">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedUserId(member.user_id)}
+                              className="text-neu-text-primary hover:text-green-400 hover:underline transition-colors"
+                            >
+                              {member.full_name}
+                            </button>
                             <button
                               type="button"
                               onClick={() => handleRemoveEnsembleMember(member.user_id)}
-                              className="text-green-600 hover:text-green-800"
+                              className="text-green-400 hover:text-green-300 transition-colors"
                             >
                               <X size={16} />
                             </button>
@@ -605,7 +625,7 @@ export default function CastShow({
                         type="button"
                         onClick={handleAddEnsembleMember}
                         disabled={!selectedEnsembleActor}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-neu-surface/50 disabled:text-neu-text-primary/30 disabled:cursor-not-allowed transition-colors"
                       >
                         Add to Ensemble
                       </button>
@@ -613,7 +633,7 @@ export default function CastShow({
                   )}
                   
                   {ensembleMembers.length >= audition.ensemble_size && (
-                    <div className="text-sm text-green-600 font-medium">
+                    <div className="text-sm text-green-400 font-medium">
                       ✓ Ensemble is full
                     </div>
                   )}
@@ -626,7 +646,7 @@ export default function CastShow({
             <button
               type="button"
               onClick={loadData}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="n-button-secondary px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium disabled:opacity-50"
               disabled={isSaving}
             >
               Refresh
@@ -634,7 +654,7 @@ export default function CastShow({
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="n-button-primary px-6 py-3 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSaving}
             >
               {isSaving ? 'Saving...' : 'Save Cast'}
@@ -642,6 +662,14 @@ export default function CastShow({
           </div>
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      {selectedUserId && (
+        <UserProfileModal
+          userId={selectedUserId}
+          onClose={() => setSelectedUserId(null)}
+        />
+      )}
     </StarryContainer>
   );
 }

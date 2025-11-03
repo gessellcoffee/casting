@@ -203,7 +203,6 @@ export default function ResumeEntry({
             <FormInput
               label="Date"
               name="date_of_production"
-              className="neu-input"
               value={formData.date_of_production}
               onChange={handleInputChange}
               placeholder="2024"

@@ -191,10 +191,10 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                     <button
                       key={signup.signup_id}
                       onClick={() => setSelectedEvent(signup)}
-                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-neu-accent-primary/30 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-[#5a8ff5]/20 backdrop-blur-sm border border-[#5a8ff5]/50 text-neu-text-primary hover:bg-[#5a8ff5]/30 hover:border-[#5a8ff5]/70 transition-all duration-200 truncate"
                     >
                       <div className="font-medium truncate">{showTitle}</div>
-                      <div className="text-neu-text-primary/70 hidden sm:block">
+                      <div className="text-[#5a8ff5] hidden sm:block">
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -214,11 +214,11 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                         e.stopPropagation();
                         setSelectedPersonalEvent(evt);
                       }}
-                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-green-400/40 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-green-500/20 backdrop-blur-sm border border-green-500/50 text-neu-text-primary hover:bg-green-500/30 hover:border-green-500/70 transition-all duration-200 truncate"
                       title={evt.title}
                     >
                       <div className="font-medium truncate">{evt.title}</div>
-                      <div className="text-neu-text-primary/70 hidden sm:block">
+                      <div className="text-green-400 hidden sm:block">
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -235,7 +235,7 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                     setSelectedDate(day.fullDate);
                     setShowPersonalEventsModal(true);
                   }}
-                  className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-neu-accent-primary/30 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
+                  className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-neu-surface/80 backdrop-blur-sm border border-neu-border-focus text-neu-text-primary hover:bg-neu-surface hover:text-neu-accent-primary transition-all duration-200 truncate"
                 >
                   + Add Personal Event
                 </button>
@@ -250,13 +250,13 @@ export default function CalendarMonthView({ signups, callbacks = [], currentDate
                     <button
                       key={callback.invitation_id}
                       onClick={() => setSelectedEvent({ ...callback, isCallback: true })}
-                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-white/80 backdrop-blur-sm border border-purple-400/30 text-neu-text-primary hover:bg-white/90 transition-all duration-200 truncate"
+                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-purple-500/20 backdrop-blur-sm border border-purple-500/50 text-neu-text-primary hover:bg-purple-500/30 hover:border-purple-500/70 transition-all duration-200 truncate"
                     >
                       <div className="font-medium truncate flex items-center gap-1">
                         <span className="hidden sm:inline">📋</span>
                         {showTitle}
                       </div>
-                      <div className="text-neu-text-primary/70 hidden sm:block">
+                      <div className="text-purple-400 hidden sm:block">
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',

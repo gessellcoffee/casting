@@ -323,7 +323,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                   name="show_name"
                   value={newEntry.show_name}
                   onChange={handleNewEntryChange}
-                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                  className="neu-input"
                   placeholder="Hamlet"
                 />
               </div>
@@ -337,7 +337,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                   name="role"
                   value={newEntry.role}
                   onChange={handleNewEntryChange}
-                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                  className="neu-input"
                   placeholder="Ophelia"
                 />
               </div>
@@ -360,7 +360,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                     name="company_id"
                     value={newEntry.company_id}
                     onChange={handleNewEntryChange}
-                    className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                    className="neu-input"
                   >
                     <option value="">Select a company...</option>
                     {companies.map((company) => (
@@ -375,7 +375,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                     name="company_name"
                     value={newEntry.company_name}
                     onChange={handleNewEntryChange}
-                    className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                    className="neu-input"
                     placeholder="Shakespeare Theater Company"
                   />
                 )}
@@ -395,7 +395,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
                   name="date_of_production"
                   value={newEntry.date_of_production}
                   onChange={handleNewEntryChange}
-                  className="w-full px-3 py-2 rounded-lg bg-[#1a2332] border border-neu-border text-neu-text-primary focus:outline-none focus:border-[#5a8ff5] transition-colors"
+                  className="neu-input"
                   placeholder="2024"
                 />
               </div>

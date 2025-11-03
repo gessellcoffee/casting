@@ -2,13 +2,15 @@ import React from "react";
 import Link from "next/link";
 
 interface ButtonProps {
-  text: string;
+  text?: string;
+  children?: React.ReactNode;
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
+  title?: string;
 }
 
 export default function Button({ 

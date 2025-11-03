@@ -238,7 +238,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                           setSelectedEvent(isCallback ? { ...event, isCallback: true } : event);
                         }
                       }}
-                      className="w-full text-left p-3 sm:p-4 rounded-lg bg-white/70 backdrop-blur-sm border border-neu-border/40 hover:border-neu-border-focus hover:bg-white/85 transition-all duration-200"
+                      className="w-full text-left p-3 sm:p-4 rounded-lg bg-neu-surface/50 backdrop-blur-sm border border-neu-border hover:border-neu-border-focus hover:bg-neu-surface/70 transition-all duration-200"
                     >
                       <div className="flex items-start justify-between gap-2 sm:gap-4">
                         <div className="flex-1">
@@ -252,7 +252,7 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-[#9b87f5]' : isPersonal ? 'text-green-600' : 'text-neu-text-primary'}`}>
+                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-purple-400' : isPersonal ? 'text-green-400' : 'text-[#5a8ff5]'}`}>
                                 {isCallback && <span className="flex-shrink-0">📋</span>}
                                 {isPersonal && <span className="flex-shrink-0">🗓️</span>}
                                 <span className="truncate">{showTitle}</span>
@@ -268,12 +268,12 @@ export default function CalendarListView({ signups, callbacks = [], userId, onRe
                                 </p>
                               )}
                               {isCallback && (
-                                <p className="text-xs sm:text-sm text-[#9b87f5] font-medium mt-1">
+                                <p className="text-xs sm:text-sm text-purple-400 font-medium mt-1">
                                   Callback
                                 </p>
                               )}
                               {isPersonal && (
-                                <p className="text-xs sm:text-sm text-green-600 font-medium mt-1">
+                                <p className="text-xs sm:text-sm text-green-400 font-medium mt-1">
                                   Personal
                                 </p>
                               )}

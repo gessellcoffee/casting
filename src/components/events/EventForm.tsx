@@ -9,6 +9,7 @@ import { createEvent, updateEvent } from '@/lib/supabase/events';
 import DateArrayInput from '../ui/DateArrayInput';
 import AddressInput from '../ui/AddressInput';
 import { FormSelect } from '../ui/forms';
+import Button from '../Button';
 
 const frequencyOptions = [
   { value: 'NONE', label: 'Does not repeat' },
@@ -205,9 +206,9 @@ export default function EventForm({
     if (!formData.isRecurring) return null;
 
     return (
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 space-y-4 ">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-neu-text-primary mb-1">
             Repeats
           </label>
           <FormSelect
@@ -226,19 +227,19 @@ export default function EventForm({
         {formData.recurrence.frequency === 'CUSTOM' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-neu-text-primary mb-1">
                 Every
               </label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
                   min="1"
-                  className="w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="neu-input w-20"
                   value={formData.recurrence.interval}
                   onChange={(e) => handleRecurrenceChange('interval', parseInt(e.target.value) || 1)}
                 />
                 <FormSelect
-                  className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="neu-input"
                   value={formData.recurrence.customFrequencyType || 'WEEKLY'}
                   onChange={(e) => handleRecurrenceChange('customFrequencyType', e.target.value as 'WEEKLY' | 'MONTHLY' | 'YEARLY')}
                 >
@@ -253,7 +254,7 @@ export default function EventForm({
 
             { formData.recurrence.frequency === 'CUSTOM' && (
                 <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-neu-text-primary mb-1">
                   On days
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -261,10 +262,10 @@ export default function EventForm({
                     <button
                       key={day.value}
                       type="button"
-                      className={`px-3 py-1 text-sm rounded-md ${
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
                         formData.recurrence.byDay.includes(day.value)
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-[#5a8ff5] text-white'
+                          : 'bg-neu-surface border border-neu-border text-neu-text-primary hover:bg-neu-surface/70'
                       }`}
                       onClick={() => toggleDay(day.value)}
                     >
@@ -276,7 +277,7 @@ export default function EventForm({
             )} 
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-neu-text-primary mb-1">
                 Ends
               </label>
               <div className="space-y-2">
@@ -285,11 +286,11 @@ export default function EventForm({
                     type="radio"
                     id="endNever"
                     name="endType"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    className="h-4 w-4 text-[#5a8ff5] focus:ring-[#5a8ff5] border-neu-border bg-neu-surface"
                     checked={formData.recurrence.endType === 'never'}
                     onChange={() => handleRecurrenceChange('endType', 'never')}
                   />
-                  <label htmlFor="endNever" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="endNever" className="ml-2 block text-sm text-neu-text-primary">
                     Never
                   </label>
                 </div>
@@ -299,12 +300,12 @@ export default function EventForm({
                     type="radio"
                     id="endOn"
                     name="endType"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    className="h-4 w-4 text-[#5a8ff5] focus:ring-[#5a8ff5] border-neu-border bg-neu-surface"
                     checked={formData.recurrence.endType === 'on'}
                     onChange={() => handleRecurrenceChange('endType', 'on')}
                   />
                   <div className="ml-2 flex items-center">
-                    <span className="text-sm text-gray-700 mr-2">On</span>
+                    <span className="text-sm text-neu-text-primary mr-2">On</span>
                     <input
                       type="date"
                       className="neu-input"
@@ -325,16 +326,16 @@ export default function EventForm({
                     onChange={() => handleRecurrenceChange('endType', 'after')}
                   />
                   <div className="ml-2 flex items-center">
-                    <span className="text-sm text-gray-700 mr-2">After</span>
+                    <span className="text-sm text-neu-text-primary mr-2">After</span>
                     <input
                       type="number"
                       min="1"
-                      className="neu-input"
+                      className="neu-input w-20"
                       value={formData.recurrence.occurrences}
                       onChange={(e) => handleRecurrenceChange('occurrences', parseInt(e.target.value) || 1)}
                       disabled={formData.recurrence.endType !== 'after'}
                     />
-                    <span className="ml-2 text-sm text-gray-700">occurrences</span>
+                    <span className="ml-2 text-sm text-neu-text-primary">occurrences</span>
                   </div>
                 </div>
               </div>
@@ -360,7 +361,7 @@ export default function EventForm({
           <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto pt-24">
+        <div className="fixed inset-0 overflow-y-auto pt-24 neu-card-raised">
           <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
@@ -371,14 +372,14 @@ export default function EventForm({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-neu-surface border border-neu-border p-6 text-left align-middle shadow-xl transition-all">
                 <div className="flex justify-between items-center mb-4">
-                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-neu-text-primary">
                     {isEdit ? 'Edit Event' : 'New Event'}
                   </Dialog.Title>
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-500"
+                    className="text-neu-text-primary/60 hover:text-neu-text-primary transition-colors"
                     onClick={onClose}
                   >
                     <X className="h-6 w-6" aria-hidden="true" />
@@ -387,8 +388,8 @@ export default function EventForm({
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                      Title <span className="text-red-500">*</span>
+                    <label htmlFor="title" className="block text-sm font-medium text-neu-text-primary">
+                      Title <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
@@ -402,7 +403,7 @@ export default function EventForm({
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="description" className="block text-sm font-medium text-neu-text-primary">
                       Description
                     </label>
                     <textarea
@@ -417,8 +418,8 @@ export default function EventForm({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="start" className="block text-sm font-medium text-gray-700">
-                        Start <span className="text-red-500">*</span>
+                      <label htmlFor="start" className="block text-sm font-medium text-neu-text-primary">
+                        Start <span className="text-red-400">*</span>
                       </label>
                       <input
                         type={formData.allDay ? 'date' : 'datetime-local'}
@@ -432,8 +433,8 @@ export default function EventForm({
                     </div>
         <br/>
                     <div>
-                      <label htmlFor="end" className="block text-sm font-medium text-gray-700">
-                        End <span className="text-red-500">*</span>
+                      <label htmlFor="end" className="block text-sm font-medium text-neu-text-primary">
+                        End <span className="text-red-400">*</span>
                       </label>
                       <input
                         type={formData.allDay ? 'date' : 'datetime-local'}
@@ -455,8 +456,9 @@ export default function EventForm({
                       name="allDay"
                       checked={formData.allDay}
                       onChange={handleInputChange}
+                      className="rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                     />
-                    <label htmlFor="allDay" className="ml-2 block text-sm text-gray-700">
+                    <label htmlFor="allDay" className="ml-2 block text-sm text-neu-text-primary cursor-pointer">
                       All day
                     </label>
                   </div>
@@ -471,7 +473,7 @@ export default function EventForm({
                   </div>
 
                   <div>
-                    <label htmlFor="color" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="color" className="block text-sm font-medium text-neu-text-primary">
                       Color
                     </label>
                     <div className="mt-1 flex items-center">
@@ -481,24 +483,25 @@ export default function EventForm({
                         name="color"
                         value={formData.color || '#3b82f6'}
                         onChange={handleInputChange}
+                        className="h-10 w-20 rounded border border-neu-border bg-neu-surface cursor-pointer"
                       />
-                      <span className="ml-2 text-sm text-gray-500">
+                      <span className="ml-2 text-sm text-neu-text-primary/70">
                         {formData.color?.toUpperCase() || '#3B82F6'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4">
+                  <div className="border-t border-neu-border pt-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-gray-700">Recurrence</h4>
+                      <h4 className="text-sm font-medium text-neu-text-primary">Recurrence</h4>
                       <div className="flex items-center">
-                        <span className="text-sm text-gray-500 mr-2">
+                        <span className="text-sm text-neu-text-primary/70 mr-2">
                           {formData.isRecurring ? 'On' : 'Off'}
                         </span>
                         <button
                           type="button"
-                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                            formData.isRecurring ? 'bg-blue-600' : 'bg-gray-200'
+                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#5a8ff5] focus:ring-offset-2 ${
+                            formData.isRecurring ? 'bg-[#5a8ff5]' : 'bg-neu-surface border-neu-border'
                           }`}
                           role="switch"
                           aria-checked={formData.isRecurring}
@@ -524,19 +527,20 @@ export default function EventForm({
                   </div>
 
                   <div className="mt-6 flex justify-end space-x-3">
-                    <button
+                    <Button
+                      title="Cancel"
                       type="button"
-                      className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      className="px-4 py-2 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-300 font-medium"
                       onClick={onClose}
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
-                      className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      className="px-4 py-2 rounded-xl bg-[#5a8ff5] text-white hover:bg-[#4a7bd9] transition-colors font-medium"
                     >
                       {isEdit ? 'Update Event' : 'Create Event'}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </Dialog.Panel>
