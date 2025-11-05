@@ -1537,9 +1537,7 @@ select.neu-input {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(163, 177, 198, 0.3);
-  box-shadow: 
-    8px 8px 16px var(--neu-shadow-dark),
-    -8px -8px 16px var(--neu-shadow-light);
+
 }
 
 [data-theme="dark"] .neumorphic-footer {
