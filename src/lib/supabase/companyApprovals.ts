@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { CompanyApprovalRequest, CompanyApprovalRequestInsert, CompanyApprovalRequestUpdate } from './types';
 import { getCompany } from './company';
 import { createCompanyApprovalNotification } from './notifications';
@@ -12,7 +13,7 @@ export async function createApprovalRequest(
   userId: string
 ): Promise<{ data: CompanyApprovalRequest | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -74,7 +75,7 @@ export async function createApprovalRequest(
  */
 export async function getCompanyApprovalRequests(companyId: string): Promise<CompanyApprovalRequest[]> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -120,7 +121,7 @@ export async function getCompanyApprovalRequests(companyId: string): Promise<Com
  */
 export async function getUserPendingApprovalRequests(): Promise<any[]> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -179,7 +180,7 @@ export async function updateApprovalRequest(
   status: 'approved' | 'rejected'
 ): Promise<{ data: CompanyApprovalRequest | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

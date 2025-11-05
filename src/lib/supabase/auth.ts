@@ -60,8 +60,15 @@ export async function getSession() {
 
 /**
  * Get the current user
+ * Returns null if no session exists (user not logged in)
  */
 export async function getUser() {
+  // First check if there's a session to avoid "Auth session missing!" errors
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) {
+    return null;
+  }
+  
   const { data, error } = await supabase.auth.getUser();
   if (error) throw error;
   return data.user;
@@ -96,4 +103,20 @@ export async function updatePassword(newPassword: string) {
  */
 export function onAuthStateChange(callback: (event: string, session: any) => void) {
   return supabase.auth.onAuthStateChange(callback);
+}
+
+/**
+ * Get authenticated user for authorization checks
+ * This is specifically for server-side authorization in API functions
+ * Returns { user, error } instead of throwing to allow graceful handling
+ */
+export async function getAuthenticatedUser() {
+  // First check if there's a session to avoid "Auth session missing!" errors
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) {
+    return { user: null, error: new Error('Not authenticated') };
+  }
+  
+  const { data: { user }, error } = await supabase.auth.getUser();
+  return { user, error };
 }

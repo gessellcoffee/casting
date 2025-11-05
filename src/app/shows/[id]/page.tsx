@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getShow, updateShow } from '@/lib/supabase/shows';
 import { getShowRoles, createRole, updateRole, deleteRole } from '@/lib/supabase/roles';
-import { supabase } from '@/lib/supabase/client';
+import { getUser } from '@/lib/supabase/auth';
 import type { Show, Role, RoleInsert, RoleUpdate, RoleType, RoleGender } from '@/lib/supabase/types';
 import StarryContainer from '@/components/StarryContainer';
 
@@ -36,7 +36,7 @@ export default function ShowDetailPage() {
   }, [showId]);
 
   const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     setCurrentUserId(user?.id || null);
   };
 

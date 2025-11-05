@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { MdClose } from 'react-icons/md';
 import { supabase } from '@/lib/supabase/client';
+import { getUser } from '@/lib/supabase/auth';
 import { getShowRoles } from '@/lib/supabase/roles';
 import { createCastingOffer } from '@/lib/supabase/castingOffers';
 import type { Role } from '@/lib/supabase/types';
@@ -58,7 +59,7 @@ export default function RoleCastingModal({
     setCasting(true);
 
     // Get current user ID for sent_by
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user) {
       alert('You must be logged in to send offers');
       setCasting(false);

@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { Audition, AuditionInsert, AuditionUpdate, Show, Company } from './types';
 import type { PostgrestError } from '@supabase/supabase-js';
 
@@ -140,7 +141,7 @@ export async function createAudition(
   auditionData: AuditionInsert
 ): Promise<{ data: Audition | null; error: PostgrestError | Error | null }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -175,7 +176,7 @@ export async function updateAudition(
   updates: AuditionUpdate
 ): Promise<{ data: Audition | null; error: PostgrestError | Error | null }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -223,7 +224,7 @@ export async function deleteAudition(
   auditionId: string
 ): Promise<{ error: PostgrestError | Error | null }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

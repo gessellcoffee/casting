@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { Profile, ProfileUpdate, ProfileInsert } from './types';
 
 /**
@@ -27,7 +28,7 @@ export async function updateProfile(
   updates: ProfileUpdate
 ): Promise<{ data: Profile | null; error: any }> {
   // Verify the authenticated user matches the userId being updated
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

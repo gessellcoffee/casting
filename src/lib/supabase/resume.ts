@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { UserResume, UserResumeInsert, UserResumeUpdate } from './types';
 import { createApprovalRequest } from './companyApprovals';
 
@@ -45,7 +46,7 @@ export async function createResumeEntry(
   resumeData: UserResumeInsert
 ): Promise<{ data: UserResume | null; error: any }> {
   // Verify the authenticated user matches the userId being created
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -96,7 +97,7 @@ export async function updateResumeEntry(
   updates: UserResumeUpdate
 ): Promise<{ data: UserResume | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -161,7 +162,7 @@ export async function deleteResumeEntry(
   resumeEntryId: string
 ): Promise<{ success: boolean; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

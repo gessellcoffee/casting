@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { Notification, NotificationInsert, NotificationUpdate } from './types';
 
 /**
@@ -111,7 +112,7 @@ export async function markNotificationAsRead(
   notificationId: string
 ): Promise<{ data: Notification | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -144,7 +145,7 @@ export async function markAllNotificationsAsRead(
   userId: string
 ): Promise<{ error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -182,7 +183,7 @@ export async function deleteNotification(
   notificationId: string
 ): Promise<{ error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -211,7 +212,7 @@ export async function handleNotificationAction(
   action: string
 ): Promise<{ data: Notification | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

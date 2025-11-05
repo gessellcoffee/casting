@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { CallbackSlot, CallbackSlotInsert, CallbackSlotUpdate } from './types';
 
 /**
@@ -102,7 +103,7 @@ export async function createCallbackSlot(
   slotData: CallbackSlotInsert
 ): Promise<{ data: CallbackSlot | null; error: any }> {
   // Verify the authenticated user owns the audition
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -152,7 +153,7 @@ export async function createCallbackSlots(
   }
 
   // Verify the authenticated user owns the audition
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

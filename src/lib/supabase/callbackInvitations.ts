@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { CallbackInvitation, CallbackInvitationInsert, CallbackInvitationUpdate, CallbackInvitationStatus } from './types';
 import { createNotification } from './notifications';
 
@@ -276,7 +277,7 @@ export async function sendCallbackInvitations(
   }
 
   // Get the audition creator for sender_id
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -384,7 +385,7 @@ export async function respondToCallbackInvitation(
   actorComment?: string
 ): Promise<{ data: CallbackInvitation | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

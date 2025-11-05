@@ -1,5 +1,6 @@
 import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { AuditionSignup, AuditionSignupInsert, AuditionSignupUpdate, AuditionSignupWithDetails, UserSignupsWithDetails } from './types';
 
 /**
@@ -200,7 +201,7 @@ export async function createAuditionSignup(
   signupData: AuditionSignupInsert
 ): Promise<{ data: AuditionSignup | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -310,7 +311,7 @@ export async function deleteAuditionSignup(
   signupId: string
 ): Promise<{ error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

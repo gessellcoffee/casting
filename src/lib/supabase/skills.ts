@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import { getProfile, updateProfile } from './profile';
 
 /**
@@ -59,7 +60,7 @@ export async function addSkill(
   skillName: string
 ): Promise<{ data: string[] | null; error: any }> {
   // Verify the authenticated user matches the userId
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -105,7 +106,7 @@ export async function removeSkill(
   skillName: string
 ): Promise<{ success: boolean; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

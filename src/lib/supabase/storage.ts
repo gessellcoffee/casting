@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 
 /**
  * Upload a file to Supabase Storage
@@ -53,7 +54,7 @@ export async function uploadProfilePhoto(
   file: File
 ): Promise<{ url: string | null; error: any }> {
   // Verify the authenticated user matches the userId
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -82,7 +83,7 @@ export async function uploadResume(
   file: File
 ): Promise<{ url: string | null; error: any }> {
   // Verify the authenticated user matches the userId
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -111,7 +112,7 @@ export async function uploadGalleryImage(
   file: File
 ): Promise<{ url: string | null; error: any }> {
   // Verify the authenticated user matches the userId
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

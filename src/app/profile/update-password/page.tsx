@@ -6,6 +6,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import StarryContainer from '@/components/StarryContainer';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { supabase } from '@/lib/supabase/client';
+import { getUser } from '@/lib/supabase/auth';
 import Link from 'next/link';
 
 export default function UpdatePasswordPage() {
@@ -49,14 +50,14 @@ export default function UpdatePasswordPage() {
 
     try {
       // First verify the current password by attempting to sign in
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user?.email) {
+      const user = await getUser();
+      if (!user?.email) {
         throw new Error('No user found');
       }
 
       // Verify current password
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: userData.user.email,
+        email: user.email,
         password: currentPassword,
       });
 

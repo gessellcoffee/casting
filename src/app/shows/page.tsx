@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getAllShows, searchShows, deleteShow } from '@/lib/supabase/shows';
 import { getShowRoleCount } from '@/lib/supabase/roles';
-import { supabase } from '@/lib/supabase/client';
+import { getUser } from '@/lib/supabase/auth';
 import type { Show } from '@/lib/supabase/types';
 import FormInput from '@/components/ui/forms/FormInput';
 import LoadingSpinner from '@/components/ui/feedback/LoadingSpinner';
@@ -32,7 +32,7 @@ export default function ShowsPage() {
   }, []);
 
   const loadCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     setCurrentUserId(user?.id || null);
   };
 

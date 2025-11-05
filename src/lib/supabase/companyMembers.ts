@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { 
   CompanyMember, 
   CompanyMemberInsert, 
@@ -73,7 +74,7 @@ export async function addCompanyMember(
   role: CompanyMemberRole = 'member'
 ): Promise<{ data: CompanyMember | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -159,7 +160,7 @@ export async function updateCompanyMemberRole(
   role: CompanyMemberRole
 ): Promise<{ data: CompanyMember | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -208,7 +209,7 @@ export async function removeCompanyMember(
   memberId: string
 ): Promise<{ error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);

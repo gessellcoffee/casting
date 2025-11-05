@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { getAuthenticatedUser } from './auth';
 import type { Show, ShowInsert, ShowUpdate } from './types';
 
 /**
@@ -61,7 +62,7 @@ export async function createShow(
   showData: ShowInsert
 ): Promise<{ data: Show | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
@@ -96,7 +97,7 @@ export async function updateShow(
   updates: ShowUpdate
 ): Promise<{ data: Show | null; error: any }> {
   // Verify the authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, error: authError } = await getAuthenticatedUser();
   
   if (authError || !user) {
     console.error('Error getting authenticated user:', authError);
