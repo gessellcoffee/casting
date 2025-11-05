@@ -1,0 +1,35 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+
+export default function Footer() {
+  return (
+    <footer className="neumorphic-footer">
+      <div className="footer-content">
+        <div className="footer-brand">
+          <div className="logo">Belong Here Theater</div>
+          <p className="footer-tagline">Change the way you cast and audition</p>
+        </div>
+        
+        <nav className="footer-nav">
+          <Link href="/company" className="footer-link">
+            Company
+          </Link>
+          <Link href="/shows" className="footer-link">
+            Shows
+          </Link>
+          <Link href="/help" className="footer-link">
+            Help
+          </Link>
+        </nav>
+        
+        <div className="footer-bottom">
+          <p className="footer-copyright">
+            © {new Date().getFullYear()} Belong Here Theater. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

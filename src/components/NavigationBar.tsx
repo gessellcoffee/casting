@@ -63,10 +63,7 @@ export default function NavigationBar() {
       <>
         <Button text="Audition" href="/auditions" />
         <Button text="Cast" href="/cast" />
-        <Button text="Shows" href="/shows" />
-        <Button text="Company" href="/company" />
         <Button text="Users" href="/users" />
-        <Button text="Help" href="/help" />
       </>
     )}
   </div>
@@ -146,17 +143,8 @@ export default function NavigationBar() {
               <Link href="/cast" onClick={() => setShowMenu(false)}>
                 <button className="w-full n-button-primary text-left px-4 py-3">Cast</button>
               </Link>
-              <Link href="/shows" onClick={() => setShowMenu(false)}>
-                <button className="w-full n-button-primary text-left px-4 py-3">Shows</button>
-              </Link>
-              <Link href="/company" onClick={() => setShowMenu(false)}>
-                <button className="w-full n-button-primary text-left px-4 py-3">Company</button>
-              </Link>
               <Link href="/users" onClick={() => setShowMenu(false)}>
                 <button className="w-full n-button-primary text-left px-4 py-3">Users</button>
-              </Link>
-              <Link href="/help" onClick={() => setShowMenu(false)}>
-                <button className="w-full n-button-primary text-left px-4 py-3">Help</button>
               </Link>
               <div className="border-t border-neu-border my-2"></div>
               <button 

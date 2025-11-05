@@ -3,6 +3,7 @@ import { Sora, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import NavigationBar from "../components/NavigationBar";
+import Footer from "../components/Footer";
 import { ThemeProvider } from "../contexts/ThemeContext";
 
 const sora = Sora({
@@ -37,6 +38,7 @@ export default function RootLayout({
         <ThemeProvider>
           <NavigationBar />
           <main className="pt-4 sm:pt-8">{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
