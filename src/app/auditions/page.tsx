@@ -195,7 +195,7 @@ export default function AuditionsPage() {
   return (
     <StarryContainer>
       <div className="min-h-screen py-8 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto on-background">
           {/* Header */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">

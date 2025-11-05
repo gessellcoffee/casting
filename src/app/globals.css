@@ -164,7 +164,6 @@ body > * {
 [data-theme="dark"] .neumorphic-header {
   background: rgba(21, 27, 53, 0.95);
   border: 1px solid rgba(124, 58, 237, 0.3);
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
 }
 
 @media (min-width: 1024px) {
@@ -303,6 +302,36 @@ body > * {
 .n-button-success:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Remove outer shadows for buttons directly on background */
+.on-background .n-button-primary,
+.on-background .n-button-secondary,
+.on-background .n-button-danger,
+.on-background .n-button-success,
+.on-background .nav-buttons button {
+  box-shadow: none;
+}
+
+/* Keep inset shadows on hover for buttons on background */
+.on-background .n-button-primary:hover,
+.on-background .n-button-secondary:hover,
+.on-background .n-button-danger:hover,
+.on-background .n-button-success:hover,
+.on-background .nav-buttons button:hover {
+  box-shadow: 
+    inset 4px 4px 8px var(--neu-shadow-inset-dark),
+    inset -4px -4px 8px var(--neu-shadow-inset-light);
+}
+
+.on-background .n-button-primary:active,
+.on-background .n-button-secondary:active,
+.on-background .n-button-danger:active,
+.on-background .n-button-success:active,
+.on-background .nav-buttons button:active {
+  box-shadow: 
+    inset 6px 6px 12px var(--neu-shadow-inset-dark),
+    inset -6px -6px 12px var(--neu-shadow-inset-light);
 }
 
 /* ===== AVATAR ===== */
@@ -1543,7 +1572,6 @@ select.neu-input {
 [data-theme="dark"] .neumorphic-footer {
   background: rgba(21, 27, 53, 0.95);
   border: 1px solid rgba(124, 58, 237, 0.3);
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
 }
 
 @media (min-width: 1024px) {

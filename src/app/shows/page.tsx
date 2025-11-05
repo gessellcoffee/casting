@@ -102,7 +102,7 @@ export default function ShowsPage() {
 
   return (
     <StarryContainer>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto on-background">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
