@@ -867,7 +867,7 @@ select.neu-input {
 
 /* Raised Card - White card with outset shadow (like profile page cards) */
 .neu-card-raised {
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
@@ -876,6 +876,12 @@ select.neu-input {
     -5px -5px 10px var(--neu-shadow-light);
   border: 1px solid var(--neu-border);
   transition: all 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .neu-card-raised {
+    padding: 1.5rem;
+  }
 }
 
 [data-theme="dark"] .neu-card-raised {

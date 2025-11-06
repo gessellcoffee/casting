@@ -198,34 +198,38 @@ export default function ProfilePage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <StarryContainer starCount={15} className="card w-full max-w-4xl">
           <div className="p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-              <h1 className="text-3xl sm:text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
+            <div className="flex flex-col gap-4 mb-8">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2 text-center sm:text-left">
                 My Profile
               </h1>
               
               {!isEditing ? (
-                <div className="nav-buttons">
-                  <Link href="/profile/update-password">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center sm:justify-start">
+                  <Link href="/profile/update-password" className="w-full sm:w-auto">
                     <Button 
                       text="Update Password"
+                      className="w-full sm:w-auto"
                     />
                   </Link>
                   <Button 
                     onClick={() => setIsEditing(true)}
                     text="Edit Profile"
+                    className="w-full sm:w-auto"
                   />
                 </div>
               ) : (
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center sm:justify-start">
                   <Button
                     onClick={handleCancel}
                     disabled={saving}
                     text="Cancel"
+                    className="w-full sm:w-auto"
                   />
                   <Button
                     onClick={handleSave}
                     disabled={saving}
                     text={saving ? 'Saving...' : 'Save Changes'}
+                    className="w-full sm:w-auto"
                   />
                 </div>
               )}
@@ -285,7 +289,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Basic Information */}
-                <div className="justify-center items-center grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium neu-text-primary  mb-2">
                       First Name
@@ -440,9 +444,9 @@ export default function ProfilePage() {
 
                 {/* Privacy Settings */}
                 {isEditing && (
-                  <div className="neu-card-raised w-full p-4">
+                  <div className="neu-card-raised w-full">
                     <h3 className="text-lg font-semibold text-neu-text-primary mb-4">Privacy Settings</h3>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div>
                         <label className="text-sm font-medium text-neu-text-primary">
                           Show Casting History on Public Profile
