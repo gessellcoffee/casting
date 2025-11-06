@@ -30,6 +30,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
   const [isCanceling, setIsCanceling] = useState(false);
   const [slotSignups, setSlotSignups] = useState<Record<string, any[]>>({});
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'filled'>('all');
+  const [selectedDate, setSelectedDate] = useState<string>('all');
 
   // Check if user has already signed up for this audition and get all their signups
   useEffect(() => {
@@ -73,9 +75,34 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
 
   // Filter and sort slots
   const now = new Date();
-  const availableSlots = slots
+  let availableSlots = slots
     .filter(slot => new Date(slot.start_time) > now)
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+  // Get unique dates for filter dropdown
+  const uniqueDates = Array.from(
+    new Set(
+      availableSlots.map(slot => {
+        const date = new Date(slot.start_time);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      })
+    )
+  ).sort();
+
+  // Apply date filter
+  if (selectedDate !== 'all') {
+    availableSlots = availableSlots.filter(slot => {
+      const slotDate = new Date(slot.start_time).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      return slotDate === selectedDate;
+    });
+  }
+
+  // Apply status filter
+  if (filterStatus === 'open') {
+    availableSlots = availableSlots.filter(slot => (slot.current_signups || 0) < slot.max_signups);
+  } else if (filterStatus === 'filled') {
+    availableSlots = availableSlots.filter(slot => (slot.current_signups || 0) >= slot.max_signups);
+  }
 
   const handleSignup = async (slotId: string) => {
     if (!user) {
@@ -152,9 +179,67 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
 
   return (
     <div className="p-6 rounded-xl calendar-container">
-      <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
-        Available Audition Slots
-      </h2>
+      <div className="flex flex-col gap-4 mb-4">
+        <h2 className="text-2xl font-semibold text-neu-text-primary">
+          Available Audition Slots
+        </h2>
+        
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          {/* Date Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="date-filter" className="text-sm font-medium text-neu-text-primary whitespace-nowrap">
+              Filter by Date:
+            </label>
+            <select
+              id="date-filter"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="neu-input px-3 py-2 rounded-lg text-sm min-w-[180px]"
+            >
+              <option value="all">All Dates</option>
+              {uniqueDates.map(date => {
+                const dateObj = new Date(date);
+                const displayDate = dateObj.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                });
+                return (
+                  <option key={date} value={date}>
+                    {displayDate}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          {/* Status Filter Buttons */}
+          <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setFilterStatus('all')}
+            className={`n-button-primary px-4 py-2 rounded-lg text-sm font-medium ${filterStatus === 'all' ? '!shadow-[inset_6px_6px_12px_var(--neu-shadow-inset-dark),inset_-6px_-6px_12px_var(--neu-shadow-inset-light)]' : ''}`}
+          >
+            All Slots
+          </button>
+          {!canManage && (
+            <button
+              onClick={() => setFilterStatus('open')}
+              className={`n-button-primary px-4 py-2 rounded-lg text-sm font-medium ${filterStatus === 'open' ? '!shadow-[inset_6px_6px_12px_var(--neu-shadow-inset-dark),inset_-6px_-6px_12px_var(--neu-shadow-inset-light)]' : ''}`}
+            >
+              Open Slots
+            </button>
+          )}
+          {canManage && (
+            <button
+              onClick={() => setFilterStatus('filled')}
+              className={`n-button-primary px-4 py-2 rounded-lg text-sm font-medium ${filterStatus === 'filled' ? '!shadow-[inset_6px_6px_12px_var(--neu-shadow-inset-dark),inset_-6px_-6px_12px_var(--neu-shadow-inset-light)]' : ''}`}
+            >
+              Filled Slots
+            </button>
+          )}
+          </div>
+        </div>
+      </div>
 
       {error && (
         <Alert variant="error" className="mb-4">{error}</Alert>
@@ -200,7 +285,21 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
         </Alert>
       )}
 
-      <div className="space-y-3">
+      {availableSlots.length === 0 ? (
+        <EmptyState
+          title={filterStatus === 'open' ? 'No open slots' : filterStatus === 'filled' ? 'No filled slots' : 'No slots available'}
+          description={
+            selectedDate !== 'all'
+              ? `No slots found for the selected date. Try selecting "All Dates" to see more options.`
+              : filterStatus === 'open' 
+              ? 'All slots are currently full. Try selecting "All Slots" to see filled slots.'
+              : filterStatus === 'filled'
+              ? 'No slots are filled yet. Try selecting "All Slots" to see available slots.'
+              : 'No slots match your current filter.'
+          }
+        />
+      ) : (
+        <div className="space-y-3">
         {availableSlots.map((slot) => {
           const startTime = new Date(slot.start_time);
           const endTime = new Date(slot.end_time);
@@ -298,7 +397,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* User Profile Modal */}
       {selectedUserId && (

@@ -9,6 +9,7 @@ import { getUserAvailability } from '@/lib/supabase/userEvents';
 import type { Profile, UserResume, CalendarEvent } from '@/lib/supabase/types';
 import CallbackSlotSelectorModal from './CallbackSlotSelectorModal';
 import Button from '@/components/Button';
+import PDFViewer from '@/components/PDFViewer';
 
 interface UserProfileModalProps {
   userId: string;
@@ -28,6 +29,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
   
   // Modal states
   const [showCallbackModal, setShowCallbackModal] = useState(false);
+  const [showPDFViewer, setShowPDFViewer] = useState(false);
   
   // Collapsible section states - all collapsed by default
   const [expandedSections, setExpandedSections] = useState({
@@ -448,7 +450,14 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                       )}
                     </button>
                     {expandedSections.resumePdf && (
-                      <div className="px-4 pb-4">
+                      <div className="px-4 pb-4 flex gap-3">
+                        <button
+                          onClick={() => setShowPDFViewer(true)}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
+                        >
+                          <span>📄</span>
+                          <span>View Resume</span>
+                        </button>
                         <a
                           href={profile.resume_url}
                           target="_blank"
@@ -750,6 +759,15 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
             setShowCallbackModal(false);
             onActionComplete?.();
           }}
+        />
+      )}
+
+      {/* PDF Viewer Modal */}
+      {showPDFViewer && profile?.resume_url && (
+        <PDFViewer
+          pdfUrl={profile.resume_url}
+          onClose={() => setShowPDFViewer(false)}
+          fileName={`${profile.first_name || 'User'}_${profile.last_name || 'Resume'}.pdf`}
         />
       )}
     </>

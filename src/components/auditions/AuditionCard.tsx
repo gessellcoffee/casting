@@ -10,7 +10,7 @@ interface AuditionCardProps {
 }
 
 export default function AuditionCard({ audition }: AuditionCardProps) {
-  const { show, company, slots, equity_status, audition_location, rehearsal_dates, performance_dates } = audition;
+  const { show, company, slots, equity_status, audition_location, rehearsal_dates, performance_dates, productionTeam } = audition;
 
   // Format rehearsal dates as a date range
   const formatDateRange = (dates: string | null): string => {
@@ -100,6 +100,51 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
             </div>
           )}
         </div>
+
+        {/* Production Team */}
+        {productionTeam && productionTeam.length > 0 && (
+          <div className="mb-4 pb-4 border-b border-neu-border">
+            <div className="text-xs font-medium text-neu-text-primary mb-2">Production Team</div>
+            <div className="flex flex-wrap gap-2">
+              {productionTeam.slice(0, 3).map((member: any) => (
+                <button
+                  key={member.production_team_member_id}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = `/profile/${member.user_id}`;
+                  }}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-neu-surface-dark/30 hover:bg-neu-accent-primary/20 border border-neu-border hover:border-neu-accent-primary/50 transition-all group/member cursor-pointer"
+                >
+                  {member.profiles?.profile_photo_url ? (
+                    <img
+                      src={member.profiles.profile_photo_url}
+                      alt={member.profiles.email}
+                      className="w-4 h-4 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
+                      <span className="text-neu-accent-primary font-medium text-[8px]">
+                        {member.profiles?.email?.charAt(0).toUpperCase() || '?'}
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-xs text-neu-text-primary group-hover/member:text-neu-accent-primary transition-colors">
+                    {member.profiles?.first_name && member.profiles?.last_name
+                      ? `${member.profiles.first_name} ${member.profiles.last_name}`
+                      : `@${member.profiles?.email}`}
+                  </span>
+                  <span className="text-[10px] text-neu-text-muted">• {member.role_title}</span>
+                </button>
+              ))}
+              {productionTeam.length > 3 && (
+                <div className="flex items-center px-2 py-1 text-xs text-neu-text-muted">
+                  +{productionTeam.length - 3} more
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Audition Slots Info */}
         <div className="pt-4 border-t border-neu-border">

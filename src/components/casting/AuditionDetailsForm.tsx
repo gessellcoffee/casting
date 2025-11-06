@@ -11,6 +11,7 @@ import WizardNavigation from '@/components/ui/navigation/WizardNavigation';
 import { searchUsersForProductionTeam } from '@/lib/supabase/productionTeamMembers';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import { X } from 'lucide-react';
+import Link from 'next/link';
 
 interface ProductionTeamMember {
   userId?: string;
@@ -477,37 +478,38 @@ export default function AuditionDetailsForm({
                     key={index}
                     className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl bg-neu-surface/50 border border-neu-border"
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {member.userId ? (
-                        <>
-                          <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center flex-shrink-0">
-                            <span className="text-neu-accent-primary font-medium">
-                              {member.email?.charAt(0).toUpperCase() || '?'}
-                            </span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-neu-text-primary font-medium truncate">
-                              @{member.email}
+                    {member.userId ? (
+                      <Link 
+                        href={`/profile/${member.userId}`}
+                        className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-neu-accent-primary font-medium">
+                            {member.email?.charAt(0).toUpperCase() || '?'}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-neu-text-primary font-medium truncate">
+                            @{member.email}
+                          </p>
+                          {(member.firstName || member.lastName) && (
+                            <p className="text-neu-text-primary/60 text-sm truncate">
+                              {member.firstName} {member.lastName}
                             </p>
-                            {(member.firstName || member.lastName) && (
-                              <p className="text-neu-text-primary/60 text-sm truncate">
-                                {member.firstName} {member.lastName}
-                              </p>
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                            <span className="text-yellow-400 font-medium">?</span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-neu-text-primary font-medium truncate">{member.email}</p>
-                            <p className="text-neu-text-primary/60 text-sm">Invitation pending</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                          )}
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-yellow-400 font-medium">?</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-neu-text-primary font-medium truncate">{member.email}</p>
+                          <p className="text-neu-text-primary/60 text-sm">Invitation pending</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="px-3 py-1 rounded-xl border-2 border-blue-400/60 text-sm font-medium text-neu-text-primary whitespace-nowrap">
                         {member.roleTitle}

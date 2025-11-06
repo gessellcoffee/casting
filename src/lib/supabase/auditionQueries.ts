@@ -10,7 +10,8 @@ type AuditionSlotWithSignups = AuditionSlot & {
  * Fetch all auditions with related show, company, and slot data
  */
 export async function getAuditionsWithDetails() {
-  const { data, error } = await supabase
+  // First, get auditions with basic data
+  const { data: auditionsData, error: auditionsError } = await supabase
     .from('auditions')
     .select(`
       *,
@@ -23,21 +24,59 @@ export async function getAuditionsWithDetails() {
     `)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching auditions:', error);
-    return { data: null, error };
+  if (auditionsError) {
+    console.error('Error fetching auditions:', auditionsError);
+    return { data: null, error: auditionsError };
+  }
+
+  // Then fetch production team members separately for each audition
+  const auditionIds = auditionsData?.map(a => a.audition_id) || [];
+  
+  let productionTeamData: any[] = [];
+  if (auditionIds.length > 0) {
+    const { data: teamData, error: teamError } = await supabase
+      .from('production_team_members')
+      .select(`
+        production_team_member_id,
+        audition_id,
+        user_id,
+        role_title,
+        status,
+        profiles!production_team_members_user_id_fkey(
+          id,
+          email,
+          first_name,
+          last_name,
+          profile_photo_url
+        )
+      `)
+      .in('audition_id', auditionIds);
+
+    if (teamError) {
+      console.error('Error fetching production team:', teamError);
+    } else if (teamData) {
+      productionTeamData = teamData;
+    }
   }
 
   // Transform data to match expected structure
-  const transformedData = data?.map(audition => ({
-    ...audition,
-    show: audition.shows,
-    company: audition.companies,
-    slots: audition.audition_slots?.map((slot: AuditionSlotWithSignups) => ({
-      ...slot,
-      current_signups: slot.current_signups?.[0]?.count || 0,
-    })),
-  }));
+  const transformedData = auditionsData?.map((audition: any) => {
+    // Find production team members for this audition
+    const teamMembers = productionTeamData.filter(
+      (member: any) => member.audition_id === audition.audition_id
+    );
+
+    return {
+      ...audition,
+      show: audition.shows,
+      company: audition.companies,
+      slots: audition.audition_slots?.map((slot: AuditionSlotWithSignups) => ({
+        ...slot,
+        current_signups: slot.current_signups?.[0]?.count || 0,
+      })),
+      productionTeam: teamMembers,
+    };
+  });
 
   return { data: transformedData, error: null };
 }

@@ -9,11 +9,11 @@ import { getUser } from '@/lib/supabase';
 import { getProfile, updateProfile } from '@/lib/supabase/profile';
 import { uploadProfilePhoto } from '@/lib/supabase/storage';
 import type { Profile } from '@/lib/supabase/types';
-import type { LocationData } from '@/lib/google-maps/types';
 import Button from '@/components/Button';
 import SkillsSection from '@/components/SkillsSection';
 import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
+import AddressInput, { type PlaceDetails } from '@/components/ui/AddressInput';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -120,12 +120,12 @@ export default function ProfilePage() {
     setFormData(prev => ({ ...prev, resume_url: url }));
   };
 
-  const handleLocationChange = (location: string, locationData?: LocationData) => {
+  const handleLocationChange = (location: string, isVerified: boolean, placeDetails?: PlaceDetails) => {
     setFormData(prev => ({
       ...prev,
       location,
-      location_lat: locationData?.coordinates.lat || null,
-      location_lng: locationData?.coordinates.lng || null,
+      location_lat: placeDetails?.lat || null,
+      location_lng: placeDetails?.lng || null,
     }));
   };
 
@@ -289,7 +289,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-visible">
                   <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium neu-text-primary  mb-2">
                       First Name
@@ -368,9 +368,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Location */}
-                <div className="neu-card-raised w-full">
+                <div className="neu-card-raised w-full overflow-visible z-500">
                   {isEditing ? (
-                    <LocationAutocomplete
+                    <AddressInput
                       value={formData.location}
                       onChange={handleLocationChange}
                       label="Location"

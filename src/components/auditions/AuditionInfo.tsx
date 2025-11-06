@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getProductionTeamMembers } from '@/lib/supabase/productionTeamMembers';
 import type { ProductionTeamMemberWithProfile } from '@/lib/supabase/types';
 import { formatUSDateShort } from '@/lib/utils/dateUtils';
+import Link from 'next/link';
 
 interface AuditionInfoProps {
   audition: any;
@@ -181,7 +182,10 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
                   className="flex items-center gap-2 text-sm"
                 >
                   {member.profiles ? (
-                    <>
+                    <Link
+                      href={`/profile/${member.user_id}`}
+                      className="flex items-center gap-2 flex-1 hover:opacity-80 transition-opacity"
+                    >
                       {member.profiles.profile_photo_url ? (
                         <img
                           src={member.profiles.profile_photo_url}
@@ -205,7 +209,7 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
                           {member.role_title}
                         </div>
                       </div>
-                    </>
+                    </Link>
                   ) : (
                     <div className="flex-1">
                       <div className="text-neu-text-primary font-medium">

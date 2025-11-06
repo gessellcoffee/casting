@@ -13,7 +13,7 @@ interface AddressInputProps {
   disabled?: boolean;
 }
 
-interface PlaceDetails {
+export interface PlaceDetails {
   address: string;
   lat: number;
   lng: number;
@@ -245,21 +245,35 @@ export default function AddressInput({
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-[10000] w-full mt-2 bg-neu-surface border-neu-border rounded-xl shadow-2xl max-h-60 overflow-y-auto"
+          className="z-[10000] w-full mt-2 rounded-xl max-h-60 overflow-y-auto"
+          style={{
+            background: 'var(--neu-surface)',
+            border: '1px solid var(--neu-border)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)',
+          }}
         >
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.place_id}
               type="button"
               onClick={() => selectSuggestion(suggestion)}
-              className="w-full px-4 py-3 text-left bg-white hover:bg-gray-50 border-none flex items-start gap-3"
+              className="w-full px-4 py-3 text-left border-none flex items-start gap-3 transition-colors first:rounded-t-xl last:rounded-b-xl"
+              style={{
+                background: 'var(--neu-surface)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--neu-surface-light)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--neu-surface)';
+              }}
             >
-              <MdLocationOn className="w-5 h-5 mt-0.5 flex-shrink-0 " />
+              <MdLocationOn className="w-5 h-5 mt-0.5 flex-shrink-0 text-neu-accent-primary" />
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
+                <div className="text-sm font-medium text-neu-text-primary truncate">
                   {suggestion.structured_formatting.main_text}
                 </div>
-                <div className="text-xs truncate">
+                <div className="text-xs text-neu-text-secondary truncate">
                   {suggestion.structured_formatting.secondary_text}
                 </div>
               </div>

@@ -12,6 +12,9 @@ import { getAllCompanies } from '@/lib/supabase/company';
 import { generateResumePDF } from '@/lib/utils/pdfGenerator';
 import ResumeEntry from './ResumeEntry';
 import Button from './Button';
+import ResumeImporter from './ResumeImporter';
+import PDFViewer from './PDFViewer';
+import type { ParsedResumeEntry } from '@/lib/utils/resumeParser';
 
 interface ResumeSectionProps {
   userId: string;
@@ -53,6 +56,8 @@ export default function ResumeSection({
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const [companies, setCompanies] = useState<Pick<Company, 'company_id' | 'name' | 'creator_user_id'>[]>([]);
   const [useCompanyDropdown, setUseCompanyDropdown] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
+  const [showPDFViewer, setShowPDFViewer] = useState(false);
 
   useEffect(() => {
     loadResumes();
@@ -273,6 +278,12 @@ export default function ResumeSection({
           Resume
         </h2>
         <div className="nav-buttons">
+          {resumeUrl && (
+            <Button
+              onClick={() => setShowPDFViewer(true)}
+              text="📄 View Resume"
+            />
+          )}
           {isOwnProfile && profile && (
             <Button
               onClick={handleExportPDF}
@@ -280,10 +291,17 @@ export default function ResumeSection({
             />
           )}
           {isEditing && !isAddingNew && (
-            <Button
-              onClick={() => setIsAddingNew(true)}
-              text="Add Entry"
-            />
+            <>
+              <Button
+                onClick={() => setShowImporter(true)}
+                text="📄 Import Resume"
+                className='recommended-button'
+              />
+              <Button
+                onClick={() => setIsAddingNew(true)}
+                text="Add Entry"
+              />
+            </>
           )}
         </div>
       </div>
@@ -562,6 +580,55 @@ export default function ResumeSection({
             </p>
           )}
         </div>
+      )}
+
+      {/* Resume Importer Modal */}
+      {showImporter && (
+        <ResumeImporter
+          onImport={async (entries: ParsedResumeEntry[]) => {
+            setError(null);
+            setSaving(true);
+            
+            try {
+              // Import each entry
+              for (const entry of entries) {
+                await createResumeEntry({
+                  user_id: userId,
+                  company_name: entry.company || '',
+                  company_id: null,
+                  show_name: entry.show_name,
+                  role: entry.role_name,
+                  date_of_production: entry.year ? entry.year.toString() : '',
+                  source: 'manual' as ResumeSource,
+                });
+              }
+              
+              // Reload resumes
+              await loadResumes();
+              
+              // Show success message
+              setSuccess(`Successfully imported ${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}!`);
+              setTimeout(() => setSuccess(null), 5000);
+              
+              setShowImporter(false);
+            } catch (err) {
+              console.error('Import error:', err);
+              setError('Failed to import resume entries. Please try again.');
+            } finally {
+              setSaving(false);
+            }
+          }}
+          onClose={() => setShowImporter(false)}
+        />
+      )}
+
+      {/* PDF Viewer Modal */}
+      {showPDFViewer && resumeUrl && (
+        <PDFViewer
+          pdfUrl={resumeUrl}
+          onClose={() => setShowPDFViewer(false)}
+          fileName={`${profile?.first_name || 'User'}_${profile?.last_name || 'Resume'}.pdf`}
+        />
       )}
     </div>
   );
