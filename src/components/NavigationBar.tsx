@@ -19,6 +19,7 @@ type NavigationBarProps = {
   onLogout?: () => void | Promise<void>;
 };
 
+
 export default function NavigationBar() {
       const [showMenu, setShowMenu] = useState(false);
       const [user, setUser] = useState<any>(null);

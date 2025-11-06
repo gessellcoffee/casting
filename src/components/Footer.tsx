@@ -1,10 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { getUser } from "@/lib/supabase";
 
 export default function Footer() {
-  return (
+
+          const [user, setUser] = useState<any>(null);
+
+        useEffect(() => {
+          // Get initial user
+          getUser().then(setUser).catch(() => setUser(null));
+        }, []);
+      return (
     <footer className="neumorphic-footer">
       <div className="footer-content">
         <div className="footer-brand">
@@ -12,17 +20,22 @@ export default function Footer() {
           <p className="footer-tagline">Change the way you cast and audition</p>
         </div>
         
-        <nav className="footer-nav">
-          <Link href="/company" className="footer-link">
+            {user && (
+                        <nav className="footer-nav">
+
+                        <Link href="/company" className="footer-link">
             Company
           </Link>
           <Link href="/shows" className="footer-link">
             Shows
           </Link>
-          <Link href="/help" className="footer-link">
+                <Link href="/help" className="footer-link">
             Help
           </Link>
         </nav>
+          )
+          }
+    
         
         <div className="footer-bottom">
           <p className="footer-copyright">
