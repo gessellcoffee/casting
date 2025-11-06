@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import StarryContainer from '@/components/StarryContainer';
+import ResumeSection from '@/components/ResumeSection';
 import { getProfile } from '@/lib/supabase/profile';
-import { getUserResumes } from '@/lib/supabase/resume';
-import { getUserCastMemberships } from '@/lib/supabase/castMembers';
-import type { Profile, UserResume } from '@/lib/supabase/types';
+import type { Profile } from '@/lib/supabase/types';
 import Link from 'next/link';
 
 export default function UserProfilePage() {
@@ -14,8 +13,6 @@ export default function UserProfilePage() {
   const userId = params.userid as string;
   
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [resumes, setResumes] = useState<UserResume[]>([]);
-  const [castMemberships, setCastMemberships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,16 +31,6 @@ export default function UserProfilePage() {
           return;
         }
         setProfile(profileData);
-        
-        // Fetch resume entries
-        const resumeData = await getUserResumes(userId);
-        setResumes(resumeData);
-        
-        // Fetch cast memberships (roles from auditions)
-        const castData = await getUserCastMemberships(userId);
-        // Only show accepted cast members
-        const acceptedCast = castData.filter(m => m.status === 'Accepted');
-        setCastMemberships(acceptedCast);
       } catch (err) {
         console.error('Error fetching user profile:', err);
         setError('Failed to load profile');
@@ -190,13 +177,26 @@ export default function UserProfilePage() {
             )}
 
             {/* Resume Section */}
-            {(resumes.length > 0 || castMemberships.length > 0) && (
+            <div className="w-full">
+              <ResumeSection 
+                userId={userId}
+                isEditing={false}
+                resumeUrl={profile.resume_url}
+                isOwnProfile={false}
+                showCastingHistory={profile.preferences?.show_casting_history !== false}
+              />
+            </div>
+          </div>
+        </div>
+      </StarryContainer>
+    </div>
+  );
+}
               <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                 <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] mb-4">
                   Resume
                 </h2>
                 
-                {/* Resume File Link */}
                 {profile.resume_url && (
                   <div className="mb-4">
                     <a

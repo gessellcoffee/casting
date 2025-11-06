@@ -393,9 +393,16 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       {notification.action_taken && (
                         <div className="mt-2">
                           <Badge
-                            variant={notification.action_taken === 'approved' ? 'success' : 'danger'}
+                            variant={
+                              notification.action_taken === 'approved' || notification.action_taken === 'accepted'
+                                ? 'success'
+                                : 'danger'
+                            }
                           >
-                            {notification.action_taken === 'approved' ? '✓ Approved' : '✗ Rejected'}
+                            {notification.action_taken === 'approved' && '✓ Approved'}
+                            {notification.action_taken === 'rejected' && '✗ Rejected'}
+                            {notification.action_taken === 'accepted' && '✓ Accepted'}
+                            {notification.action_taken === 'declined' && '✗ Declined'}
                           </Badge>
                         </div>
                       )}

@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import type { UserResume, ResumeSource, Company } from '@/lib/supabase/types';
+import type { UserResume, ResumeSource, Company, Profile } from '@/lib/supabase/types';
 import {
   getUserResumes,
   createResumeEntry,
   updateResumeEntry,
   deleteResumeEntry,
 } from '@/lib/supabase/resume';
+import { getUserCastingHistory } from '@/lib/supabase/castingHistory';
 import { uploadResume } from '@/lib/supabase/storage';
 import { getAllCompanies } from '@/lib/supabase/company';
+import { generateResumePDF } from '@/lib/utils/pdfGenerator';
 import ResumeEntry from './ResumeEntry';
 import Button from './Button';
 
@@ -16,12 +18,24 @@ interface ResumeSectionProps {
   isEditing: boolean;
   resumeUrl?: string | null;
   onResumeUrlChange?: (url: string) => void;
+  isOwnProfile?: boolean;
+  showCastingHistory?: boolean;
+  profile?: Profile | null;
 }
 
 
 
-export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUrlChange }: ResumeSectionProps) {
+export default function ResumeSection({ 
+  userId, 
+  isEditing, 
+  resumeUrl, 
+  onResumeUrlChange,
+  isOwnProfile = false,
+  showCastingHistory = true,
+  profile = null
+}: ResumeSectionProps) {
   const [resumes, setResumes] = useState<UserResume[]>([]);
+  const [castingHistory, setCastingHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,6 +56,7 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
 
   useEffect(() => {
     loadResumes();
+    loadCastingHistory();
     loadCompanies();
   }, [userId]);
 
@@ -61,6 +76,16 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
       setError('Failed to load resume entries');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCastingHistory = async () => {
+    try {
+      const history = await getUserCastingHistory(userId);
+      setCastingHistory(history);
+    } catch (err) {
+      console.error('Error loading casting history:', err);
+      // Don't set error - casting history is supplementary
     }
   };
 
@@ -213,6 +238,26 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
     }
   };
 
+  const handleExportPDF = async () => {
+    if (!profile) {
+      setError('Profile data not available');
+      return;
+    }
+
+    try {
+      await generateResumePDF({
+        profile,
+        manualResumes: resumes,
+        castingHistory: castingHistory,
+      });
+      setSuccess('Resume exported successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      setError('Failed to export resume');
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
@@ -227,14 +272,20 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
         <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6]">
           Resume
         </h2>
-        {isEditing && !isAddingNew && (
-          <div className="nav-buttons">
+        <div className="nav-buttons">
+          {isOwnProfile && profile && (
+            <Button
+              onClick={handleExportPDF}
+              text="Export as PDF"
+            />
+          )}
+          {isEditing && !isAddingNew && (
             <Button
               onClick={() => setIsAddingNew(true)}
               text="Add Entry"
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {error && (
@@ -418,7 +469,91 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
         </div>
       )}
 
-      {resumes.length === 0 && !isAddingNew ? (
+      {/* Casting History Section */}
+      {castingHistory.length > 0 && (isOwnProfile || showCastingHistory) && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-neu-text-primary">
+              Casting History
+            </h3>
+            <span className="text-xs text-neu-text-primary/60 bg-green-500/10 border border-green-500/30 px-2 py-1 rounded-full">
+              ✓ Verified from Castings
+            </span>
+          </div>
+          <div className="space-y-4">
+            {castingHistory.map((cast) => (
+              <div key={cast.id} className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 neu-card-raised">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-neu-text-primary mb-1">
+                        {cast.show_name}
+                      </h3>
+                      <svg
+                        className="w-5 h-5 text-green-400 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <title>Verified from casting system</title>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-neu-accent-primary font-medium">
+                      {cast.role}{cast.is_understudy && ' (Understudy)'}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-1 text-sm text-neu-text-primary/80">
+                  {cast.company_name && (
+                    <p>
+                      <span className="text-neu-text-primary/60">Company: </span>
+                      {cast.company_name}
+                    </p>
+                  )}
+                  {cast.date_of_production && (
+                    <p>
+                      <span className="text-neu-text-primary/60">Performance Dates: </span>
+                      {cast.date_of_production}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Manual Resume Entries Section */}
+      {resumes.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-neu-text-primary">
+            Additional Credits
+          </h3>
+          <div className="space-y-4">
+            {resumes.map((resume) => (
+              <ResumeEntry
+                key={resume.resume_entry_id}
+                entry={resume}
+                isEditing={isEditing && editingId === resume.resume_entry_id}
+                parentIsEditing={isEditing}
+                onUpdate={handleUpdate}
+                onDelete={handleDelete}
+                onStartEdit={() => setEditingId(resume.resume_entry_id)}
+                onCancelEdit={() => setEditingId(null)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {resumes.length === 0 && castingHistory.length === 0 && !isAddingNew && (
         <div className="p-8 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-center">
           <p className="text-neu-text-primary/70">No resume entries yet.</p>
           {isEditing && (
@@ -426,21 +561,6 @@ export default function ResumeSection({ userId, isEditing, resumeUrl, onResumeUr
               Click &quot;Add Entry&quot; to create your first resume entry.
             </p>
           )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {resumes.map((resume) => (
-            <ResumeEntry
-              key={resume.resume_entry_id}
-              entry={resume}
-              isEditing={isEditing && editingId === resume.resume_entry_id}
-              parentIsEditing={isEditing}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-              onStartEdit={() => setEditingId(resume.resume_entry_id)}
-              onCancelEdit={() => setEditingId(null)}
-            />
-          ))}
         </div>
       )}
     </div>

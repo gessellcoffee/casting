@@ -41,6 +41,7 @@ export default function ProfilePage() {
     location_lat: null as number | null,
     location_lng: null as number | null,
   });
+  const [showCastingHistory, setShowCastingHistory] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +69,10 @@ export default function ProfilePage() {
               location_lat: profileData.location_lat || null,
               location_lng: profileData.location_lng || null,
             });
+            // Load casting history privacy setting
+            setShowCastingHistory(
+              profileData.preferences?.show_casting_history !== false
+            );
           }
         }
       } catch (error) {
@@ -144,6 +149,10 @@ export default function ProfilePage() {
         location: formData.location,
         location_lat: formData.location_lat,
         location_lng: formData.location_lng,
+        preferences: {
+          ...profile?.preferences,
+          show_casting_history: showCastingHistory,
+        },
       });
 
       if (updateError) {
@@ -429,6 +438,36 @@ export default function ProfilePage() {
                   </div>
                 )}
 
+                {/* Privacy Settings */}
+                {isEditing && (
+                  <div className="neu-card-raised w-full p-4">
+                    <h3 className="text-lg font-semibold text-neu-text-primary mb-4">Privacy Settings</h3>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium text-neu-text-primary">
+                          Show Casting History on Public Profile
+                        </label>
+                        <p className="text-xs text-neu-text-primary/60 mt-1">
+                          Display shows you've been cast in to other users viewing your profile
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowCastingHistory(!showCastingHistory)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          showCastingHistory ? 'bg-green-500' : 'bg-neu-border'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            showCastingHistory ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Resume Section */}
                 {user?.id && (
                   <div className="w-full">
@@ -437,6 +476,9 @@ export default function ProfilePage() {
                       isEditing={isEditing}
                       resumeUrl={formData.resume_url}
                       onResumeUrlChange={handleResumeUrlChange}
+                      isOwnProfile={true}
+                      showCastingHistory={showCastingHistory}
+                      profile={profile}
                     />
                   </div>
                 )}
