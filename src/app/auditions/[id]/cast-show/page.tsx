@@ -15,12 +15,16 @@ interface AuditionWithShow {
   company_id: string | null;
   audition_dates: any;
   audition_location: string | null;
+  audition_details: string | null;
   rehearsal_dates: string | null;
   rehearsal_location: string | null;
   performance_dates: string | null;
   performance_location: string | null;
   ensemble_size: number | null;
   equity_status: 'Equity' | 'Non-Equity' | 'Hybrid' | null;
+  is_paid: boolean | null;
+  pay_range: string | null;
+  pay_comments: string | null;
   show_filled_slots: boolean | null;
   created_at: string;
   updated_at: string | null;
