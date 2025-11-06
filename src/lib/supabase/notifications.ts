@@ -3,7 +3,78 @@ import { getAuthenticatedUser } from './auth';
 import type { Notification, NotificationInsert, NotificationUpdate } from './types';
 
 /**
- * Create a notification
+ * Send email notification to recipient
+ */
+async function sendEmailNotification(
+  recipientId: string,
+  senderId: string | null,
+  notificationType: string,
+  title: string,
+  message: string,
+  actionUrl?: string | null
+): Promise<void> {
+  try {
+    // Fetch recipient profile to get email and name
+    const { data: recipientProfile } = await supabase
+      .from('profiles')
+      .select('email, first_name, last_name')
+      .eq('id', recipientId)
+      .single();
+
+    if (!recipientProfile?.email) {
+      console.warn('Recipient profile not found or missing email:', recipientId);
+      return;
+    }
+
+    const recipientName = `${recipientProfile.first_name || ''} ${recipientProfile.last_name || ''}`.trim() 
+      || recipientProfile.email;
+
+    // Fetch sender name if available
+    let senderName: string | undefined;
+    if (senderId) {
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', senderId)
+        .single();
+
+      if (senderProfile) {
+        senderName = `${senderProfile.first_name || ''} ${senderProfile.last_name || ''}`.trim() 
+          || senderProfile.email;
+      }
+    }
+
+    // Call the email API route
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/send-notification-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recipientEmail: recipientProfile.email,
+        recipientName,
+        notificationType,
+        title,
+        message,
+        actionUrl: actionUrl || undefined,
+        senderName,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Failed to send email notification:', errorData);
+    } else {
+      console.log('Email notification sent successfully to:', recipientProfile.email);
+    }
+  } catch (error) {
+    console.error('Error sending email notification:', error);
+    // Don't throw - we don't want email failures to block notification creation
+  }
+}
+
+/**
+ * Create a notification (in-app and email)
  */
 export async function createNotification(
   notificationData: NotificationInsert
@@ -17,6 +88,20 @@ export async function createNotification(
   if (error) {
     console.error('Error creating notification:', error);
     return { data: null, error };
+  }
+
+  // Send email notification asynchronously (don't wait for it)
+  if (data) {
+    sendEmailNotification(
+      notificationData.recipient_id,
+      notificationData.sender_id || null,
+      notificationData.type,
+      notificationData.title,
+      notificationData.message,
+      notificationData.action_url
+    ).catch(err => {
+      console.error('Email notification failed (non-blocking):', err);
+    });
   }
 
   return { data, error: null };

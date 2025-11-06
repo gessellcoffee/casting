@@ -1,0 +1,206 @@
+/* Tooltip Component Styles - Neumorphic Design */
+
+.tooltipWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltipContainer {
+  position: absolute;
+  z-index: 9999;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.tooltipContainer.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* Position variations */
+.tooltipContainer.top {
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+}
+
+.tooltipContainer.top.visible {
+  transform: translateX(-50%) scale(1);
+}
+
+.tooltipContainer.bottom {
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+}
+
+.tooltipContainer.bottom.visible {
+  transform: translateX(-50%) scale(1);
+}
+
+.tooltipContainer.left {
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) scale(0.95);
+}
+
+.tooltipContainer.left.visible {
+  transform: translateY(-50%) scale(1);
+}
+
+.tooltipContainer.right {
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) scale(0.95);
+}
+
+.tooltipContainer.right.visible {
+  transform: translateY(-50%) scale(1);
+}
+
+/* Tooltip content */
+.tooltipContent {
+  background: var(--neu-surface);
+  border: 1px solid var(--neu-border);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 200px;
+  max-width: 320px;
+  box-shadow: var(--neu-shadow-raised);
+  backdrop-filter: blur(10px);
+}
+
+.tooltipTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neu-text-primary);
+  margin-bottom: 8px;
+}
+
+.tooltipMessage {
+  font-size: 13px;
+  color: var(--neu-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* Actions */
+.tooltipActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.closeButton,
+.dismissButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+}
+
+.closeButton {
+  background: var(--neu-surface-inset);
+  color: var(--neu-text-secondary);
+  box-shadow: var(--neu-shadow-inset);
+}
+
+.closeButton:hover {
+  background: var(--neu-border);
+  color: var(--neu-text-primary);
+}
+
+.dismissButton {
+  background: linear-gradient(135deg, var(--neu-accent-primary), var(--neu-accent-secondary));
+  color: white;
+  box-shadow: var(--neu-shadow-raised);
+}
+
+.dismissButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--neu-shadow-elevated);
+}
+
+.closeButton:active,
+.dismissButton:active {
+  transform: translateY(0);
+}
+
+/* Arrow */
+.tooltipArrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.top .tooltipArrow {
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0 8px;
+  border-color: var(--neu-border) transparent transparent transparent;
+}
+
+.bottom .tooltipArrow {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-color: transparent transparent var(--neu-border) transparent;
+}
+
+.left .tooltipArrow {
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 0 8px 8px;
+  border-color: transparent transparent transparent var(--neu-border);
+}
+
+.right .tooltipArrow {
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 8px 8px 0;
+  border-color: transparent var(--neu-border) transparent transparent;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tooltipContent {
+    max-width: 280px;
+    padding: 12px;
+  }
+
+  .tooltipTitle {
+    font-size: 13px;
+  }
+
+  .tooltipMessage {
+    font-size: 12px;
+  }
+
+  .closeButton,
+  .dismissButton {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .tooltipContent {
+  background: rgba(13, 17, 42, 0.95);
+  border-color: rgba(123, 58, 237, 0.3);
+}
+
+[data-theme="dark"] .tooltipArrow {
+  filter: brightness(0.8);
+}

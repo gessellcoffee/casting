@@ -5,6 +5,7 @@ import "./globals.css";
 import NavigationBar from "../components/NavigationBar";
 import Footer from "../components/Footer";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import { TooltipProvider } from "../contexts/TooltipContext";
 
 const sora = Sora({
   variable: "--font-geist-sans",
@@ -36,9 +37,11 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
         <ThemeProvider>
-          <NavigationBar />
-          <main className="pt-4 sm:pt-8">{children}</main>
-          <Footer />
+          <TooltipProvider>
+            <NavigationBar />
+            <main className="pt-4 sm:pt-8">{children}</main>
+            <Footer />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

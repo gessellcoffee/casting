@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import AddressInput from '@/components/ui/AddressInput';
+import Tooltip from '../shared/Tooltip';
 
 interface SlotData {
   start_time: string;
@@ -347,6 +348,7 @@ export default function SlotScheduler({
       </div>
 
       {/* Default Settings */}
+      
       <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
         <h3 className="text-lg font-medium text-neu-text-primary">Default Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -446,16 +448,20 @@ export default function SlotScheduler({
         >
           Next Week →
         </button>
+                                                    <Tooltip id="slot-scheduler-tip" message="Scroll to the top for to update the seetings - like Time increment (Show less Calendar) or Buffer Time so you're ready to generate a bunch of slots!" position="top"/>
+
       </div>
 
       {/* Calendar Grid */}
       <div ref={scrollContainerRef} className="relative overflow-x-auto overflow-y-auto" style={{ maxHeight: '80vh' }}>
         <div className="inline-block min-w-full">
           {/* Sticky Header Row */}
-          <div className="sticky top-0 z-30 text-black bg-(--neu-surface)">
+          <div className="sticky top-0 z-30 text-neu-text-primary bg-neu-surface">
+
             <div className="grid grid-cols-8 gap-1 bg-neu-border/60 border-2 border-neu-border rounded-t-xl">
               <div className="bg-neu-surface p-2 text-center text-sm font-medium text-neu-text-primary border border-neu-border">
                 <div>Time</div>
+
                 {localSlots.length > 0 && (
                   <button
                     onClick={clearAllSlots}
@@ -463,7 +469,7 @@ export default function SlotScheduler({
                     title="Clear all slots"
                   >
                     Clear All
-                  </button>
+                  </button>               
                 )}
               </div>
               {days.map((day, index) => {
@@ -487,9 +493,9 @@ export default function SlotScheduler({
               })}
             </div>
           </div>
-          
           {/* Scrollable Grid Body */}
-          <div className="grid grid-cols-8 gap-1 bg-neu-border/60 border-2 border-t-0 border-neu-border rounded-b-xl overflow-hidden">
+          
+            <div className="grid grid-cols-8 gap-1 bg-neu-border/60 border-2 border-t-0 border-neu-border rounded-b-xl overflow-hidden">
             {/* Time Rows */}
             {hours.map((hour) =>
               minutes.map((minute) => (
@@ -516,19 +522,19 @@ export default function SlotScheduler({
                         onMouseDown={(e) => handleMouseDown(dayIndex, hour, minute, e)}
                         onMouseEnter={(e) => handleMouseEnter(dayIndex, hour, minute, e)}
                         onMouseUp={(e) => handleMouseUp(dayIndex, hour, minute, e)}
-                        className={`h-12 transition-colors relative border border-neu-border ${
+                        className={`h-12 transition-all duration-300 relative border border-neu-border ${
                           !isAvailable
                             ? 'bg-[#1e2e4e]/50 cursor-not-allowed opacity-40'
                             : hasSlot && !slotAtBlock
                             ? ' cursor-pointer border-2 border-black'
                             : isSelected
-                            ? 'bg-[#5a8ff5]/20 border-2 border-[#5a8ff5] cursor-pointer'
+                            ? 'bg-gradient-to-br from-[#d4e4f7] to-[#c5d9f2] border border-[#b8d4f1] cursor-pointer rounded-md shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(107,141,214,0.2),1px_1px_3px_rgba(107,141,214,0.15)]'
                             : 'bg-neu-surface/30 hover:bg-neu-surface/60 cursor-pointer'
                         }`}
                       >
                         {slotAtBlock && (
                           <div
-                            className="absolute inset-0 rounded-md border border-black overflow-hidden group cursor-pointer transition-all z-10 shadow-[2px_2px_4px_var(--neu-shadow-dark),-2px_-2px_4px_var(--neu-shadow-light)] hover:shadow-[inset_2px_2px_4px_var(--neu-shadow-dark),inset_-2px_-2px_4px_var(--neu-shadow-light)]"
+                            className="absolute inset-0 rounded-md overflow-hidden group cursor-pointer transition-all duration-300 z-10 bg-gradient-to-br from-[#d1f4e0] to-[#bfefd7] border border-[#a7e9c8] shadow-[inset_2px_2px_4px_rgba(255,255,255,0.9),inset_-2px_-2px_4px_rgba(52,211,153,0.15),1px_1px_3px_rgba(52,211,153,0.12)] hover:shadow-[inset_2px_2px_5px_rgba(255,255,255,0.95),inset_-2px_-2px_5px_rgba(52,211,153,0.2),2px_2px_4px_rgba(52,211,153,0.18)]"
                             style={{ height: `${getSlotHeight(slotAtBlock)}px` }}
                           >
                             <button
@@ -539,20 +545,20 @@ export default function SlotScheduler({
                                   removeSlot(slotIndex);
                                 }
                               }}
-                              className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-sm text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity z-20 border border-red-400/30"
+                              className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center bg-white/60 hover:bg-red-500 text-gray-600 hover:text-white rounded-sm text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-all z-20 border border-gray-300 hover:border-red-400 shadow-sm"
                               title="Remove slot"
                             >
                               ×
                             </button>
-                            <div className="p-1 text-neu-text-primary text-[10px] leading-tight">
-                              <div className="font-semibold text-neu-accent-primary">
+                            <div className="p-1 text-[10px] leading-tight">
+                              <div className="font-semibold text-[#047857] drop-shadow-sm">
                                 {new Date(slotAtBlock.start_time).toLocaleTimeString('en-US', { 
                                   hour: 'numeric', 
                                   minute: '2-digit',
                                   hour12: true 
                                 })}
                               </div>
-                              <div className="text-[9px] text-neu-text-primary/70">
+                              <div className="text-[9px] text-[#059669]">
                                 {(() => {
                                   const start = new Date(slotAtBlock.start_time);
                                   const end = new Date(slotAtBlock.end_time);
@@ -561,12 +567,12 @@ export default function SlotScheduler({
                                 })()}
                               </div>
                               {slotAtBlock.location && (
-                                <div className="text-[9px] text-neu-text-primary/60 truncate">
+                                <div className="text-[9px] text-[#059669]/80 truncate">
                                   📍 {slotAtBlock.location}
                                 </div>
                               )}
                             </div>
-                            <div className="absolute inset-0 bg-[#5a8ff5]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         )}
                       </div>
