@@ -13,6 +13,7 @@ interface AuditionFiltersProps {
     dateRange: string;
     state: string;
     city: string;
+    compensation: string;
   };
   onFiltersChange: (filters: any) => void;
   states: string[];
@@ -37,7 +38,7 @@ export default function AuditionFilters({
 
   return (
     <div className="mb-8 p-6 rounded-2xl neu-card-raised">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Search */}
         <FormInput
           label="Search"
@@ -97,6 +98,17 @@ export default function AuditionFilters({
               {city}
             </option>
           ))}
+        </FormSelect>
+
+        {/* Compensation Filter */}
+        <FormSelect
+          label="Compensation"
+          value={filters.compensation}
+          onChange={(e) => onFiltersChange({ ...filters, compensation: e.target.value })}
+        >
+          <option value="all">All</option>
+          <option value="paid">💰 Paid</option>
+          <option value="not-paid">🎭 Non-Paid</option>
         </FormSelect>
       </div>
     </div>

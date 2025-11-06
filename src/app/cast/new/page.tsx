@@ -33,12 +33,16 @@ interface CastingData {
   auditionDetails: {
     auditionDates: string[];
     auditionLocation: string;
+    auditionDetails: string;
     rehearsalDates: string[];
     rehearsalLocation: string;
     performanceDates: string[];
     performanceLocation: string;
     ensembleSize: number | null;
     equityStatus: 'Equity' | 'Non-Equity' | 'Hybrid' | null;
+    isPaid: boolean;
+    payRange: string;
+    payComments: string;
     productionTeam?: ProductionTeamMember[];
   };
   slots: any[];
@@ -59,12 +63,16 @@ export default function NewCastingPage() {
     auditionDetails: {
       auditionDates: [],
       auditionLocation: '',
+      auditionDetails: '',
       rehearsalDates: [],
       rehearsalLocation: '',
       performanceDates: [],
       performanceLocation: '',
       ensembleSize: null,
       equityStatus: null,
+      isPaid: false,
+      payRange: '',
+      payComments: '',
       productionTeam: [],
     },
     slots: [],

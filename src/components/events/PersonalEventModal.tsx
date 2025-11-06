@@ -73,10 +73,10 @@ export default function PersonalEventModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/25" />
+          <div className="fixed inset-0 bg-black/25 dark:bg-black/60" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto pt-24 neu-card-raised">
+        <div className="fixed inset-0 overflow-y-auto pt-24">
           <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
@@ -87,7 +87,7 @@ export default function PersonalEventModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-neu-surface border border-neu-border p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all" style={{ background: 'var(--neu-surface)', border: '1px solid var(--neu-border)' }}>
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -194,7 +194,7 @@ export default function PersonalEventModal({
                 {/* Delete Confirmation */}
                 {showDeleteConfirm && (
                   <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <p className="text-sm text-red-400 mb-3">
+                    <p className="text-sm text-red-500 mb-3">
                       {isRecurringInstance
                         ? 'This will delete all occurrences of this recurring event. Are you sure?'
                         : 'Are you sure you want to delete this event?'}

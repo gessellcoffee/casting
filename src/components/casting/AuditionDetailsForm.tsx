@@ -23,12 +23,16 @@ interface ProductionTeamMember {
 interface AuditionDetails {
   auditionDates: string[];
   auditionLocation: string;
+  auditionDetails: string;
   rehearsalDates: string[];
   rehearsalLocation: string;
   performanceDates: string[];
   performanceLocation: string;
   ensembleSize: number | null;
   equityStatus: EquityStatus | null;
+  isPaid: boolean;
+  payRange: string;
+  payComments: string;
   productionTeam?: ProductionTeamMember[];
 }
 
@@ -158,7 +162,13 @@ export default function AuditionDetailsForm({
   };
 
   const handleNext = () => {
-    // Optional validation - all fields are optional
+    // Validate pay range if audition is marked as paid
+    if (localDetails.isPaid && !localDetails.payRange.trim()) {
+      setError('Pay range is required for paid auditions');
+      return;
+    }
+    
+    setError(null);
     onUpdate(localDetails);
     onNext();
   };
@@ -192,6 +202,22 @@ export default function AuditionDetailsForm({
             onChange={(value) => updateField('auditionLocation', value)}
             placeholder="e.g., Main Theater, 123 Broadway"
           />
+
+          <div>
+            <label className="block text-sm font-medium text-neu-text-primary mb-1">
+              Audition Details & Instructions
+            </label>
+            <textarea
+              value={localDetails.auditionDetails}
+              onChange={(e) => updateField('auditionDetails', e.target.value)}
+              placeholder="Add any additional details or instructions for actors (e.g., what to prepare, materials to bring, dress code, special requirements)..."
+              rows={4}
+              className="neu-input w-full resize-y"
+            />
+            <p className="text-sm text-neu-text-primary/60 mt-1">
+              Optional: Provide helpful information to guide actors preparing for the audition
+            </p>
+          </div>
         </div>
 
         {/* Rehearsal Information */}
@@ -235,7 +261,8 @@ export default function AuditionDetailsForm({
         {/* Production Details */}
         <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
           <h3 className="text-lg font-medium text-neu-text-primary">Production Details</h3>
-          <p>Ensemble is the number of non-principle actors needed. You may cast less or more than this number, but setting a target will be good for Actors expectations of casting.</p>
+          <p className="text-neu-text-primary/70 text-sm">Ensemble is the number of non-principle actors needed. You may cast less or more than this number, but setting a target will be good for Actors expectations of casting.</p>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Ensemble Size"
@@ -263,6 +290,57 @@ export default function AuditionDetailsForm({
               ))}
             </FormSelect>
           </div>
+        </div>
+
+        {/* Compensation Information */}
+        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+          <h3 className="text-lg font-medium text-neu-text-primary">Compensation</h3>
+          
+          <FormSelect
+            label="Paid Production"
+            value={localDetails.isPaid ? 'paid' : 'not-paid'}
+            onChange={(e) => updateField('isPaid', e.target.value === 'paid')}
+          >
+            <option value="not-paid">Not Paid</option>
+            <option value="paid">Paid</option>
+          </FormSelect>
+
+          {localDetails.isPaid && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-neu-text-primary mb-1">
+                  Pay Range <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={localDetails.payRange}
+                  onChange={(e) => updateField('payRange', e.target.value)}
+                  placeholder="e.g., $500-$1000 per week, $20/hour, Stipend: $300"
+                  className="neu-input w-full"
+                  required
+                />
+                <p className="text-sm text-neu-text-primary/60 mt-1">
+                  Required: Specify the compensation range or amount
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neu-text-primary mb-1">
+                  Pay Comments
+                </label>
+                <textarea
+                  value={localDetails.payComments}
+                  onChange={(e) => updateField('payComments', e.target.value)}
+                  placeholder="Add any additional details about compensation (e.g., performance bonuses, travel stipend, meal provided)..."
+                  rows={3}
+                  className="neu-input w-full resize-y"
+                />
+                <p className="text-sm text-neu-text-primary/60 mt-1">
+                  Optional: Provide additional context or details about compensation
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Production Team */}

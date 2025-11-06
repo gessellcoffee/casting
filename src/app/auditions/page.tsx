@@ -18,6 +18,7 @@ export default function AuditionsPage() {
     dateRange: 'all',
     state: 'all',
     city: 'all',
+    compensation: 'all',
   });
 
   useEffect(() => {
@@ -189,6 +190,18 @@ export default function AuditionsPage() {
       });
     }
 
+    // Compensation filter
+    if (filters.compensation !== 'all') {
+      filtered = filtered.filter(audition => {
+        if (filters.compensation === 'paid') {
+          return audition.is_paid === true;
+        } else if (filters.compensation === 'not-paid') {
+          return audition.is_paid === false || audition.is_paid === null;
+        }
+        return true;
+      });
+    }
+
     setFilteredAuditions(filtered);
   };
 
@@ -248,15 +261,15 @@ export default function AuditionsPage() {
           {!loading && filteredAuditions.length === 0 && (
             <div className="text-center py-12">
               <div className="text-neu-text-secondary mb-4">
-                {searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all' || filters.state !== 'all' || filters.city !== 'all'
+                {searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all' || filters.state !== 'all' || filters.city !== 'all' || filters.compensation !== 'all'
                   ? 'No auditions match your filters'
                   : 'No auditions posted yet'}
               </div>
-              {(searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all' || filters.state !== 'all' || filters.city !== 'all') && (
+              {(searchQuery || filters.equityStatus !== 'all' || filters.dateRange !== 'all' || filters.state !== 'all' || filters.city !== 'all' || filters.compensation !== 'all') && (
                 <button
                   onClick={() => {
                     setSearchQuery('');
-                    setFilters({ equityStatus: 'all', dateRange: 'all', state: 'all', city: 'all' });
+                    setFilters({ equityStatus: 'all', dateRange: 'all', state: 'all', city: 'all', compensation: 'all' });
                   }}
                   className="n-button-secondary"
                 >

@@ -13,6 +13,7 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
   const {
     audition_dates,
     audition_location,
+    audition_details,
     rehearsal_dates,
     rehearsal_location,
     performance_dates,
@@ -71,6 +72,16 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
                 📍 {audition_location}
               </div>
             )}
+            {audition_details && (
+              <div className="mt-3 pt-3 border-t border-neu-border/50">
+                <p className="text-sm font-medium text-neu-text-primary mb-2">
+                  📋 Details & Instructions
+                </p>
+                <p className="text-sm text-neu-text-primary/70 whitespace-pre-wrap">
+                  {audition_details}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -83,6 +94,28 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
             <div className="text-sm text-neu-text-primary/70">
               {equity_status}
             </div>
+          </div>
+        )}
+
+        {/* Compensation */}
+        {audition.is_paid !== undefined && (
+          <div>
+            <h3 className="text-sm font-medium text-neu-text-primary mb-2">
+              Compensation
+            </h3>
+            <div className="text-sm text-neu-text-primary/70">
+              {audition.is_paid ? '💰 Paid Production' : '🎭 Non-Paid Production'}
+            </div>
+            {audition.is_paid && audition.pay_range && (
+              <div className="text-sm text-neu-text-primary font-medium mt-1">
+                {audition.pay_range}
+              </div>
+            )}
+            {audition.is_paid && audition.pay_comments && (
+              <div className="text-sm text-neu-text-primary/60 mt-2 whitespace-pre-wrap">
+                {audition.pay_comments}
+              </div>
+            )}
           </div>
         )}
         {/* Rehearsal Info */}

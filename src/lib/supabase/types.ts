@@ -412,6 +412,7 @@ export type Database = {
           company_id: string | null;
           audition_dates: any | null; // JSONB array of date strings
           audition_location: string | null;
+          audition_details: string | null;
           rehearsal_dates: string | null;
           rehearsal_location: string | null;
           performance_dates: string | null;
@@ -419,6 +420,9 @@ export type Database = {
           ensemble_size: number | null;
           equity_status: Database['public']['Enums']['equity_status_enum'] | null;
           show_filled_slots: boolean | null;
+          is_paid: boolean | null;
+          pay_range: string | null;
+          pay_comments: string | null;
           created_at: string;
         };
         Insert: {
@@ -428,6 +432,7 @@ export type Database = {
           company_id?: string | null;
           audition_dates?: any | null;
           audition_location?: string | null;
+          audition_details?: string | null;
           rehearsal_dates?: string | null;
           rehearsal_location?: string | null;
           performance_dates?: string | null;
@@ -435,6 +440,9 @@ export type Database = {
           ensemble_size?: number | null;
           equity_status?: Database['public']['Enums']['equity_status_enum'] | null;
           show_filled_slots?: boolean | null;
+          is_paid?: boolean | null;
+          pay_range?: string | null;
+          pay_comments?: string | null;
           created_at?: string;
         };
         Update: {
@@ -444,6 +452,7 @@ export type Database = {
           company_id?: string | null;
           audition_dates?: any | null;
           audition_location?: string | null;
+          audition_details?: string | null;
           rehearsal_dates?: string | null;
           rehearsal_location?: string | null;
           performance_dates?: string | null;
@@ -451,6 +460,9 @@ export type Database = {
           ensemble_size?: number | null;
           equity_status?: Database['public']['Enums']['equity_status_enum'] | null;
           show_filled_slots?: boolean | null;
+          is_paid?: boolean | null;
+          pay_range?: string | null;
+          pay_comments?: string | null;
           created_at?: string;
         };
         Relationships: [

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import AddressInput from '@/components/ui/AddressInput';
 import Tooltip from '../shared/Tooltip';
 
@@ -458,7 +458,7 @@ export default function SlotScheduler({
           {/* Sticky Header Row */}
           <div className="sticky top-0 z-30 text-neu-text-primary bg-neu-surface">
 
-            <div className="grid grid-cols-8 gap-1 bg-neu-border/60 border-2 border-neu-border rounded-t-xl">
+            <div className="grid grid-cols-8 gap-1 bg-neu-surface border-2 border-neu-border rounded-t-xl">
               <div className="bg-neu-surface p-2 text-center text-sm font-medium text-neu-text-primary border border-neu-border">
                 <div>Time</div>
 
@@ -499,9 +499,9 @@ export default function SlotScheduler({
             {/* Time Rows */}
             {hours.map((hour) =>
               minutes.map((minute) => (
-                <>
+                <React.Fragment key={`row-${hour}-${minute}`}>
                   {/* Time Label */}
-                  <div key={`time-${hour}-${minute}`} className="bg-neu-surface/50 relative flex items-start justify-end pr-2">
+                  <div className="bg-neu-surface/50 relative flex items-start justify-end pr-2">
                     <span className="absolute -top-2 right-2 text-xs text-neu-text-primary/60 px-1">
                       {formatTime(hour, minute)}
                     </span>
@@ -578,7 +578,7 @@ export default function SlotScheduler({
                       </div>
                     );
                   })}
-                </>
+                </React.Fragment>
               ))
             )}
           </div>

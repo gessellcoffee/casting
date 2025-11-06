@@ -82,13 +82,13 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#9b87f5]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <Dialog.Panel className="mt-4 sm:mt-20 backdrop-blur-md rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ background: 'var(--neu-surface)', border: '1px solid var(--neu-border)' }}>
         {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-[#9b87f5]/20 p-4 sm:p-6 flex items-start justify-between">
+        <div className="sticky top-0 backdrop-blur-md p-4 sm:p-6 flex items-start justify-between" style={{ background: 'var(--neu-surface)', borderBottom: '1px solid var(--neu-border)' }}>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl sm:text-2xl">📋</span>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#9b87f5]">
+              <h2 className="text-xl sm:text-2xl font-bold text-neu-accent-primary">
                 Callback
               </h2>
             </div>
@@ -101,7 +101,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
           </div>
           <button
             onClick={onClose}
-            className="n-button-secondary p-2 rounded-lg bg-neu-surface/50 border border-[#9b87f5]/20 text-neu-text-primary hover:text-[#9b87f5] hover:border-[#9b87f5]/40 transition-all duration-200"
+            className="n-button-secondary p-2 rounded-lg bg-neu-surface-light border border-neu-border text-neu-text-primary hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-200"
           >
             <MdClose className="w-5 h-5" />
           </button>
@@ -112,7 +112,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
           {/* Date and Time */}
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <MdCalendarToday className="w-5 h-5 text-[#9b87f5] mt-1" />
+              <MdCalendarToday className="w-5 h-5 text-neu-accent-primary mt-1" />
               <div>
                 <div className="text-sm text-neu-text-primary/70 mb-1">Date</div>
                 <div className="text-neu-text-primary font-medium">
@@ -127,7 +127,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
             </div>
 
             <div className="flex items-start gap-3">
-              <MdAccessTime className="w-5 h-5 text-[#9b87f5] mt-1" />
+              <MdAccessTime className="w-5 h-5 text-neu-accent-primary mt-1" />
               <div>
                 <div className="text-sm text-neu-text-primary/70 mb-1">Time</div>
                 <div className="text-neu-text-primary font-medium">
@@ -144,7 +144,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
             {slot.location && (
               <div className="flex items-start gap-3">
-                <MdLocationOn className="w-5 h-5 text-[#9b87f5] mt-1" />
+                <MdLocationOn className="w-5 h-5 text-neu-accent-primary mt-1" />
                 <div>
                   <div className="text-sm text-neu-text-primary/70 mb-1">Location</div>
                   <div className="text-neu-text-primary font-medium">
@@ -157,8 +157,8 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
           {/* Callback Notes */}
           {slot.notes && (
-            <div className="p-4 rounded-lg bg-[#9b87f5]/10 border border-[#9b87f5]/30 shadow-[inset_2px_2px_5px_rgba(155,135,245,0.1)]">
-              <h4 className="text-sm font-semibold text-[#9b87f5] mb-2">Callback Notes</h4>
+            <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+              <h4 className="text-sm font-semibold text-neu-accent-primary mb-2">Callback Notes</h4>
               <p className="text-neu-text-primary text-sm whitespace-pre-wrap">
                 {slot.notes}
               </p>
@@ -167,7 +167,7 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
           {/* Your Comment */}
           {callback.actor_comment && (
-            <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+            <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
               <h4 className="text-sm font-semibold text-neu-text-primary/70 mb-2">Your Comment</h4>
               <p className="text-neu-text-primary text-sm whitespace-pre-wrap">
                 {callback.actor_comment}
@@ -177,9 +177,9 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
           {/* Show Information */}
           {show && (
-            <div className="pt-6 border-t border-[#9b87f5]/20">
+            <div className="pt-6 border-t border-neu-border">
               <div className="flex items-start gap-3 mb-4">
-                <MdTheaters className="w-5 h-5 text-[#9b87f5] mt-1" />
+                <MdTheaters className="w-5 h-5 text-neu-accent-primary mt-1" />
                 <div>
                   <div className="text-sm text-neu-text-primary/70 mb-1">Production</div>
                   <div className="text-neu-text-primary font-medium">
@@ -199,14 +199,14 @@ export default function CallbackDetailsModal({ callback, onClose, onUpdate }: Ca
 
           {/* Status Badge and Actions */}
           <div className="flex flex-col items-center gap-3 sm:gap-4 pt-4">
-            <div className="px-3 sm:px-4 py-2 rounded-full bg-[#9b87f5]/20 border border-[#9b87f5]/30 text-[#9b87f5] font-semibold shadow-[inset_1px_1px_3px_rgba(155,135,245,0.1)] text-sm sm:text-base">
+            <div className="px-3 sm:px-4 py-2 rounded-full bg-neu-accent-primary/20 border border-neu-accent-primary/30 text-neu-accent-primary font-semibold shadow-[inset_1px_1px_3px_var(--neu-shadow-dark)] text-sm sm:text-base">
               ✓ Callback Accepted
             </div>
             
             {/* Change Response Button */}
             <button
               onClick={() => setShowChangeModal(true)}
-              className="n-button-danger w-full sm:w-auto px-4 py-2 rounded-lg bg-neu-surface/50 border border-neu-border text-neu-text-primary/70 hover:text-neu-text-primary hover:border-[#4a7bd9]/40 transition-all text-sm shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]"
+              className="n-button-danger w-full sm:w-auto px-4 py-2 rounded-lg bg-neu-surface-light border border-neu-border text-neu-text-primary/70 hover:text-neu-text-primary hover:border-neu-border-focus transition-all text-sm shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]"
             >
               Change Response to Declined
             </button>

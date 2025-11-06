@@ -24,12 +24,16 @@ export default function EditAuditionPage() {
   const [auditionDetails, setAuditionDetails] = useState({
     auditionDates: [] as string[],
     auditionLocation: '',
+    auditionDetails: '',
     rehearsalDates: [] as string[],
     rehearsalLocation: '',
     performanceDates: [] as string[],
     performanceLocation: '',
     ensembleSize: null as number | null,
     equityStatus: null as 'Equity' | 'Non-Equity' | 'Hybrid' | null,
+    isPaid: false,
+    payRange: '',
+    payComments: '',
   });
   const [slots, setSlots] = useState<any[]>([]);
 
@@ -72,6 +76,7 @@ export default function EditAuditionPage() {
     const parsedDetails = {
       auditionDates: data.audition_dates || [],
       auditionLocation: data.audition_location || '',
+      auditionDetails: data.audition_details || '',
       rehearsalDates: data.rehearsal_dates 
         ? data.rehearsal_dates.split(',').map((d: string) => d.trim()).filter(Boolean)
         : [],
@@ -82,6 +87,9 @@ export default function EditAuditionPage() {
       performanceLocation: data.performance_location || '',
       ensembleSize: data.ensemble_size,
       equityStatus: data.equity_status,
+      isPaid: data.is_paid || false,
+      payRange: data.pay_range || '',
+      payComments: data.pay_comments || '',
     };
     
     setAuditionDetails(parsedDetails);
@@ -97,12 +105,16 @@ export default function EditAuditionPage() {
       const updates = {
         audition_dates: auditionDetails.auditionDates,
         audition_location: auditionDetails.auditionLocation,
+        audition_details: auditionDetails.auditionDetails,
         rehearsal_dates: auditionDetails.rehearsalDates.join(', '),
         rehearsal_location: auditionDetails.rehearsalLocation,
         performance_dates: auditionDetails.performanceDates.join(', '),
         performance_location: auditionDetails.performanceLocation,
         ensemble_size: auditionDetails.ensembleSize,
         equity_status: auditionDetails.equityStatus,
+        is_paid: auditionDetails.isPaid,
+        pay_range: auditionDetails.payRange,
+        pay_comments: auditionDetails.payComments,
       };
 
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);
@@ -256,10 +268,10 @@ export default function EditAuditionPage() {
 
           {/* Save Button */}
           {currentStep === 'slots' && (
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-4 bg-neu-surface opacity-0">
               <button
                 onClick={() => router.push('/cast')}
-                className="px-6 py-3 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] transition-all duration-200 font-medium"
+                className="px-6 py-3 rounded-xl bg-neu-surface opacity-0 border border-neu-border text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] transition-all duration-200 font-medium"
               >
                 Cancel
               </button>

@@ -72,7 +72,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/25 dark:bg-black/60 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -86,13 +86,13 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="mt-4 sm:mt-20 bg-white/95 backdrop-blur-md border border-[#4a7bd9]/30 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <Dialog.Panel className="mt-4 sm:mt-20 backdrop-blur-md rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ background: 'var(--neu-surface)', border: '1px solid var(--neu-border)' }}>
         {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-[#4a7bd9]/20 p-4 sm:p-6 flex items-start justify-between">
+        <div className="sticky top-0 backdrop-blur-md p-4 sm:p-6 flex items-start justify-between" style={{ background: 'var(--neu-surface)', borderBottom: '1px solid var(--neu-border)' }}>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl sm:text-2xl">🎭</span>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#4a7bd9]">
+              <h2 className="text-xl sm:text-2xl font-bold text-neu-accent-primary">
                 Audition
               </h2>
             </div>
@@ -131,10 +131,10 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
           {/* Date and Time */}
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <MdCalendarToday className="w-5 h-5 text-[#4a7bd9] mt-1" />
+              <MdCalendarToday className="w-5 h-5 text-neu-accent-primary mt-1" />
               <div>
-                <div className="text-sm text-[#4a7bd9]/70 mb-1">Date</div>
-                <div className="text-[#4a7bd9] font-medium">
+                <div className="text-sm text-neu-text-primary/70 mb-1">Date</div>
+                <div className="text-neu-text-primary font-medium">
                   {startTime.toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -146,7 +146,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
             </div>
 
             <div className="flex items-start gap-3">
-              <MdAccessTime className="w-5 h-5 text-[#4a7bd9] mt-1" />
+              <MdAccessTime className="w-5 h-5 text-neu-accent-primary mt-1" />
               <div>
                 <div className="text-sm text-neu-text-primary/70 mb-1">Time</div>
                 <div className="text-neu-text-primary font-medium">
@@ -163,12 +163,12 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
 
             {location && (
               <div className="flex items-start gap-3">
-                <MdLocationOn className="w-5 h-5 text-[#4a7bd9] mt-1" />
+                <MdLocationOn className="w-5 h-5 text-neu-accent-primary mt-1" />
                 <div>
-                  <div className="text-sm text-[#4a7bd9]/70 mb-1">Location</div>
-                  <div className="text-[#4a7bd9] font-medium">{location}</div>
+                  <div className="text-sm text-neu-text-primary/70 mb-1">Location</div>
+                  <div className="text-neu-text-primary font-medium">{location}</div>
                   {slotLocation && auditionLocation && slotLocation !== auditionLocation && (
-                    <div className="text-xs text-[#4a7bd9]/50 mt-1">
+                    <div className="text-xs text-neu-text-primary/50 mt-1">
                       General audition location: {auditionLocation}
                     </div>
                   )}
@@ -178,7 +178,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
 
             {role && (
               <div className="flex items-start gap-3">
-                <MdPerson className="w-5 h-5 text-[#4a7bd9] mt-1" />
+                <MdPerson className="w-5 h-5 text-neu-accent-primary mt-1" />
                 <div>
                   <div className="text-sm text-neu-text-primary/70 mb-1">Role</div>
                   <div className="text-neu-text-primary font-medium">{role.role_name}</div>
@@ -197,18 +197,43 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
             )}
           </div>
 
+          {/* Compensation */}
+          {(audition?.is_paid !== undefined) && (
+            <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+              <h4 className="text-sm font-semibold text-neu-accent-primary mb-2">Compensation</h4>
+              <div className="text-neu-text-primary/90 text-sm space-y-1">
+                <div>
+                  <span className="font-medium">
+                    {audition.is_paid ? '💰 Paid Production' : '🎭 Non-Paid Production'}
+                  </span>
+                </div>
+                {audition.is_paid && audition.pay_range && (
+                  <div>
+                    <span className="text-neu-text-primary/70">Pay Range: </span>
+                    <span className="text-neu-text-primary font-medium">{audition.pay_range}</span>
+                  </div>
+                )}
+                {audition.is_paid && audition.pay_comments && (
+                  <div className="text-neu-text-primary/70 mt-2 whitespace-pre-wrap">
+                    {audition.pay_comments}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Status */}
           {signup.status && (
-            <div className="p-4 rounded-lg bg-[#4a7bd9]/10 border border-[#4a7bd9]/30 shadow-[inset_2px_2px_5px_rgba(74,123,217,0.1)]">
-              <h4 className="text-sm font-semibold text-[#4a7bd9] mb-2">Audition Status</h4>
+            <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+              <h4 className="text-sm font-semibold text-neu-accent-primary mb-2">Audition Status</h4>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                signup.status === 'Signed Up' ? 'bg-[#4a7bd9]/20 text-[#4a7bd9] border border-[#4a7bd9]/30' :
-                signup.status === 'Callback' ? 'bg-[#4a7bd9]/20 text-[#4a7bd9] border border-[#4a7bd9]/30' :
-                signup.status === 'Offer Extended' ? 'bg-[#4a7bd9]/20 text-[#4a7bd9] border border-[#4a7bd9]/30' :
-                signup.status === 'Offer Accepted' ? 'bg-green-500/20 text-green-600 border border-green-500/30' :
-                signup.status === 'Offer Rejected' ? 'bg-orange-500/20 text-orange-600 border border-orange-500/30' :
-                signup.status === 'Rejected' ? 'bg-red-500/20 text-red-600 border border-red-500/30' :
-                'bg-[#4a7bd9]/20 text-[#4a7bd9] border border-[#4a7bd9]/30'
+                signup.status === 'Signed Up' ? 'bg-neu-accent-primary/20 text-neu-accent-primary border border-neu-accent-primary/30' :
+                signup.status === 'Callback' ? 'bg-neu-accent-primary/20 text-neu-accent-primary border border-neu-accent-primary/30' :
+                signup.status === 'Offer Extended' ? 'bg-neu-accent-primary/20 text-neu-accent-primary border border-neu-accent-primary/30' :
+                signup.status === 'Offer Accepted' ? 'bg-green-500/20 text-green-500 border border-green-500/30' :
+                signup.status === 'Offer Rejected' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
+                signup.status === 'Rejected' ? 'bg-red-500/20 text-red-500 border border-red-500/30' :
+                'bg-neu-accent-primary/20 text-neu-accent-primary border border-neu-accent-primary/30'
               }`}>
                 {signup.status}
               </span>
@@ -217,7 +242,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
 
           {/* Show Description */}
           {show?.description && (
-            <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+            <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
               <h4 className="text-sm font-semibold text-neu-text-primary/70 mb-2">About the Show</h4>
               <p className="text-neu-text-primary/90 text-sm leading-relaxed whitespace-pre-wrap">
                 {show.description}
@@ -229,7 +254,7 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
           {(audition?.rehearsal_dates || audition?.performance_dates) && (
             <div className="space-y-3">
               {audition.rehearsal_dates && (
-                <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+                <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
                   <h4 className="text-sm font-semibold text-neu-text-primary/70 mb-1">Rehearsal Dates</h4>
                   <p className="text-neu-text-primary text-sm">{formatDateRange(audition.rehearsal_dates)}</p>
                   {audition.rehearsal_location && (
@@ -241,8 +266,8 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
               )}
 
               {audition.performance_dates && (
-                <div className="p-4 rounded-lg bg-neu-surface/50 border border-neu-border">
-                  <div className="text-sm text-neu-text-primary/70 mb-1">Performance Dates</div>
+                <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+                  <h4 className="text-sm font-semibold text-neu-text-primary/70 mb-1">Performance Dates</h4>
                   <div className="text-neu-text-primary text-sm">{formatDateRange(audition.performance_dates)}</div>
                   {audition.performance_location && (
                     <div className="text-neu-text-primary/60 text-xs mt-1">

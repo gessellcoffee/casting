@@ -212,7 +212,7 @@ export default function EventForm({
             Repeats
           </label>
           <FormSelect
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="neu-input w-full"
             value={formData.recurrence.frequency}
             onChange={(e) => handleRecurrenceChange('frequency', e.target.value as EventFrequency)}
           >
@@ -264,7 +264,7 @@ export default function EventForm({
                       type="button"
                       className={`px-3 py-1 text-sm rounded-md transition-colors ${
                         formData.recurrence.byDay.includes(day.value)
-                          ? 'bg-[#5a8ff5] text-white'
+                          ? 'bg-neu-accent-primary text-white'
                           : 'bg-neu-surface border border-neu-border text-neu-text-primary hover:bg-neu-surface/70'
                       }`}
                       onClick={() => toggleDay(day.value)}
@@ -286,7 +286,7 @@ export default function EventForm({
                     type="radio"
                     id="endNever"
                     name="endType"
-                    className="h-4 w-4 text-[#5a8ff5] focus:ring-[#5a8ff5] border-neu-border bg-neu-surface"
+                    className="h-4 w-4 text-neu-accent-primary focus:ring-neu-accent-primary border-neu-border bg-neu-surface"
                     checked={formData.recurrence.endType === 'never'}
                     onChange={() => handleRecurrenceChange('endType', 'never')}
                   />
@@ -300,7 +300,7 @@ export default function EventForm({
                     type="radio"
                     id="endOn"
                     name="endType"
-                    className="h-4 w-4 text-[#5a8ff5] focus:ring-[#5a8ff5] border-neu-border bg-neu-surface"
+                    className="h-4 w-4 text-neu-accent-primary focus:ring-neu-accent-primary border-neu-border bg-neu-surface"
                     checked={formData.recurrence.endType === 'on'}
                     onChange={() => handleRecurrenceChange('endType', 'on')}
                   />
@@ -358,10 +358,10 @@ export default function EventForm({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/25" />
+          <div className="fixed inset-0 bg-black/25 dark:bg-black/60" />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto pt-24 neu-card-raised">
+        <div className="fixed inset-0 overflow-y-auto pt-24">
           <div className="flex min-h-[calc(100vh-6rem)] items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
@@ -372,7 +372,7 @@ export default function EventForm({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-neu-surface border border-neu-border p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all" style={{ background: 'var(--neu-surface)', border: '1px solid var(--neu-border)' }}>
                 <div className="flex justify-between items-center mb-4">
                   <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-neu-text-primary">
                     {isEdit ? 'Edit Event' : 'New Event'}
@@ -456,7 +456,7 @@ export default function EventForm({
                       name="allDay"
                       checked={formData.allDay}
                       onChange={handleInputChange}
-                      className="rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                      className="rounded border-2 border-neu-border bg-neu-surface checked:bg-neu-accent-primary checked:border-neu-accent-primary focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50 cursor-pointer transition-all"
                     />
                     <label htmlFor="allDay" className="ml-2 block text-sm text-neu-text-primary cursor-pointer">
                       All day
@@ -500,8 +500,8 @@ export default function EventForm({
                         </span>
                         <button
                           type="button"
-                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#5a8ff5] focus:ring-offset-2 ${
-                            formData.isRecurring ? 'bg-[#5a8ff5]' : 'bg-neu-surface border-neu-border'
+                          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-neu-accent-primary focus:ring-offset-2 ${
+                            formData.isRecurring ? 'bg-neu-accent-primary' : 'bg-neu-surface border-neu-border'
                           }`}
                           role="switch"
                           aria-checked={formData.isRecurring}

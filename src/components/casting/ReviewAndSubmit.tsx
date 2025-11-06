@@ -49,12 +49,16 @@ export default function ReviewAndSubmit({
         company_id: castingData.companyId,
         audition_dates: castingData.auditionDetails.auditionDates,
         audition_location: castingData.auditionDetails.auditionLocation || null,
+        audition_details: castingData.auditionDetails.auditionDetails || null,
         rehearsal_dates: rehearsalDatesStr,
         rehearsal_location: castingData.auditionDetails.rehearsalLocation || null,
         performance_dates: performanceDatesStr,
         performance_location: castingData.auditionDetails.performanceLocation || null,
         ensemble_size: castingData.auditionDetails.ensembleSize,
         equity_status: castingData.auditionDetails.equityStatus,
+        is_paid: castingData.auditionDetails.isPaid,
+        pay_range: castingData.auditionDetails.payRange || null,
+        pay_comments: castingData.auditionDetails.payComments || null,
       });
 
       if (auditionError || !audition) {
@@ -328,6 +332,28 @@ export default function ReviewAndSubmit({
                 <span className="text-neu-text-primary/60">Equity Status: </span>
                 <span className="text-neu-text-primary">
                   {castingData.auditionDetails.equityStatus}
+                </span>
+              </div>
+            )}
+            <div>
+              <span className="text-neu-text-primary/60">Compensation: </span>
+              <span className="text-neu-text-primary">
+                {castingData.auditionDetails.isPaid ? 'Paid' : 'Not Paid'}
+              </span>
+            </div>
+            {castingData.auditionDetails.isPaid && castingData.auditionDetails.payRange && (
+              <div>
+                <span className="text-neu-text-primary/60">Pay Range: </span>
+                <span className="text-neu-text-primary">
+                  {castingData.auditionDetails.payRange}
+                </span>
+              </div>
+            )}
+            {castingData.auditionDetails.isPaid && castingData.auditionDetails.payComments && (
+              <div>
+                <span className="text-neu-text-primary/60">Pay Comments: </span>
+                <span className="text-neu-text-primary">
+                  {castingData.auditionDetails.payComments}
                 </span>
               </div>
             )}

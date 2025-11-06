@@ -298,7 +298,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-purple-400' : isPersonal ? 'text-green-400' : isProduction ? (event.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400') : 'text-[#5a8ff5]'}`}>
+                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${isCallback ? 'text-purple-400 dark:text-purple-300' : isPersonal ? 'text-green-500 dark:text-green-400' : isProduction ? (event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 'text-blue-500 dark:text-blue-400') : 'text-neu-accent-primary'}`}>
                                 {isCallback && <span className="flex-shrink-0">📋</span>}
                                 {isPersonal && <span className="flex-shrink-0">🗓️</span>}
                                 {isProduction && event.type === 'rehearsal' && <span className="flex-shrink-0">🎭</span>}
@@ -316,17 +316,17 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                 </p>
                               )}
                               {isCallback && (
-                                <p className="text-xs sm:text-sm text-purple-400 font-medium mt-1">
+                                <p className="text-xs sm:text-sm text-purple-400 dark:text-purple-300 font-medium mt-1">
                                   Callback
                                 </p>
                               )}
                               {isPersonal && (
-                                <p className="text-xs sm:text-sm text-green-400 font-medium mt-1">
+                                <p className="text-xs sm:text-sm text-green-500 dark:text-green-400 font-medium mt-1">
                                   Personal
                                 </p>
                               )}
                               {isProduction && (
-                                <p className={`text-xs sm:text-sm font-medium mt-1 ${event.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400'}`}>
+                                <p className={`text-xs sm:text-sm font-medium mt-1 ${event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 'text-blue-500 dark:text-blue-400'}`}>
                                   {event.type === 'rehearsal' ? 'Rehearsal Period' : 'Performance Run'}
                                 </p>
                               )}

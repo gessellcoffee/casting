@@ -71,6 +71,15 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
           </div>
         )}
 
+        {/* Compensation */}
+        {audition.is_paid !== undefined && (
+          <div className="mb-3">
+            <Badge variant={audition.is_paid ? "success" : "default"}>
+              {audition.is_paid ? '💰 Paid' : '🎭 Non-Paid'}
+            </Badge>
+          </div>
+        )}
+
         {/* Audition Location */}
         {audition_location && (
           <div className="mb-3 text-sm text-neu-text-secondary">

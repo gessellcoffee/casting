@@ -411,7 +411,7 @@ body > * {
 
 /* ===== NEUMORPHIC CARD ===== */
 .card {
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(163, 177, 198, 0.3);
@@ -425,7 +425,7 @@ body > * {
 
 @media (min-width: 640px) {
   .card {
-    border-radius: 30px;
+    border-radius: 16px;
   }
 }
 
@@ -438,7 +438,7 @@ input[type="search"].neu-input,
 textarea.neu-input,
 select.neu-input {
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 6px;
   background-color: var(--neu-surface);
   box-shadow: 
     inset 4px 4px 8px var(--neu-shadow-inset-dark),
@@ -466,7 +466,7 @@ select.neu-input {
 /* ===== NEUMORPHIC STATS CARD (like in reference) ===== */
 .neu-stat-card {
   padding: 1.5rem;
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   box-shadow: 
@@ -502,7 +502,7 @@ select.neu-input {
 /* ===== NEUMORPHIC CONTAINER ===== */
 .neu-container {
   padding: 1.5rem;
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   box-shadow: 
@@ -523,7 +523,7 @@ select.neu-input {
 @media (min-width: 640px) {
   .neu-container {
     padding: 2rem;
-    border-radius: 30px;
+    border-radius: 16px;
   }
 }
 
@@ -531,7 +531,7 @@ select.neu-input {
 .neu-icon-btn {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--neu-surface);
   box-shadow: 
     6px 6px 12px var(--neu-shadow-dark),
@@ -563,7 +563,7 @@ select.neu-input {
 /* ===== NEUMORPHIC BADGE ===== */
 .neu-badge {
   padding: 6px 12px;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--neu-surface);
   box-shadow: 
     4px 4px 8px var(--neu-shadow-dark),
@@ -579,7 +579,7 @@ select.neu-input {
 /* ===== NEUMORPHIC SEARCH BAR ===== */
 .neu-search {
   padding: 12px 20px;
-  border-radius: 20px;
+  border-radius: 16px;
   background: var(--neu-surface);
   box-shadow: 
     inset 6px 6px 12px var(--neu-shadow-inset-dark),
@@ -602,7 +602,7 @@ select.neu-input {
 
 /* ===== NEUMORPHIC DROPDOWN ===== */
 .neu-dropdown {
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   box-shadow: 
@@ -623,7 +623,7 @@ select.neu-input {
 
 .neu-dropdown-item {
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: 6px;
   color: var(--neu-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -673,7 +673,7 @@ select.neu-input {
 /* ===== NEUMORPHIC PROGRESS BAR ===== */
 .neu-progress {
   height: 12px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--neu-surface);
   box-shadow: 
     inset 3px 3px 6px var(--neu-shadow-inset-dark),
@@ -686,7 +686,7 @@ select.neu-input {
 .neu-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--neu-accent-primary), var(--neu-accent-secondary));
-  border-radius: 6px;
+  border-radius: 4px;
   transition: width 0.3s ease;
 }
 
@@ -723,6 +723,7 @@ select.neu-input {
 /* Notification Card - solid white card with shadow */
 .notification-card {
   padding: 1.25rem;
+  border-radius: 0.5rem;
   background: var(--neu-surface);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -765,7 +766,7 @@ select.neu-input {
 /* Small Mark Read Button */
 .notification-mark-read-btn {
   padding: 8px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--neu-surface);
   box-shadow: 
     4px 4px 8px var(--neu-shadow-dark),
@@ -788,7 +789,7 @@ select.neu-input {
 /* Empty State Card */
 .notification-empty {
   padding: 2rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   background: var(--neu-surface);
   text-align: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -796,12 +797,14 @@ select.neu-input {
 
 /* Notification Dropdown Container */
 .notification-dropdown {
+  border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(163, 177, 198, 0.6);
 }
 
 [data-theme="dark"] .notification-dropdown {
+  border-radius: 0.75rem;
   background: rgba(21, 27, 53, 0.98);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(124, 58, 237, 0.4);
@@ -864,7 +867,7 @@ select.neu-input {
 /* Raised Card - White card with outset shadow (like profile page cards) */
 .neu-card-raised {
   padding: 1.5rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   box-shadow: 
@@ -886,7 +889,7 @@ select.neu-input {
 /* Inset Container - Dark blue background with inset shadow (embossed paper effect) */
 .neu-inset {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   box-shadow: 
     inset 2px 2px 5px var(--neu-shadow-dark),
     inset -2px -2px 5px var(--neu-shadow-light);
@@ -896,7 +899,7 @@ select.neu-input {
 .neu-form-input {
   width: 100%;
   padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(30, 46, 78, 0.5);
   border: 1px solid var(--neu-border);
   color: var(--neu-text-primary);
@@ -931,7 +934,7 @@ select.neu-input {
 /* Stat Card - Small info box with inset styling */
 .neu-stat-box {
   padding: 0.75rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(30, 46, 78, 0.5);
   border: 1px solid rgba(74, 123, 217, 0.1);
   box-shadow: 
@@ -947,7 +950,7 @@ select.neu-input {
 /* Info Box - Highlighted inset box for important info */
 .neu-info-box {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(90, 143, 245, 0.1);
   border: 1px solid rgba(90, 143, 245, 0.3);
   box-shadow: inset 2px 2px 5px rgba(90, 143, 245, 0.1);
@@ -962,7 +965,7 @@ select.neu-input {
 /* Error Box - Red tinted inset box */
 .neu-error-box {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   box-shadow: inset 2px 2px 5px rgba(239, 68, 68, 0.1);
@@ -977,7 +980,7 @@ select.neu-input {
 /* Badge - Status indicator with subtle neumorphic effect */
 .neu-badge-accepted {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   background: rgba(90, 143, 245, 0.2);
@@ -995,7 +998,7 @@ select.neu-input {
 
 .neu-badge-pending {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   background: rgba(74, 123, 217, 0.2);
@@ -1014,7 +1017,7 @@ select.neu-input {
 
 .neu-badge-rejected {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   background: rgba(230, 238, 249, 0.8);
@@ -1158,7 +1161,7 @@ select.neu-input {
 /* Item Card - Individual item in a list with hover effect */
 .neu-item-card {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(230, 238, 249, 0.3);
   border: 1px solid rgba(74, 123, 217, 0.1);
   box-shadow: 
@@ -1190,7 +1193,7 @@ select.neu-input {
 /* Selected Item Card - Highlighted selected state */
 .neu-item-card-selected {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(90, 143, 245, 0.1);
   border: 1px solid var(--neu-border-focus);
   box-shadow: inset 2px 2px 5px rgba(90, 143, 245, 0.2);
@@ -1207,7 +1210,7 @@ select.neu-input {
 /* Disabled Item Card - Grayed out state */
 .neu-item-card-disabled {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: rgba(30, 46, 78, 0.3);
   border: 1px solid rgba(74, 123, 217, 0.1);
   opacity: 0.6;
@@ -1315,12 +1318,14 @@ select.neu-input {
 /* ===== CALENDAR COMPONENT CLASSES ===== */
 /* Calendar Container */
 .calendar-container {
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(163, 177, 198, 0.6);
 }
 
 [data-theme="dark"] .calendar-container {
+  border-radius: 0.5rem;
   background: rgba(21, 27, 53, 0.9);
   border: 1px solid rgba(124, 58, 237, 0.4);
 }
@@ -1336,12 +1341,14 @@ select.neu-input {
 
 /* Calendar Event Card */
 .calendar-event-card {
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(107, 141, 214, 0.3);
 }
 
 [data-theme="dark"] .calendar-event-card {
+  border-radius: 0.5rem;
   background: rgba(21, 27, 53, 0.8);
   border: 1px solid rgba(124, 58, 237, 0.3);
 }
@@ -1356,12 +1363,14 @@ select.neu-input {
 
 /* Calendar Personal Event Card */
 .calendar-personal-event {
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(74, 222, 128, 0.4);
 }
 
 [data-theme="dark"] .calendar-personal-event {
+  border-radius: 0.5rem;
   background: rgba(21, 27, 53, 0.8);
   border: 1px solid rgba(52, 211, 153, 0.4);
 }
@@ -1376,12 +1385,14 @@ select.neu-input {
 
 /* Calendar Callback Event Card */
 .calendar-callback-event {
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(155, 135, 245, 0.3);
 }
 
 [data-theme="dark"] .calendar-callback-event {
+  border-radius: 0.5rem;
   background: rgba(21, 27, 53, 0.8);
   border: 1px solid rgba(167, 139, 250, 0.3);
 }
@@ -1396,12 +1407,14 @@ select.neu-input {
 
 /* Calendar Add Event Button */
 .calendar-add-event-btn {
+  border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(163, 177, 198, 0.6);
 }
 
 [data-theme="dark"] .calendar-add-event-btn {
+  border-radius: 0.75rem;
   background: rgba(21, 27, 53, 0.8);
   border: 1px solid rgba(124, 58, 237, 0.3);
 }
@@ -1416,12 +1429,14 @@ select.neu-input {
 
 /* Calendar List Item */
 .calendar-list-item {
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(163, 177, 198, 0.4);
 }
 
 [data-theme="dark"] .calendar-list-item {
+  border-radius: 0.5rem;
   background: rgba(21, 27, 53, 0.7);
   border: 1px solid rgba(124, 58, 237, 0.3);
 }
@@ -1438,12 +1453,14 @@ select.neu-input {
 
 /* Calendar Slot Card */
 .calendar-slot-card {
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(163, 177, 198, 0.4);
 }
 
 [data-theme="dark"] .calendar-slot-card {
+  border-radius: 0.5rem;
   background: rgba(21, 27, 53, 0.7);
   border: 1px solid rgba(124, 58, 237, 0.3);
 }
@@ -1461,24 +1478,28 @@ select.neu-input {
 
 /* Modal Content */
 .modal-content {
+  border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(74, 123, 217, 0.3);
 }
 
 [data-theme="dark"] .modal-content {
+  border-radius: 0.75rem;
   background: rgba(21, 27, 53, 0.95);
   border: 1px solid rgba(124, 58, 237, 0.4);
 }
 
 /* Modal Header */
 .modal-header {
+  border-radius: 0.75rem 0.75rem 0 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(74, 123, 217, 0.2);
 }
 
 [data-theme="dark"] .modal-header {
+  border-radius: 0.75rem 0.75rem 0 0;
   background: rgba(21, 27, 53, 0.95);
   border-bottom: 1px solid rgba(124, 58, 237, 0.3);
 }
