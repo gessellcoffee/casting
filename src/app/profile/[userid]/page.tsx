@@ -192,7 +192,6 @@ export default function UserProfilePage() {
     </div>
   );
 }
-              <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                 <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] mb-4">
                   Resume
                 </h2>
