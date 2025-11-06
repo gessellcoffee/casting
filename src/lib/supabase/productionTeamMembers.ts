@@ -21,11 +21,12 @@ export async function getProductionTeamMembers(
     .from('production_team_members')
     .select(`
       *,
-      profiles!production_team_members_user_id_fkey (
+      profiles!user_id (
         id,
+        email,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -34,6 +35,7 @@ export async function getProductionTeamMembers(
 
   if (error) {
     console.error('Error fetching production team members:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return [];
   }
 
@@ -50,11 +52,12 @@ export async function getProductionTeamMember(
     .from('production_team_members')
     .select(`
       *,
-      profiles!production_team_members_user_id_fkey (
+      profiles!user_id (
         id,
+        email,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -174,15 +177,15 @@ export async function removeProductionTeamMember(
 }
 
 /**
- * Search for users by username or name (for adding to production team)
+ * Search for users by email or name (for adding to production team)
  */
 export async function searchUsersForProductionTeam(
   query: string
 ): Promise<any[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, first_name, last_name, profile_photo_url')
-    .or(`username.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+    .select('id, email, first_name, last_name, profile_photo_url')
+    .or(`email.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
     .limit(10);
 
   if (error) {
@@ -239,11 +242,12 @@ export async function getProductionTeamInvitationsByEmail(
     .from('production_team_members')
     .select(`
       *,
-      profiles!production_team_members_user_id_fkey (
+      profiles!user_id (
         id,
+        email,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)

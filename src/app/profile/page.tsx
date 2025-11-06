@@ -32,7 +32,7 @@ export default function ProfilePage() {
     first_name: '',
     middle_name: '',
     last_name: '',
-    username: '',
+    email: '',
     description: '',
     profile_photo_url: '',
     resume_url: '',
@@ -57,7 +57,7 @@ export default function ProfilePage() {
               first_name: profileData.first_name || '',
               middle_name: profileData.middle_name || '',
               last_name: profileData.last_name || '',
-              username: profileData.username || '',
+              email: profileData.email || '',
               description: profileData.description || '',
               profile_photo_url: profileData.profile_photo_url || '',
               resume_url: profileData.resume_url || '',
@@ -136,7 +136,7 @@ export default function ProfilePage() {
         first_name: formData.first_name,
         middle_name: formData.middle_name,
         last_name: formData.last_name,
-        username: formData.username,
+        email: formData.email,
         description: formData.description,
         profile_photo_url: formData.profile_photo_url,
         resume_url: formData.resume_url,
@@ -168,7 +168,7 @@ export default function ProfilePage() {
         first_name: profile.first_name || '',
         middle_name: profile.middle_name || '',
         last_name: profile.last_name || '',
-        username: profile.username || '',
+        email: profile.email || '',
         description: profile.description || '',
         profile_photo_url: profile.profile_photo_url || '',
         resume_url: profile.resume_url || '',
@@ -330,18 +330,18 @@ export default function ProfilePage() {
 
                   <div className="neu-card-raised w-full">
                     <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
-                      Username
+                      Email
                     </label>
                     {isEditing ? (
                       <input
                         type="text"
-                        name="username"
-                        value={formData.username}
+                        name="email"
+                        value={formData.email}
                         onChange={handleInputChange}
                         className="neu-input"
                       />
                     ) : (
-                      <p className="text-neu-text-primary">{formData.username || 'Not set'}</p>
+                      <p className="text-neu-text-primary">{formData.email || 'Not set'}</p>
                     )}
                   </div>
                 </div>

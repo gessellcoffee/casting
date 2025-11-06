@@ -98,7 +98,7 @@ USING (auth.uid() = user_id);
 -- ORDER BY policyname;
 
 -- Test profile read access (should work for any user)
--- SELECT id, username, first_name, last_name FROM profiles LIMIT 5;
+-- SELECT id, email, first_name, last_name FROM profiles LIMIT 5;
 
 -- Test resume read access (should work for any user)
 -- SELECT resume_entry_id, user_id, show_name, role FROM user_resume LIMIT 5;

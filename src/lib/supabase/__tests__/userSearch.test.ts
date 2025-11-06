@@ -18,7 +18,7 @@ describe('User Search Tests', () => {
       const mockUsers = [
         {
           id: 'user-1',
-          username: 'johndoe',
+          email: 'johndoe',
           first_name: 'John',
           last_name: 'Doe',
           skills: ['Acting', 'Singing'],
@@ -53,7 +53,7 @@ describe('User Search Tests', () => {
       const mockUsers = [
         {
           id: 'user-1',
-          username: 'actor1',
+          email: 'actor1',
           skills: ['Acting', 'Dancing'],
           location: 'Los Angeles',
         },
@@ -87,7 +87,7 @@ describe('User Search Tests', () => {
       const mockUsers = [
         {
           id: 'user-1',
-          username: 'actor1',
+          email: 'actor1',
           location: 'Chicago',
         },
       ];

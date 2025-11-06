@@ -86,7 +86,7 @@ describe('NavigationBar', () => {
 
       const mockProfile = {
         id: 'user-123',
-        username: 'testuser',
+        email: 'testuser',
         profile_photo_url: 'https://example.com/profile-photo.jpg',
         first_name: 'Test',
         last_name: 'User',
@@ -125,7 +125,7 @@ describe('NavigationBar', () => {
 
       const mockProfile = {
         id: 'user-123',
-        username: 'testuser',
+        email: 'testuser',
         profile_photo_url: null,
         first_name: 'Test',
         last_name: 'User',
@@ -160,7 +160,7 @@ describe('NavigationBar', () => {
 
       const mockProfile = {
         id: 'user-123',
-        username: 'testuser',
+        email: 'testuser',
         profile_photo_url: null,
         first_name: 'Test',
         last_name: 'User',
@@ -227,7 +227,7 @@ describe('NavigationBar', () => {
 
       const mockProfile1 = {
         id: 'user-123',
-        username: 'testuser1',
+        email: 'testuser1',
         profile_photo_url: 'https://example.com/profile1.jpg',
         first_name: 'Test',
         last_name: 'User1',
@@ -277,7 +277,7 @@ describe('NavigationBar', () => {
 
       const mockProfile = {
         id: 'user-123',
-        username: 'testuser',
+        email: 'testuser',
         profile_photo_url: 'https://example.com/profile.jpg',
         first_name: 'Test',
         last_name: 'User',
@@ -314,7 +314,7 @@ describe('NavigationBar', () => {
 
       const mockProfile = {
         id: 'user-123',
-        username: 'testuser',
+        email: 'testuser',
         profile_photo_url: null,
         first_name: 'Test',
         last_name: 'User',

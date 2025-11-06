@@ -43,7 +43,7 @@ describe('Production Team Members', () => {
       id: mockUserId,
       first_name: 'John',
       last_name: 'Doe',
-      username: 'johndoe',
+      email: 'johndoe',
       profile_photo_url: null,
     },
   };
@@ -328,7 +328,7 @@ describe('Production Team Members', () => {
       const mockUsers = [
         {
           id: 'user-1',
-          username: 'johndoe',
+          email: 'johndoe',
           first_name: 'John',
           last_name: 'Doe',
           profile_photo_url: null,

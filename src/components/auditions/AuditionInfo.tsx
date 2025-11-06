@@ -152,13 +152,13 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
                       {member.profiles.profile_photo_url ? (
                         <img
                           src={member.profiles.profile_photo_url}
-                          alt={member.profiles.username}
+                          alt={member.profiles.email}
                           className="w-6 h-6 rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
                           <span className="text-neu-accent-primary font-medium text-xs">
-                            {member.profiles.username.charAt(0).toUpperCase()}
+                            {member.profiles.email.charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
@@ -166,7 +166,7 @@ export default function AuditionInfo({ audition }: AuditionInfoProps) {
                         <div className="text-neu-text-primary font-medium">
                           {member.profiles.first_name && member.profiles.last_name
                             ? `${member.profiles.first_name} ${member.profiles.last_name}`
-                            : `@${member.profiles.username}`}
+                            : `@${member.profiles.email}`}
                         </div>
                         <div className="text-neu-text-primary/60 text-xs">
                           {member.role_title}

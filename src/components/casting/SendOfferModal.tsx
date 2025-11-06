@@ -15,8 +15,7 @@ interface SendOfferModalProps {
     userId: string;
     firstName: string | null;
     lastName: string | null;
-    username: string;
-    email: string | null;
+    email: string;
   }>;
   currentUserId: string;
   onClose: () => void;
@@ -187,7 +186,7 @@ export default function SendOfferModal({
                             >
                               {user.firstName && user.lastName
                                 ? `${user.firstName} ${user.lastName}`
-                                : user.username}
+                                : user.email}
                             </span>
                           ))}
                         </div>

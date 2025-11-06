@@ -46,7 +46,7 @@ export default function CastingOffersPanel({ auditionId, currentUserId }: Castin
           id,
           first_name,
           last_name,
-          username,
+          email,
           email,
           profile_photo_url
         ),
@@ -196,19 +196,19 @@ export default function CastingOffersPanel({ auditionId, currentUserId }: Castin
                       {actor.profile_photo_url ? (
                         <img
                           src={actor.profile_photo_url}
-                          alt={actor.username}
+                          alt={actor.email}
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-neu-accent-primary/20 flex items-center justify-center text-neu-accent-primary font-semibold">
-                          {(actor.first_name?.[0] || actor.username[0]).toUpperCase()}
+                          {(actor.first_name?.[0] || actor.email[0]).toUpperCase()}
                         </div>
                       )}
                       <div>
                         <div className="font-semibold text-neu-text-primary">
                           {actor.first_name && actor.last_name
                             ? `${actor.first_name} ${actor.last_name}`
-                            : actor.username}
+                            : actor.email}
                         </div>
                         {actor.email && (
                           <div className="text-sm text-neu-text-secondary">{actor.email}</div>
@@ -252,7 +252,6 @@ export default function CastingOffersPanel({ auditionId, currentUserId }: Castin
             userId: u.userId,
             firstName: u.first_name,
             lastName: u.last_name,
-            username: u.username,
             email: u.email,
           }))}
           currentUserId={currentUserId}

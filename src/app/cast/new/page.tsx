@@ -19,7 +19,6 @@ interface ProductionTeamMember {
   userId?: string;
   email?: string;
   roleTitle: string;
-  username?: string;
   firstName?: string;
   lastName?: string;
 }

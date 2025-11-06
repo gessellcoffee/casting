@@ -166,26 +166,39 @@ body > * {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  margin: 1rem;
-  border: 1px solid rgba(163, 177, 198, 0.3);
+  margin: 0;
+  border-bottom: 1px solid rgba(163, 177, 198, 0.3);
   position: sticky;
   top: 0;
   z-index: 1000;
+  background: linear-gradient(180deg, 
+    rgba(230, 238, 249, 0.95) 0%, 
+    rgba(230, 238, 249, 0.85) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.neu-link{
+  color: var(--neu-text-primary);
+  border-bottom: 1px solid rgba(163, 177, 198, 0.3);
+  font-weight: 500;
+}
+
+.neumorphic-header .neu-link:hover{
+  color: var(--neu-accent-primary);
+  border-bottom: 2px solid rgba(163, 177, 198, 0.3);
 }
 
 [data-theme="dark"] .neumorphic-header {
-  background: rgba(21, 27, 53, 0.95);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background: linear-gradient(180deg, 
+    rgba(21, 27, 53, 0.95) 0%, 
+    rgba(21, 27, 53, 0.85) 100%);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
 }
 
 @media (min-width: 1024px) {
   .neumorphic-header {
     padding: 20px 32px;
-    border-radius: 30px;
-    margin: 1.5rem;
   }
 }
 
@@ -198,7 +211,8 @@ body > * {
 .logo {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--neu-accent-primary);
+    mix-blend-mode: difference;
+  color: white;
   letter-spacing: -0.02em;
 }
 
@@ -1575,25 +1589,26 @@ select.neu-input {
 
 /* ===== NEUMORPHIC FOOTER ===== */
 .neumorphic-footer {
-  margin: 2rem 1rem 1rem 1rem;
+  margin: 0;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(180deg, 
+    rgba(230, 238, 249, 0.90) 0%, 
+    rgba(230, 238, 249, 0.95) 100%);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(163, 177, 198, 0.3);
-
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(163, 177, 198, 0.3);
 }
 
 [data-theme="dark"] .neumorphic-footer {
-  background: rgba(21, 27, 53, 0.95);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background: linear-gradient(180deg, 
+    rgba(21, 27, 53, 0.90) 0%, 
+    rgba(21, 27, 53, 0.95) 100%);
+  border-top: 1px solid rgba(124, 58, 237, 0.3);
 }
 
 @media (min-width: 1024px) {
   .neumorphic-footer {
-    margin: 2rem 1.5rem 1.5rem 1.5rem;
     padding: 2.5rem 2rem 2rem 2rem;
-    border-radius: 30px;
   }
 }
 
@@ -1669,13 +1684,11 @@ select.neu-input {
 .footer-bottom {
   width: 100%;
   padding-top: 1.5rem;
+  margin-top: 1rem;
   border-top: 1px solid var(--neu-border);
-}
-
-@media (min-width: 768px) {
-  .footer-bottom {
-    grid-column: 1 / -1;
-  }
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footer-copyright {

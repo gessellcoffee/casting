@@ -41,7 +41,7 @@ export async function getCallbackInvitationWithDetails(invitationId: string): Pr
         first_name,
         last_name,
         profile_photo_url,
-        username
+        email
       ),
       audition_signups (
         signup_id,
@@ -153,7 +153,7 @@ export async function getAuditionInvitations(auditionId: string): Promise<any[]>
         first_name,
         last_name,
         profile_photo_url,
-        username
+        email
       ),
       audition_signups (
         signup_id,
@@ -439,7 +439,7 @@ export async function respondToCallbackInvitation(
     .eq('id', user.id)
     .single();
 
-  const userName = profile ? `${profile.first_name} ${profile.last_name}` : 'An actor';
+  const email = profile ? `${profile.first_name} ${profile.last_name}` : 'An actor';
   const showTitle = (audition as any).shows?.title || 'your show';
   const statusText = status === 'accepted' ? 'accepted' : 'declined';
 
@@ -448,8 +448,8 @@ export async function respondToCallbackInvitation(
     recipient_id: audition.user_id,
     sender_id: user.id,
     type: 'casting_decision',
-    title: `Callback Response: ${userName}`,
-    message: `${userName} has ${statusText} the callback invitation for ${showTitle}.${actorComment ? ` Comment: "${actorComment}"` : ''}`,
+    title: `Callback Response: ${email}`,
+    message: `${email} has ${statusText} the callback invitation for ${showTitle}.${actorComment ? ` Comment: "${actorComment}"` : ''}`,
     action_url: `/auditions/${invitation.audition_id}/callbacks`,
     reference_id: invitationId,
     reference_type: 'callback_response',

@@ -25,7 +25,7 @@ export type Database = {
           location_lat: number | null;
           location_lng: number | null;
           created_at: string;
-          username: string;
+          email: string;
         };
         Insert: {
           id: string;
@@ -44,7 +44,7 @@ export type Database = {
           location_lat?: number | null;
           location_lng?: number | null;
           created_at?: string;
-          username: string;
+          email: string;
         };
         Update: {
           id?: string;
@@ -63,7 +63,7 @@ export type Database = {
           location_lat?: number | null;
           location_lng?: number | null;
           created_at?: string;
-          username?: string;
+          email?: string;
         };
         Relationships: [];
       };
@@ -1093,7 +1093,7 @@ export type CompanyMemberWithProfile = CompanyMember & {
     id: string;
     first_name: string | null;
     last_name: string | null;
-    username: string;
+    email: string;
     profile_photo_url: string | null;
   } | null;
 };
@@ -1132,7 +1132,7 @@ export type ProductionTeamMemberWithProfile = ProductionTeamMember & {
     id: string;
     first_name: string | null;
     last_name: string | null;
-    username: string;
+    email: string;
     profile_photo_url: string | null;
   } | null;
 };
@@ -1148,7 +1148,7 @@ export type CastingOfferWithDetails = CastingOffer & {
     id: string;
     first_name: string | null;
     last_name: string | null;
-    username: string;
+    email: string;
     profile_photo_url: string | null;
   } | null;
   roles: {

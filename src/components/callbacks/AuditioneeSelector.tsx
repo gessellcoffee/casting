@@ -292,9 +292,9 @@ export default function AuditioneeSelector({
                           >
                             {profile?.first_name} {profile?.last_name}
                           </button>
-                          {profile?.username && (
+                          {profile?.email && (
                             <p className="text-sm text-neu-text-primary/50 mb-1">
-                              @{profile.username}
+                              @{profile.email}
                             </p>
                           )}
                           {auditionee.roles && (

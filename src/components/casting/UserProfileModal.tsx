@@ -145,7 +145,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
 
   const fullName = profile
     ? [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ') ||
-      profile.username ||
+      profile.email ||
       'Anonymous User'
     : 'Loading...';
 

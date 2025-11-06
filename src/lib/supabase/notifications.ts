@@ -36,7 +36,7 @@ export async function getUserNotifications(
       sender:profiles!notifications_sender_id_fkey (
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -253,13 +253,13 @@ export async function createCompanyApprovalNotification(
   // Fetch requester's profile to get their name
   const { data: requesterProfile } = await supabase
     .from('profiles')
-    .select('first_name, last_name, username')
+    .select('first_name, last_name, email')
     .eq('id', requesterId)
     .single();
 
   // Build requester's display name
   const requesterName = requesterProfile
-    ? `${requesterProfile.first_name || ''} ${requesterProfile.last_name || ''}`.trim() || requesterProfile.username || 'A user'
+    ? `${requesterProfile.first_name || ''} ${requesterProfile.last_name || ''}`.trim() || requesterProfile.email || 'A user'
     : 'A user';
 
   const title = 'Company Approval Request';

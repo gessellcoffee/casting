@@ -43,7 +43,7 @@ describe('ThemeContext', () => {
   const mockUser = { id: 'user-123' };
   const mockProfile = {
     id: 'user-123',
-    username: 'testuser',
+    email: 'testuser',
     preferences: { dark_mode: false },
   };
 

@@ -62,9 +62,9 @@ export default function NavigationBar() {
   <div className="nav-buttons flex items-center justify-center gap-2 xl:gap-4 mx-4">
     {user && (
       <>
-        <Button text="Audition" href="/auditions" />
-        <Button text="Cast" href="/cast" />
-        <Button text="Users" href="/users" />
+        <Link className="neu-link" href="/auditions">Audition</Link>
+        <Link className="neu-link" href="/cast">Cast</Link>
+        <Link className="neu-link" href= "/users">Users</Link>
       </>
     )}
   </div>

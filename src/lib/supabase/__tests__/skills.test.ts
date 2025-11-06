@@ -31,7 +31,7 @@ describe('Skills Tests', () => {
     id: mockAuthenticatedUserId,
     first_name: 'John',
     last_name: 'Doe',
-    username: 'johndoe',
+    email: 'johndoe',
     skills: ['Acting', 'Singing', 'Dancing'],
     profile_photo_url: null,
     description: null,

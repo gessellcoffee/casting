@@ -23,7 +23,7 @@ interface ApprovalRequestWithDetails {
   profiles: {
     first_name: string | null;
     last_name: string | null;
-    username: string;
+    email: string;
     profile_photo_url: string | null;
   };
   companies: {
@@ -178,7 +178,7 @@ export default function ApprovalsPage() {
                                 <span className="text-neu-text-primary font-semibold">
                                   {request.profiles.first_name && request.profiles.last_name
                                     ? `${request.profiles.first_name} ${request.profiles.last_name}`
-                                    : request.profiles.username}
+                                    : request.profiles.email}
                                 </span>
                                 <span className="text-neu-text-primary/70"> wants to add </span>
                                 <span className="text-neu-accent-primary font-semibold">{request.companies.name}</span>

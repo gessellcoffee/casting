@@ -130,12 +130,12 @@ export async function createCastingOffer(
     // Get sender name
     const { data: senderData } = await supabase
       .from('profiles')
-      .select('first_name, last_name, username')
+      .select('first_name, last_name, email')
       .eq('id', offerData.sentBy)
       .single();
 
     const senderName = senderData
-      ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.username
+      ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.email
       : 'The casting director';
 
     const showTitle = auditionData?.shows?.title || 'a production';
@@ -223,7 +223,7 @@ export async function getCastingOffer(offerId: string): Promise<CastingOfferWith
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       ),
       roles (
@@ -275,7 +275,7 @@ export async function getAuditionOffers(auditionId: string): Promise<CastingOffe
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       ),
       roles (
@@ -329,7 +329,7 @@ export async function getUserOffers(userId: string): Promise<CastingOfferWithDet
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       ),
       roles (
@@ -383,7 +383,7 @@ export async function getUserPendingOffers(userId: string): Promise<CastingOffer
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       ),
       roles (
@@ -668,12 +668,12 @@ export async function revokeCastingOffer(
     // Get the sender's name for the notification
     const { data: senderData } = await supabase
       .from('profiles')
-      .select('first_name, last_name, username')
+      .select('first_name, last_name, email')
       .eq('id', revokedBy)
       .single();
 
     const senderName = senderData
-      ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.username
+      ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.email
       : 'The casting director';
 
     // Create notification for the actor

@@ -34,10 +34,10 @@ export async function searchUsers(
       .from('profiles')
       .select('*', { count: 'exact' });
 
-    // Text search across name and username
+    // Text search across name and email
     if (query) {
       queryBuilder = queryBuilder.or(
-        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,username.ilike.%${query}%,description.ilike.%${query}%`
+        `first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,description.ilike.%${query}%`
       );
     }
 

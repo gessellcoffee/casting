@@ -101,7 +101,7 @@ export async function getCompanyApprovalRequests(companyId: string): Promise<Com
       profiles (
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -153,7 +153,7 @@ export async function getUserPendingApprovalRequests(): Promise<any[]> {
       profiles (
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       ),
       companies (

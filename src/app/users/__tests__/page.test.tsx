@@ -33,7 +33,7 @@ describe('UsersDirectoryPage', () => {
   const mockUsers = [
     {
       id: '1',
-      username: 'actor1',
+      email: 'actor1',
       first_name: 'John',
       middle_name: null,
       last_name: 'Doe',
@@ -52,7 +52,7 @@ describe('UsersDirectoryPage', () => {
     },
     {
       id: '2',
-      username: 'actor2',
+      email: 'actor2',
       first_name: 'Jane',
       middle_name: null,
       last_name: 'Smith',
@@ -129,7 +129,7 @@ describe('UsersDirectoryPage', () => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
 
-      const searchInput = screen.getByPlaceholderText('Search by name, username, or bio...');
+      const searchInput = screen.getByPlaceholderText('Search by name, email, or bio...');
       await user.type(searchInput, 'John');
 
       await waitFor(() => {
@@ -149,7 +149,7 @@ describe('UsersDirectoryPage', () => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
 
-      const searchInput = screen.getByPlaceholderText('Search by name, username, or bio...');
+      const searchInput = screen.getByPlaceholderText('Search by name, email, or bio...');
       
       // Type multiple characters quickly
       await user.type(searchInput, 'test');
@@ -312,7 +312,7 @@ describe('UsersDirectoryPage', () => {
       });
 
       // Add a search query
-      const searchInput = screen.getByPlaceholderText('Search by name, username, or bio...');
+      const searchInput = screen.getByPlaceholderText('Search by name, email, or bio...');
       await user.type(searchInput, 'test');
 
       await waitFor(() => {
@@ -329,7 +329,7 @@ describe('UsersDirectoryPage', () => {
       });
 
       // Add filters
-      const searchInput = screen.getByPlaceholderText('Search by name, username, or bio...');
+      const searchInput = screen.getByPlaceholderText('Search by name, email, or bio...');
       await user.type(searchInput, 'test');
 
       await waitFor(() => {

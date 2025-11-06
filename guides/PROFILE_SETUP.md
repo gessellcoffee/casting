@@ -7,7 +7,7 @@ This guide explains how to set up the profile editing feature with image and res
 ✅ **Profile Photo Upload** - Upload and display profile photos  
 ✅ **Resume Upload** - Upload PDF/DOC/DOCX resume files  
 ✅ **Image Gallery** - Upload multiple images (up to 10)  
-✅ **Profile Fields** - First name, middle name, last name, username, bio  
+✅ **Profile Fields** - First name, middle name, last name, email, bio  
 ✅ **Edit Mode** - Toggle between view and edit modes  
 ✅ **Real-time Updates** - Changes are saved to Supabase database  
 
@@ -32,7 +32,7 @@ create table public.profiles (
   education jsonb null,
   preferences jsonb null,
   created_at timestamp with time zone not null default now(),
-  username character varying not null,
+  email character varying not null,
   constraint profiles_pkey primary key (id),
   constraint profiles_id_fkey foreign key (id) references auth.users (id) on delete cascade
 );
@@ -157,10 +157,10 @@ You may want to automatically create a profile when a user signs up. Add this tr
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, username, created_at)
+  insert into public.profiles (id, email, created_at)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'email', split_part(new.email, '@', 1)),
     now()
   );
   return new;
@@ -187,7 +187,7 @@ create trigger on_auth_user_created
 2. Update any fields:
    - **Profile Photo**: Click "Change Photo" to upload a new image
    - **Name Fields**: Enter first, middle, and last name
-   - **Username**: Update your username
+   - **email**: Update your email
    - **Bio**: Write a description about yourself
    - **Resume**: Upload a PDF, DOC, or DOCX file
    - **Image Gallery**: Add up to 10 images
@@ -232,7 +232,7 @@ src/
 ### Changes not saving?
 - Check browser console for errors
 - Verify RLS policies allow updates
-- Ensure all required fields are filled (username is required)
+- Ensure all required fields are filled (email is required)
 
 ## Next Steps
 

@@ -53,7 +53,7 @@ export default function ProfileGuidePage() {
                       </p>
                       <ul className="list-disc list-inside space-y-2 text-neu-text-primary/80">
                         <li><strong>First Name, Middle Name, Last Name:</strong> Your legal or stage name</li>
-                        <li><strong>Username:</strong> A unique handle that appears on your profile</li>
+                        <li><strong>Email:</strong> Your profile handle and how we contact you!</li>
                         <li><strong>Location:</strong> Your city or region (helps with local casting)</li>
                         <li><strong>Bio/Description:</strong> A brief introduction about yourself and your theatrical background</li>
                       </ul>

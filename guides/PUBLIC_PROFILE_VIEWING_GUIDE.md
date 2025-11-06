@@ -14,7 +14,7 @@ A dynamic route that displays any user's public profile:
 
 **Features:**
 - Profile photo
-- Full name and username
+- Full name and email
 - Bio/description
 - Skills (as tags)
 - Image gallery
@@ -204,7 +204,7 @@ ALTER TABLE user_resume ENABLE ROW LEVEL SECURITY;
 ## Security Considerations
 
 ### What's Public:
-- ✅ Profile information (name, username, bio)
+- ✅ Profile information (name, email, bio)
 - ✅ Skills
 - ✅ Image gallery
 - ✅ Resume entries

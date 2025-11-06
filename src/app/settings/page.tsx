@@ -133,7 +133,7 @@ export default function SettingsPage() {
                   <div>
                     <h3 className="font-medium neu-text-primary">Profile</h3>
                     <p className="text-sm neu-text-muted">
-                      {profile?.first_name || profile?.username || user?.email || 'Not set'}
+                      {profile?.first_name || profile?.email || user?.email || 'Not set'}
                     </p>
                   </div>
                   <button

@@ -62,12 +62,12 @@ export async function updateProfile(
  */
 export async function createProfile(
   userId: string,
-  username: string,
+  email: string,
   additionalData?: Partial<ProfileInsert>
 ): Promise<{ data: Profile | null; error: any }> {
   const profileData = {
     id: userId,
-    username,
+    email,
     ...additionalData,
   } as ProfileInsert;
 
@@ -86,13 +86,13 @@ export async function createProfile(
 }
 
 /**
- * Check if a username is available
+ * Check if an email is available
  */
-export async function isUsernameAvailable(username: string): Promise<boolean> {
+export async function isEmailAvailable(email: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('username')
-    .eq('username', username)
+    .select('email')
+    .eq('email', email)
     .single();
 
   // If there's an error and it's not a "not found" error, return false
@@ -100,6 +100,6 @@ export async function isUsernameAvailable(username: string): Promise<boolean> {
     return false;
   }
 
-  // If data exists, username is taken
+  // If data exists, email is taken
   return !data;
 }

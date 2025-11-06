@@ -108,7 +108,7 @@ export default function UsersDirectoryPage() {
                   setSearchQuery(e.target.value);
                   setPage(0);
                 }}
-                placeholder="Search by name, username, or bio..."
+                placeholder="Search by name, email, or bio..."
                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-neu-text-primary placeholder-neu-text-primary/50 focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50"
               />
             </div>
@@ -195,7 +195,7 @@ export default function UsersDirectoryPage() {
               {users.map((user) => {
                 const fullName = [user.first_name, user.last_name]
                   .filter(Boolean)
-                  .join(' ') || user.username || 'Anonymous User';
+                  .join(' ') || user.email || 'Anonymous User';
 
                 return (
                   <Link key={user.id} href={`/profile/${user.id}`}>
@@ -221,10 +221,10 @@ export default function UsersDirectoryPage() {
                           {fullName}
                         </h3>
 
-                        {/* Username */}
-                        {user.username && (
+                        {/* email */}
+                        {user.email && (
                           <p className="text-sm text-neu-text-primary/60 text-center mb-3">
-                            @{user.username}
+                            @{user.email}
                           </p>
                         )}
 

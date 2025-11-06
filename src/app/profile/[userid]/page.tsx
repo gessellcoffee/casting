@@ -87,7 +87,7 @@ export default function UserProfilePage() {
 
   const fullName = [profile.first_name, profile.middle_name, profile.last_name]
     .filter(Boolean)
-    .join(' ') || profile.username || 'Anonymous User';
+    .join(' ') || profile.email || 'Anonymous User';
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -122,12 +122,12 @@ export default function UserProfilePage() {
 
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {profile.username && (
+              {profile.email && (
                 <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                   <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
-                    Username
+                    email
                   </label>
-                  <p className="text-neu-text-primary">{profile.username}</p>
+                  <p className="text-neu-text-primary">{profile.email}</p>
                 </div>
               )}
               {profile.location && (

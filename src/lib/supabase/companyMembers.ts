@@ -21,7 +21,7 @@ export async function getCompanyMembers(companyId: string): Promise<CompanyMembe
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -49,7 +49,7 @@ export async function getUserCompanyMemberships(userId: string): Promise<Company
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -313,7 +313,7 @@ export async function getUserRoleInCompany(
 }
 
 /**
- * Search for users by username or name (for adding to company)
+ * Search for users by email or name (for adding to company)
  */
 export async function searchUsers(query: string): Promise<any[]> {
   if (!query || query.trim().length < 2) {
@@ -324,8 +324,8 @@ export async function searchUsers(query: string): Promise<any[]> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, first_name, last_name, username, profile_photo_url')
-    .or(`username.ilike.${searchTerm},first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`)
+    .select('id, first_name, last_name, email, profile_photo_url')
+    .or(`email.ilike.${searchTerm},first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`)
     .limit(10);
 
   if (error) {

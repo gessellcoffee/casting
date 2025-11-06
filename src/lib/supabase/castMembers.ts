@@ -73,7 +73,7 @@ export async function getAuditionCastMembers(auditionId: string): Promise<any[]>
         id,
         first_name,
         last_name,
-        username,
+        email,
         profile_photo_url
       )
     `)
@@ -89,7 +89,7 @@ export async function getAuditionCastMembers(auditionId: string): Promise<any[]>
     ...member,
     full_name: member.profiles?.first_name && member.profiles.last_name
       ? `${member.profiles.first_name} ${member.profiles.last_name}`
-      : member.profiles?.username || 'Unknown User',
+      : member.profiles?.email || 'Unknown User',
     profile_photo_url: member.profiles?.profile_photo_url || null,
   }));
 }

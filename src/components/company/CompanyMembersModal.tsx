@@ -70,7 +70,7 @@ export default function CompanyMembersModal({
     setSearching(false);
   };
 
-  const handleAddMember = async (userId: string, username: string) => {
+  const handleAddMember = async (userId: string, email: string) => {
     setAdding(true);
     setError(null);
     setSuccess(null);
@@ -83,16 +83,16 @@ export default function CompanyMembersModal({
       return;
     }
 
-    setSuccess(`${username} has been added to the company`);
+    setSuccess(`${email} has been added to the company`);
     setSearchQuery('');
     setSearchResults([]);
     await loadMembers();
-    setAdding(false);
+    setAdding(false);   
     setTimeout(() => setSuccess(null), 3000);
   };
 
-  const handleRemoveMember = async (memberId: string, username: string) => {
-    if (!confirm(`Are you sure you want to remove ${username} from this company?`)) {
+  const handleRemoveMember = async (memberId: string, email: string) => {
+    if (!confirm(`Are you sure you want to remove ${email} from this company?`)) {
       return;
     }
 
@@ -106,12 +106,12 @@ export default function CompanyMembersModal({
       return;
     }
 
-    setSuccess(`${username} has been removed from the company`);
+    setSuccess(`${email} has been removed from the company`);
     await loadMembers();
     setTimeout(() => setSuccess(null), 3000);
   };
 
-  const handleUpdateRole = async (memberId: string, newRole: CompanyMemberRole, username: string) => {
+  const handleUpdateRole = async (memberId: string, newRole: CompanyMemberRole, email: string) => {
     setError(null);
     setSuccess(null);
 
@@ -122,7 +122,7 @@ export default function CompanyMembersModal({
       return;
     }
 
-    setSuccess(`${username}'s role has been updated to ${newRole}`);
+    setSuccess(`Role updated to ${newRole} for ${email}`);
     await loadMembers();
     setTimeout(() => setSuccess(null), 3000);
   };
@@ -213,7 +213,7 @@ export default function CompanyMembersModal({
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search by username or name..."
+                        placeholder="Search by email or name..."
                         className="neu-input w-full"
                       />
                       {searching && (
@@ -235,18 +235,18 @@ export default function CompanyMembersModal({
                               {user.profile_photo_url ? (
                                 <img
                                   src={user.profile_photo_url}
-                                  alt={user.username}
+                                  alt={user.email}
                                   className="w-10 h-10 rounded-full object-cover"
                                 />
                               ) : (
                                 <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
                                   <span className="text-neu-accent-primary font-medium">
-                                    {user.username.charAt(0).toUpperCase()}
+                                    {user.email.charAt(0).toUpperCase()}
                                   </span>
                                 </div>
                               )}
                               <div>
-                                <p className="text-neu-text-primary font-medium">@{user.username}</p>
+                                <p className="text-neu-text-primary font-medium">{user.email}</p>
                                 {(user.first_name || user.last_name) && (
                                   <p className="text-neu-text-primary/60 text-sm">
                                     {user.first_name} {user.last_name}
@@ -255,7 +255,7 @@ export default function CompanyMembersModal({
                               </div>
                             </div>
                             <button
-                              onClick={() => handleAddMember(user.id, user.username)}
+                              onClick={() => handleAddMember(user.id, user.email)}
                               disabled={adding}
                               className="px-4 py-2 rounded-xl bg-neu-accent-primary text-white hover:bg-neu-accent-secondary transition-colors disabled:opacity-50"
                             >
@@ -290,19 +290,19 @@ export default function CompanyMembersModal({
                               {member.profiles?.profile_photo_url ? (
                                 <img
                                   src={member.profiles.profile_photo_url}
-                                  alt={member.profiles.username}
+                                  alt={member.profiles.email}
                                   className="w-12 h-12 rounded-full object-cover"
                                 />
                               ) : (
                                 <div className="w-12 h-12 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
                                   <span className="text-neu-accent-primary font-medium text-lg">
-                                    {member.profiles?.username.charAt(0).toUpperCase()}
+                                    {member.profiles?.email.charAt(0).toUpperCase()}
                                   </span>
                                 </div>
                               )}
                               <div className="flex-1">
                                 <p className="text-neu-text-primary font-medium">
-                                  @{member.profiles?.username}
+                                  {member.profiles?.email}
                                 </p>
                                 {(member.profiles?.first_name || member.profiles?.last_name) && (
                                   <p className="text-neu-text-primary/60 text-sm">
@@ -316,7 +316,7 @@ export default function CompanyMembersModal({
                                   onChange={(e) => handleUpdateRole(
                                     member.member_id, 
                                     e.target.value as CompanyMemberRole,
-                                    member.profiles?.username || 'User'
+                                    member.profiles?.email || 'User'
                                   )}
                                   className={`px-3 py-1 rounded-xl border text-sm font-medium ${getRoleBadgeColor(member.role)}`}
                                 >
@@ -330,7 +330,7 @@ export default function CompanyMembersModal({
                                   <button
                                     onClick={() => handleRemoveMember(
                                       member.member_id,
-                                      member.profiles?.username || 'User'
+                                      member.profiles?.email || 'User'
                                     )}
                                     className="text-red-400 hover:text-red-300 transition-colors"
                                     title="Remove member"

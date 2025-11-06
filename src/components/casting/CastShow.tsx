@@ -111,8 +111,8 @@ export default function CastShow({
               user_id: s.user_id,
               full_name: s.profiles?.first_name && s.profiles.last_name
                 ? `${s.profiles.first_name} ${s.profiles.last_name}`
-                : s.profiles?.username || 'Unknown User',
-              email: s.profiles?.username || 'No email',
+                : s.profiles?.email || 'Unknown User',
+              email: s.profiles?.email || 'No email',
             },
           ])
         ).values()
@@ -137,8 +137,8 @@ export default function CastShow({
             user_id: s.user_id,
             full_name: s.profiles?.first_name && s.profiles.last_name
               ? `${s.profiles.first_name} ${s.profiles.last_name}`
-              : s.profiles?.username || 'Unknown User',
-            email: s.profiles?.username || 'No email',
+              : s.profiles?.email || 'Unknown User',
+            email: s.profiles?.email || 'No email',
             signup_id: s.signup_id,
           })),
         };
@@ -1056,7 +1056,7 @@ export default function CastShow({
                   userId: actor.user_id,
                   firstName: actor.full_name.split(' ')[0] || null,
                   lastName: actor.full_name.split(' ').slice(1).join(' ') || null,
-                  username: actor.full_name,
+                  email: actor.full_name,
                   email: actor.email,
                 } : null;
               })
@@ -1069,7 +1069,7 @@ export default function CastShow({
                   userId: actor.user_id,
                   firstName: actor.full_name.split(' ')[0] || null,
                   lastName: actor.full_name.split(' ').slice(1).join(' ') || null,
-                  username: actor.full_name,
+                  email: actor.full_name,
                   email: actor.email,
                 } : null;
               })
@@ -1078,7 +1078,7 @@ export default function CastShow({
               userId: member.user_id,
               firstName: member.full_name.split(' ')[0] || null,
               lastName: member.full_name.split(' ').slice(1).join(' ') || null,
-              username: member.full_name,
+              email: member.full_name,
               email: member.email,
             }))
           ].filter((user, index, self) => 
