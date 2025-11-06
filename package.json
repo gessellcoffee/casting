@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "clean": "rimraf .next",
+    "clean:dev": "npm run clean && npm run dev"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

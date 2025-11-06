@@ -391,26 +391,26 @@ export default function AuditionDetailsForm({
               {searchResults.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-neu-surface/50 border border-neu-border hover:border-neu-accent-primary/50 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl bg-neu-surface/50 border border-neu-border hover:border-neu-accent-primary/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     {user.profile_photo_url ? (
                       <img
                         src={user.profile_photo_url}
                         alt={user.email}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center flex-shrink-0">
                         <span className="text-neu-accent-primary font-medium">
                           {user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
-                    <div>
-                      <p className="text-neu-text-primary font-medium">@{user.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-neu-text-primary font-medium truncate">@{user.email}</p>
                       {(user.first_name || user.last_name) && (
-                        <p className="text-neu-text-primary/60 text-sm">
+                        <p className="text-neu-text-primary/60 text-sm truncate">
                           {user.first_name} {user.last_name}
                         </p>
                       )}
@@ -420,7 +420,7 @@ export default function AuditionDetailsForm({
                     type="button"
                     onClick={() => handleAddMember(user.id, user.email, user.first_name, user.last_name)}
                     disabled={!roleTitle.trim()}
-                    className="px-4 py-2 rounded-xl bg-neu-accent-primary text-neu-text-primary hover:bg-neu-accent-secondary hover:text-neu-text-primary hover:font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-neu-accent-primary text-neu-text-primary hover:bg-neu-accent-secondary hover:text-neu-text-primary hover:font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                   >
                     Add
                   </button>
@@ -475,22 +475,22 @@ export default function AuditionDetailsForm({
                 {localDetails.productionTeam.map((member, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 rounded-xl bg-neu-surface/50 border border-neu-border"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl bg-neu-surface/50 border border-neu-border"
                   >
-                    <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
                       {member.userId ? (
                         <>
-                          <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-neu-accent-primary/20 flex items-center justify-center flex-shrink-0">
                             <span className="text-neu-accent-primary font-medium">
                               {member.email?.charAt(0).toUpperCase() || '?'}
                             </span>
                           </div>
-                          <div>
-                            <p className="text-neu-text-primary font-medium">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-neu-text-primary font-medium truncate">
                               @{member.email}
                             </p>
                             {(member.firstName || member.lastName) && (
-                              <p className="text-neu-text-primary/60 text-sm">
+                              <p className="text-neu-text-primary/60 text-sm truncate">
                                 {member.firstName} {member.lastName}
                               </p>
                             )}
@@ -498,28 +498,28 @@ export default function AuditionDetailsForm({
                         </>
                       ) : (
                         <>
-                          <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
                             <span className="text-yellow-400 font-medium">?</span>
                           </div>
-                          <div>
-                            <p className="text-neu-text-primary font-medium">{member.email}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-neu-text-primary font-medium truncate">{member.email}</p>
                             <p className="text-neu-text-primary/60 text-sm">Invitation pending</p>
                           </div>
                         </>
                       )}
-                      <div className="flex items-center gap-2 ml-auto">
-                        <span className="px-3 py-1 rounded-xl border-2 border-blue-400/60 text-sm font-medium text-neu-text-primary">
-                          {member.roleTitle}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveMember(index)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                          title="Remove member"
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="px-3 py-1 rounded-xl border-2 border-blue-400/60 text-sm font-medium text-neu-text-primary whitespace-nowrap">
+                        {member.roleTitle}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMember(index)}
+                        className="text-red-400 hover:text-red-300 transition-colors flex-shrink-0"
+                        title="Remove member"
+                      >
+                        <X size={18} />
+                      </button>
                     </div>
                   </div>
                 ))}
