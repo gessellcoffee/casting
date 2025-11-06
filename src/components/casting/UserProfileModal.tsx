@@ -8,7 +8,6 @@ import { getUserResumes } from '@/lib/supabase/resume';
 import { getUserAvailability } from '@/lib/supabase/userEvents';
 import type { Profile, UserResume, CalendarEvent } from '@/lib/supabase/types';
 import CallbackSlotSelectorModal from './CallbackSlotSelectorModal';
-import RoleCastingModal from './RoleCastingModal';
 import Button from '@/components/Button';
 
 interface UserProfileModalProps {
@@ -29,7 +28,6 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
   
   // Modal states
   const [showCallbackModal, setShowCallbackModal] = useState(false);
-  const [showCastModal, setShowCastModal] = useState(false);
   
   // Collapsible section states - all collapsed by default
   const [expandedSections, setExpandedSections] = useState({
@@ -211,18 +209,11 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
             
             {/* Action Buttons */}
             {auditionId && (
-              <div className="flex gap-3">
-                <Button
-                  text="Callback"
-                  onClick={() => setShowCallbackModal(true)}
-                  variant="secondary"
-                />
-                <Button
-                  text="Cast"
-                  onClick={() => setShowCastModal(true)}
-                  variant="primary"
-                />
-              </div>
+              <Button
+                text="Callback"
+                onClick={() => setShowCallbackModal(true)}
+                variant="primary"
+              />
             )}
             
             <button
@@ -757,19 +748,6 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
           onClose={() => setShowCallbackModal(false)}
           onSuccess={() => {
             setShowCallbackModal(false);
-            onActionComplete?.();
-          }}
-        />
-      )}
-      
-      {/* Cast Modal */}
-      {showCastModal && auditionId && (
-        <RoleCastingModal
-          auditionId={auditionId}
-          userId={userId}
-          onClose={() => setShowCastModal(false)}
-          onSuccess={() => {
-            setShowCastModal(false);
             onActionComplete?.();
           }}
         />

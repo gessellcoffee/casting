@@ -141,6 +141,7 @@ export default function AuditionDetailPage() {
                 auditionId={audition.audition_id}
                 user={user}
                 onSignupSuccess={loadAudition}
+                canManage={canManage}
               />
             </div>
 

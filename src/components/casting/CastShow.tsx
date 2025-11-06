@@ -14,6 +14,7 @@ import SendOfferModal from './SendOfferModal';
 import SendCastingOfferModal from './SendCastingOfferModal';
 import RevokeOfferModal from './RevokeOfferModal';
 import Button from '../Button';
+import Avatar from '../shared/Avatar';
 
 interface CastShowProps {
   audition: Audition & {
@@ -36,6 +37,7 @@ interface RoleWithCast extends AuditionRole {
     full_name: string | null;
     email: string;
     signup_id: string;
+    profile_photo_url?: string | null;
   }>;
 }
 
@@ -44,6 +46,7 @@ interface EnsembleMember {
   user_id: string;
   full_name: string;
   email: string;
+  profile_photo_url?: string | null;
 }
 
 export default function CastShow({
@@ -63,6 +66,7 @@ export default function CastShow({
     user_id: string;
     full_name: string;
     email: string;
+    profile_photo_url?: string | null;
   }>>([]);
   const [selectedEnsembleActor, setSelectedEnsembleActor] = useState<string>('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -113,6 +117,7 @@ export default function CastShow({
                 ? `${s.profiles.first_name} ${s.profiles.last_name}`
                 : s.profiles?.email || 'Unknown User',
               email: s.profiles?.email || 'No email',
+              profile_photo_url: s.profiles?.profile_photo_url || null,
             },
           ])
         ).values()
@@ -140,6 +145,7 @@ export default function CastShow({
               : s.profiles?.email || 'Unknown User',
             email: s.profiles?.email || 'No email',
             signup_id: s.signup_id,
+            profile_photo_url: s.profiles?.profile_photo_url || null,
           })),
         };
       });
@@ -165,6 +171,7 @@ export default function CastShow({
             user_id: cm.user_id,
             full_name: actor?.full_name || 'Unknown',
             email: actor?.email || 'No email',
+            profile_photo_url: actor?.profile_photo_url || null,
           };
         });
       setEnsembleMembers(ensemble);
@@ -771,8 +778,15 @@ export default function CastShow({
                                 </FormSelect>
                                 {selectedActor && (() => {
                                   const offerStatus = getOfferStatus(selectedActor, role.audition_role_id, false);
+                                  const actorData = availableActors.find(a => a.user_id === selectedActor);
                                   return (
                                     <div className="mt-2 flex gap-3 items-center">
+                                      <Avatar
+                                        src={actorData?.profile_photo_url}
+                                        alt={actorData?.full_name || 'Actor'}
+                                        size="sm"
+                                        onClick={() => setSelectedUserId(selectedActor)}
+                                      />
                                       <button
                                         type="button"
                                         onClick={() => setSelectedUserId(selectedActor)}
@@ -850,8 +864,15 @@ export default function CastShow({
                                   </FormSelect>
                                   {selectedUnderstudy && (() => {
                                     const offerStatus = getOfferStatus(selectedUnderstudy, role.audition_role_id, true);
+                                    const understudyData = availableActors.find(a => a.user_id === selectedUnderstudy);
                                     return (
                                       <div className="mt-2 flex gap-3 items-center">
+                                        <Avatar
+                                          src={understudyData?.profile_photo_url}
+                                          alt={understudyData?.full_name || 'Actor'}
+                                          size="sm"
+                                          onClick={() => setSelectedUserId(selectedUnderstudy)}
+                                        />
                                         <button
                                           type="button"
                                           onClick={() => setSelectedUserId(selectedUnderstudy)}
@@ -943,7 +964,13 @@ export default function CastShow({
                       </h3>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {ensembleMembers.map(member => (
-                          <div key={member.user_id} className="flex items-center gap-1 bg-green-500/20 border border-green-500/30 text-neu-text-primary px-3 py-2 rounded-md">
+                          <div key={member.user_id} className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 text-neu-text-primary px-3 py-2 rounded-md">
+                            <Avatar
+                              src={member.profile_photo_url}
+                              alt={member.full_name}
+                              size="sm"
+                              onClick={() => setSelectedUserId(member.user_id)}
+                            />
                             <button
                               type="button"
                               onClick={() => setSelectedUserId(member.user_id)}

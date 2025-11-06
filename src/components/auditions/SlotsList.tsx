@@ -1,22 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createAuditionSignup, getUserSignupForAudition, getUserSignupsWithTimes, doSlotsOverlap, deleteAuditionSignup } from '@/lib/supabase/auditionSignups';
+import { createAuditionSignup, getUserSignupForAudition, getUserSignupsWithTimes, doSlotsOverlap, deleteAuditionSignup, getSlotSignups } from '@/lib/supabase/auditionSignups';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MdCalendarToday, MdCheckCircle, MdWarning, MdDelete } from 'react-icons/md';
 import Alert from '@/components/ui/feedback/Alert';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import { formatUSDateWithFullWeekday, formatUSTime } from '@/lib/utils/dateUtils';
+import Avatar from '@/components/shared/Avatar';
+import UserProfileModal from '@/components/casting/UserProfileModal';
 
 interface SlotsListProps {
   slots: any[];
   auditionId: string;
   user: any;
   onSignupSuccess: () => void;
+  canManage?: boolean;
 }
 
-export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: SlotsListProps) {
+export default function SlotsList({ slots, auditionId, user, onSignupSuccess, canManage = false }: SlotsListProps) {
   const router = useRouter();
   const [signingUp, setSigningUp] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +28,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
   const [isLoadingSignup, setIsLoadingSignup] = useState(true);
   const [userSignups, setUserSignups] = useState<any[]>([]);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [slotSignups, setSlotSignups] = useState<Record<string, any[]>>({});
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Check if user has already signed up for this audition and get all their signups
   useEffect(() => {
@@ -47,6 +52,24 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
 
     checkUserSignup();
   }, [user, auditionId]);
+
+  // Fetch signups for each slot if user can manage
+  useEffect(() => {
+    async function fetchSlotSignups() {
+      if (!canManage || !slots || slots.length === 0) return;
+
+      const signupsMap: Record<string, any[]> = {};
+      await Promise.all(
+        slots.map(async (slot) => {
+          const signups = await getSlotSignups(slot.slot_id);
+          signupsMap[slot.slot_id] = signups;
+        })
+      );
+      setSlotSignups(signupsMap);
+    }
+
+    fetchSlotSignups();
+  }, [canManage, slots]);
 
   // Filter and sort slots
   const now = new Date();
@@ -216,6 +239,26 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
                 <div className="text-neu-text-primary/50 text-xs mt-1">
                   {slot.current_signups || 0} / {slot.max_signups} signed up
                 </div>
+                
+                {/* Show avatars for production team/owners */}
+                {canManage && slotSignups[slot.slot_id] && slotSignups[slot.slot_id].length > 0 && (
+                  <div className="flex items-center gap-1 mt-2 flex-wrap">
+                    {slotSignups[slot.slot_id].map((signup: any) => {
+                      const userName = signup.profiles?.first_name && signup.profiles?.last_name
+                        ? `${signup.profiles.first_name} ${signup.profiles.last_name}`
+                        : signup.profiles?.email || 'User';
+                      return (
+                        <Avatar
+                          key={signup.signup_id}
+                          src={signup.profiles?.profile_photo_url}
+                          alt={userName}
+                          size="sm"
+                          onClick={() => setSelectedUserId(signup.user_id)}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
                 {hasConflict && (
                   <div className="flex items-center gap-1 text-orange-300 text-xs mt-1">
                     <MdWarning className="w-3 h-3" />
@@ -256,6 +299,19 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess }: 
           );
         })}
       </div>
+
+      {/* User Profile Modal */}
+      {selectedUserId && (
+        <UserProfileModal
+          userId={selectedUserId}
+          auditionId={auditionId}
+          onClose={() => setSelectedUserId(null)}
+          onActionComplete={() => {
+            setSelectedUserId(null);
+            onSignupSuccess();
+          }}
+        />
+      )}
     </div>
   );
 }
