@@ -1056,7 +1056,7 @@ export default function CastShow({
                   userId: actor.user_id,
                   firstName: actor.full_name.split(' ')[0] || null,
                   lastName: actor.full_name.split(' ').slice(1).join(' ') || null,
-                  email: actor.full_name,
+                  username: actor.full_name,
                   email: actor.email,
                 } : null;
               })
@@ -1069,7 +1069,7 @@ export default function CastShow({
                   userId: actor.user_id,
                   firstName: actor.full_name.split(' ')[0] || null,
                   lastName: actor.full_name.split(' ').slice(1).join(' ') || null,
-                  email: actor.full_name,
+                  username: actor.full_name,
                   email: actor.email,
                 } : null;
               })
@@ -1078,7 +1078,7 @@ export default function CastShow({
               userId: member.user_id,
               firstName: member.full_name.split(' ')[0] || null,
               lastName: member.full_name.split(' ').slice(1).join(' ') || null,
-              email: member.full_name,
+              username: member.full_name,
               email: member.email,
             }))
           ].filter((user, index, self) => 
