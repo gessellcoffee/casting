@@ -12,8 +12,10 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Dynamic import to avoid bundling if not used
-    const pdfParse = (await import('pdf-parse')).default;
+    // Dynamic import - pdf-parse exports as both default and named
+    const pdfParseModule = await import('pdf-parse');
+    // @ts-ignore - pdf-parse has inconsistent type definitions between CJS and ESM
+    const pdfParse = pdfParseModule.default || pdfParseModule;
     
     // Parse PDF
     const data = await pdfParse(buffer);
