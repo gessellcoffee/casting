@@ -9,6 +9,7 @@ import { getShowRoles } from '@/lib/supabase/roles';
 import { createCastingOffer } from '@/lib/supabase/castingOffers';
 import type { Role } from '@/lib/supabase/types';
 import Button from '@/components/Button';
+import ConfirmationModal from '../shared/ConfirmationModal';
 
 interface RoleCastingModalProps {
   auditionId: string;
@@ -29,10 +30,32 @@ export default function RoleCastingModal({
   const [loading, setLoading] = useState(true);
   const [casting, setCasting] = useState(false);
   const [notes, setNotes] = useState('');
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     loadRoles();
   }, [auditionId]);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadRoles = async () => {
     setLoading(true);
@@ -52,7 +75,7 @@ export default function RoleCastingModal({
 
   const handleCast = async () => {
     if (castingType !== 'ensemble' && !selectedRoleId) {
-      alert('Please select a role');
+      openModal('Role Required', 'Please select a role before sending an offer.', undefined, 'OK', false);
       return;
     }
 
@@ -61,7 +84,7 @@ export default function RoleCastingModal({
     // Get current user ID for sent_by
     const user = await getUser();
     if (!user) {
-      alert('You must be logged in to send offers');
+      openModal('Authentication Error', 'You must be logged in to send offers.', undefined, 'OK', false);
       setCasting(false);
       return;
     }
@@ -76,12 +99,12 @@ export default function RoleCastingModal({
     });
 
     if (error) {
-      alert('Failed to send casting offer: ' + error.message);
+      openModal('Error', `Failed to send casting offer: ${error.message}`, undefined, 'OK', false);
       setCasting(false);
       return;
     }
 
-    alert('Casting offer sent successfully!');
+    openModal('Offer Sent', 'Casting offer sent successfully!', undefined, 'OK', false);
     setCasting(false);
     onSuccess();
   };
@@ -89,7 +112,17 @@ export default function RoleCastingModal({
   const selectedRole = roles.find(r => r.role_id === selectedRoleId);
 
   return (
-    <Transition appear show={true} as={Fragment}>
+    <>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
+      <Transition appear show={true} as={Fragment}>
       <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -300,5 +333,6 @@ export default function RoleCastingModal({
         </div>
       </Dialog>
     </Transition>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { getShowRoles } from '@/lib/supabase/roles';
 import { createCastingOffer, createBulkCastingOffers } from '@/lib/supabase/castingOffers';
 import type { Role } from '@/lib/supabase/types';
 import Button from '@/components/Button';
+import ConfirmationModal from '../shared/ConfirmationModal';
 
 interface SendOfferModalProps {
   auditionId: string;
@@ -36,12 +37,34 @@ export default function SendOfferModal({
   const [sending, setSending] = useState(false);
   const [offerMessage, setOfferMessage] = useState('');
   const [offerNotes, setOfferNotes] = useState('');
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   const isBulk = users.length > 1;
 
   useEffect(() => {
     loadRoles();
   }, [auditionId]);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadRoles = async () => {
     setLoading(true);
@@ -61,7 +84,7 @@ export default function SendOfferModal({
 
   const handleSendOffers = async () => {
     if (castingType !== 'ensemble' && !selectedRoleId) {
-      alert('Please select a role');
+      openModal('Role Required', 'Please select a role before sending an offer.', undefined, 'OK', false);
       return;
     }
 
@@ -83,9 +106,9 @@ export default function SendOfferModal({
         const { successCount, failedCount } = await createBulkCastingOffers(offers);
         
         if (failedCount > 0) {
-          alert(`Sent ${successCount} offers successfully. ${failedCount} failed.`);
+          openModal('Partial Success', `Sent ${successCount} offers successfully. ${failedCount} failed.`, undefined, 'OK', false);
         } else {
-          alert(`Successfully sent ${successCount} offers!`);
+          openModal('Success', `Successfully sent ${successCount} offers!`, undefined, 'OK', false);
         }
       } else {
         // Send single offer
@@ -100,19 +123,19 @@ export default function SendOfferModal({
         });
 
         if (error) {
-          alert('Failed to send offer: ' + error.message);
+          openModal('Error', `Failed to send offer: ${error.message}`, undefined, 'OK', false);
           setSending(false);
           return;
         }
 
-        alert('Offer sent successfully!');
+        openModal('Success', 'Offer sent successfully!', undefined, 'OK', false);
       }
 
       setSending(false);
       onSuccess();
     } catch (error: any) {
       console.error('Error sending offers:', error);
-      alert('Failed to send offers: ' + error.message);
+      openModal('Error', `Failed to send offers: ${error.message}`, undefined, 'OK', false);
       setSending(false);
     }
   };
@@ -120,7 +143,17 @@ export default function SendOfferModal({
   const selectedRole = roles.find(r => r.role_id === selectedRoleId);
 
   return (
-    <Transition appear show={true} as={Fragment}>
+    <>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
+      <Transition appear show={true} as={Fragment}>
       <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -380,5 +413,6 @@ export default function SendOfferModal({
         </div>
       </Dialog>
     </Transition>
+    </>
   );
 }

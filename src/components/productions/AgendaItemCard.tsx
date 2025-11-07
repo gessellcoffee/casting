@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { MdEdit, MdDelete, MdPerson, MdAdd, MdCheck, MdClose, MdWarning, MdAccessTime } from 'react-icons/md';
+import { MdPerson, MdCheck, MdClose, MdWarning, MdAccessTime } from 'react-icons/md';
 import Avatar from '@/components/shared/Avatar';
+import Button from '@/components/Button';
 
 // Helper function to format time string (HH:MM:SS or HH:MM) to 12-hour format
 function formatTimeString(timeString: string): string {
@@ -138,23 +139,19 @@ export default function AgendaItemCard({
           {canManage && (
             <div className="flex items-center gap-4 mt-2">
               {onAddAssignment && (
-                <button
+                <Button
                   onClick={onAddAssignment}
                   className="text-sm text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-1"
-                >
-                  <MdAdd className="w-4 h-4" />
-                  Assign Cast Member
-                </button>
+                  text="Assign Cast Member"
+                />
               )}
 
               {item.agenda_assignments?.length === 0 && onAssignAll && (
-                <button
+                <Button
                   onClick={onAssignAll}
                   className="text-sm text-neu-accent-primary hover:text-neu-accent-secondary transition-colors flex items-center gap-1"
-                >
-                  <MdAdd className="w-4 h-4" />
-                  Assign All Cast
-                </button>
+                  text="Assign All Cast"
+                />
               )}
             </div>
           )}
@@ -164,22 +161,20 @@ export default function AgendaItemCard({
         {canManage && (
           <div className="flex gap-2">
             {onEdit && (
-              <button
+              <Button
                 onClick={onEdit}
-                className="neu-icon-btn"
+                className="neu-button-primary"
                 title="Edit Item"
-              >
-                <MdEdit className="w-4 h-4" />
-              </button>
+                text="Edit Item"
+              />
             )}
             {onDelete && (
-              <button
+              <Button
                 onClick={onDelete}
-                className="neu-icon-btn hover:text-neu-accent-danger"
+                className="neu-button text-red-500 hover:text-red-600"
                 title="Delete Item"
-              >
-                <MdDelete className="w-4 h-4" />
-              </button>
+                text="Delete Item"
+              />
             )}
           </div>
         )}

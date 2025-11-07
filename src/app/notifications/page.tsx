@@ -13,6 +13,7 @@ import { respondToCallbackInvitation } from '@/lib/supabase/callbackInvitations'
 import StarryContainer from '@/components/StarryContainer';
 import { formatTimeAgo } from '@/lib/utils/dateUtils';
 import CallbackResponseModal from '@/components/callbacks/CallbackResponseModal';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -28,10 +29,32 @@ export default function NotificationsPage() {
     responseType: 'accept' | 'decline';
     details?: any;
   } | null>(null);
+  const [confirmationModalConfig, setConfirmationModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     loadData();
   }, []);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setConfirmationModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setConfirmationModalConfig({ ...confirmationModalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -102,7 +125,7 @@ export default function NotificationsPage() {
       loadData();
     } catch (err: any) {
       console.error('Error responding to callback:', err);
-      alert('Failed to respond: ' + err.message);
+      openModal('Error', `Failed to respond: ${err.message}`, undefined, 'OK', false);
     } finally {
       setResponding(null);
     }
@@ -129,6 +152,15 @@ export default function NotificationsPage() {
 
   return (
     <StarryContainer>
+      <ConfirmationModal 
+        isOpen={confirmationModalConfig.isOpen}
+        title={confirmationModalConfig.title}
+        message={confirmationModalConfig.message}
+        onConfirm={confirmationModalConfig.onConfirm}
+        onCancel={() => setConfirmationModalConfig({ ...confirmationModalConfig, isOpen: false })}
+        confirmButtonText={confirmationModalConfig.confirmButtonText}
+        showCancel={confirmationModalConfig.showCancel}
+      />
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

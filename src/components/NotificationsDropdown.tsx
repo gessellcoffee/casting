@@ -20,6 +20,7 @@ import { formatTimeAgo, formatUSDate, formatUSTime } from '@/lib/utils/dateUtils
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import Badge from '@/components/ui/feedback/Badge';
 import CallbackResponseModal from '@/components/callbacks/CallbackResponseModal';
+import ConfirmationModal from './shared/ConfirmationModal';
 
 interface NotificationsDropdownProps {
   userId: string;
@@ -39,6 +40,14 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     responseType: 'accept' | 'decline';
     details?: any;
   } | null>(null);
+  const [confirmationModalConfig, setConfirmationModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +59,20 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   // Close dropdown when clicking outside
   useClickOutside(dropdownRef as React.RefObject<HTMLElement>, () => setIsOpen(false));
+
+  const openConfirmationModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setConfirmationModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setConfirmationModalConfig({ ...confirmationModalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadNotifications = async () => {
     setLoading(true);
@@ -172,7 +195,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       loadUnreadCount();
     } catch (err: any) {
       console.error('Error responding to callback:', err);
-      alert('Failed to respond: ' + err.message);
+      openConfirmationModal('Error', `Failed to respond: ${err.message}`, undefined, 'OK', false);
     } finally {
       setProcessing(null);
     }
@@ -193,7 +216,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       loadUnreadCount();
     } catch (err: any) {
       console.error('Error accepting casting offer:', err);
-      alert('Failed to accept offer: ' + err.message);
+      openConfirmationModal('Error', `Failed to accept offer: ${err.message}`, undefined, 'OK', false);
     } finally {
       setProcessing(null);
     }
@@ -214,7 +237,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       loadUnreadCount();
     } catch (err: any) {
       console.error('Error declining casting offer:', err);
-      alert('Failed to decline offer: ' + err.message);
+      openConfirmationModal('Error', `Failed to decline offer: ${err.message}`, undefined, 'OK', false);
     } finally {
       setProcessing(null);
     }
@@ -258,6 +281,15 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   return (
     <div className="relative" ref={dropdownRef}>
+      <ConfirmationModal 
+        isOpen={confirmationModalConfig.isOpen}
+        title={confirmationModalConfig.title}
+        message={confirmationModalConfig.message}
+        onConfirm={confirmationModalConfig.onConfirm}
+        onCancel={() => setConfirmationModalConfig({ ...confirmationModalConfig, isOpen: false })}
+        confirmButtonText={confirmationModalConfig.confirmButtonText}
+        showCancel={confirmationModalConfig.showCancel}
+      />
       {/* Notification Bell Button */}
       <button
         onClick={handleToggle}

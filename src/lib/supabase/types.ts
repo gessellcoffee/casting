@@ -980,7 +980,7 @@ export type Database = {
         };
         Insert: {
           rehearsal_events_id?: string;
-          audition_id?: string | null;
+          audition_id: string | null;
           date: string;
           start_time: string;
           end_time: string;

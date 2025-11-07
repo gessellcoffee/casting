@@ -14,6 +14,7 @@ import AssignCastMemberModal from '@/components/productions/AssignCastMemberModa
 import AddressInput from '@/components/ui/AddressInput';
 import { MdArrowBack, MdAdd, MdLocationOn, MdAccessTime, MdCalendarToday, MdEdit, MdSave, MdClose } from 'react-icons/md';
 import { formatUSDate } from '@/lib/utils/dateUtils';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 // Helper function to format time string (HH:MM:SS) to 12-hour format
 function formatTimeString(timeString: string): string {
@@ -45,10 +46,32 @@ export default function RehearsalEventDetailPage() {
     notes: '',
   });
   const [saving, setSaving] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     loadData();
   }, [params.eventId]);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   useEffect(() => {
     // Check if edit query param is present
@@ -89,16 +112,16 @@ export default function RehearsalEventDetailPage() {
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Are you sure you want to delete this agenda item?')) {
-      return;
-    }
+    const deleteAction = async () => {
+      const { error } = await deleteAgendaItem(itemId);
+      if (error) {
+        openModal('Error', 'Failed to delete agenda item.', undefined, 'OK', false);
+      } else {
+        setAgendaItems(prev => prev.filter(item => item.rehearsal_agenda_items_id !== itemId));
+      }
+    };
 
-    const { error } = await deleteAgendaItem(itemId);
-    if (error) {
-      alert('Failed to delete agenda item');
-    } else {
-      setAgendaItems(prev => prev.filter(item => item.rehearsal_agenda_items_id !== itemId));
-    }
+    openModal('Confirm Deletion', 'Are you sure you want to delete this agenda item?', deleteAction, 'Delete');
   };
 
   const handleAssignAll = async (agendaItemId: string) => {
@@ -106,7 +129,7 @@ export default function RehearsalEventDetailPage() {
 
     const { data: castData } = await getCastMembers(event.audition_id);
     if (!castData || castData.length === 0) {
-      alert('No cast members found to assign.');
+      openModal('No Cast Members', 'No cast members were found for this production to assign.', undefined, 'OK', false);
       return;
     }
 
@@ -114,23 +137,23 @@ export default function RehearsalEventDetailPage() {
     const { error } = await assignMultipleCastMembers(agendaItemId, userIds);
 
     if (error) {
-      alert('Failed to assign all cast members.');
+      openModal('Error', 'Failed to assign all cast members.', undefined, 'OK', false);
     } else {
       loadData(); // Reload to show new assignments
     }
   };
 
   const handleRemoveAssignment = async (assignmentId: string) => {
-    if (!confirm('Remove this cast member from the agenda item?')) {
-      return;
-    }
+    const removeAction = async () => {
+      const { error } = await removeAssignment(assignmentId);
+      if (error) {
+        openModal('Error', 'Failed to remove assignment.', undefined, 'OK', false);
+      } else {
+        loadData(); // Reload to update assignments
+      }
+    };
 
-    const { error } = await removeAssignment(assignmentId);
-    if (error) {
-      alert('Failed to remove assignment');
-    } else {
-      loadData(); // Reload to update assignments
-    }
+    openModal('Confirm Removal', 'Are you sure you want to remove this cast member from the agenda item?', removeAction, 'Remove');
   };
 
   const handleSaveEvent = async () => {
@@ -147,7 +170,7 @@ export default function RehearsalEventDetailPage() {
     setSaving(false);
 
     if (error) {
-      alert('Failed to update rehearsal event');
+      openModal('Error', 'Failed to update rehearsal event.', undefined, 'OK', false);
       return;
     }
 
@@ -184,6 +207,15 @@ export default function RehearsalEventDetailPage() {
   return (
     <ProtectedRoute>
       <StarryContainer>
+        <ConfirmationModal 
+          isOpen={modalConfig.isOpen}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          confirmButtonText={modalConfig.confirmButtonText}
+          showCancel={modalConfig.showCancel}
+        />
         <div className="min-h-screen py-8 px-4">
           <div className="max-w-4xl mx-auto">
             {/* Back Button */}

@@ -7,6 +7,7 @@ import type { CastingOfferWithDetails } from '@/lib/supabase/types';
 import OfferStatusBadge from './OfferStatusBadge';
 import Button from '@/components/Button';
 import { formatUSDate } from '@/lib/utils/dateUtils';
+import ConfirmationModal from '../shared/ConfirmationModal';
 
 interface CastingOfferCardProps {
   offer: CastingOfferWithDetails;
@@ -19,42 +20,61 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
   const [accepting, setAccepting] = useState(false);
   const [declining, setDeclining] = useState(false);
 
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
+
   const handleAccept = async () => {
-    if (!confirm('Are you sure you want to accept this casting offer?')) {
-      return;
-    }
-
-    setAccepting(true);
-    const { error } = await acceptCastingOffer(offer.offer_id, userId);
-
-    if (error) {
-      alert('Failed to accept offer: ' + error.message);
+    const acceptAction = async () => {
+      setAccepting(true);
+      const { error } = await acceptCastingOffer(offer.offer_id, userId);
+      if (error) {
+        openModal('Error', `Failed to accept offer: ${error.message}`, undefined, 'OK', false);
+        setAccepting(false);
+        return;
+      }
+      openModal('Offer Accepted', 'You have successfully accepted the offer!', undefined, 'OK', false);
       setAccepting(false);
-      return;
-    }
+      onUpdate?.();
+    };
 
-    alert('Offer accepted successfully!');
-    setAccepting(false);
-    onUpdate?.();
+    openModal('Confirm Acceptance', 'Are you sure you want to accept this casting offer?', acceptAction, 'Accept');
   };
 
   const handleDecline = async () => {
-    if (!confirm('Are you sure you want to decline this casting offer?')) {
-      return;
-    }
-
-    setDeclining(true);
-    const { error } = await declineCastingOffer(offer.offer_id, userId);
-
-    if (error) {
-      alert('Failed to decline offer: ' + error.message);
+    const declineAction = async () => {
+      setDeclining(true);
+      const { error } = await declineCastingOffer(offer.offer_id, userId);
+      if (error) {
+        openModal('Error', `Failed to decline offer: ${error.message}`, undefined, 'OK', false);
+        setDeclining(false);
+        return;
+      }
+      openModal('Offer Declined', 'You have declined the offer.', undefined, 'OK', false);
       setDeclining(false);
-      return;
-    }
+      onUpdate?.();
+    };
 
-    alert('Offer declined.');
-    setDeclining(false);
-    onUpdate?.();
+    openModal('Confirm Decline', 'Are you sure you want to decline this casting offer? This action cannot be undone.', declineAction, 'Decline');
   };
 
   const showTitle = offer.auditions?.shows?.title || 'Untitled Show';
@@ -64,7 +84,17 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
   const isPending = status === 'Offered' && !offer.responded_at;
 
   return (
-    <div className="p-6 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+    <>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
+      <div className="p-6 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <h3 className="text-xl font-bold text-neu-text-primary mb-1">{showTitle}</h3>
@@ -134,5 +164,6 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
         </div>
       )}
     </div>
+    </>
   );
 }

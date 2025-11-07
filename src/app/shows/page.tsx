@@ -12,6 +12,7 @@ import LoadingSpinner from '@/components/ui/feedback/LoadingSpinner';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import StarryContainer from '@/components/StarryContainer';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 interface ShowWithStats extends Show {
   roleCount?: number;
@@ -24,12 +25,33 @@ export default function ShowsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     loadCurrentUser();
     loadShows();
   }, []);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadCurrentUser = async () => {
     const user = await getUser();
@@ -75,16 +97,17 @@ export default function ShowsPage() {
     setLoading(false);
   };
 
-  const handleDelete = async (showId: string) => {
-    const { error } = await deleteShow(showId);
-    
-    if (error) {
-      alert(`Error deleting show: ${error.message}`);
-      return;
-    }
-    
-    setDeleteConfirm(null);
-    loadShows();
+  const handleDelete = (showId: string) => {
+    const deleteAction = async () => {
+      const { error } = await deleteShow(showId);
+      if (error) {
+        openModal('Error', `Error deleting show: ${error.message}`, undefined, 'OK', false);
+        return;
+      }
+      loadShows();
+    };
+
+    openModal('Confirm Deletion', 'Are you sure you want to delete this show and all its associated roles? This action cannot be undone.', deleteAction, 'Delete');
   };
 
   const canManageShow = (show: Show) => {
@@ -102,6 +125,15 @@ export default function ShowsPage() {
 
   return (
     <StarryContainer>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
       <div className="max-w-7xl mx-auto on-background">
         {/* Header */}
         <div className="mb-8">
@@ -238,31 +270,12 @@ export default function ShowsPage() {
                     View Details
                   </Link>
                   {canManageShow(show) && (
-                    <>
-                      {deleteConfirm === show.show_id ? (
-                        <div className="flex gap-2 flex-1">
-                          <button
-                            onClick={() => handleDelete(show.show_id)}
-                            className="n-button-danger flex-1 px-3 py-2 rounded-lg text-sm"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(null)}
-                            className="n-button-secondary flex-1 px-3 py-2 rounded-lg text-sm"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirm(show.show_id)}
-                          className="n-button-danger px-4 py-2 rounded-lg sm:w-auto w-full"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </>
+                    <button
+                      onClick={() => handleDelete(show.show_id)}
+                      className="n-button-danger px-4 py-2 rounded-lg sm:w-auto w-full"
+                    >
+                      Delete
+                    </button>
                   )}
                 </div>
               </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, X, Check } from 'lucide-react';
 import Button from '../Button';
 import { createEvent } from '@/lib/supabase/events';
+import ConfirmationModal from '../shared/ConfirmationModal';
 
 interface GoogleCalendarImportProps {
   userId: string;
@@ -24,10 +25,32 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
   const [events, setEvents] = useState<any[]>([]);
   const [importing, setImporting] = useState(false);
   const [importStep, setImportStep] = useState<'select' | 'preview' | 'importing'>('select');
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     checkConnection();
   }, []);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const checkConnection = async () => {
     setCheckingConnection(true);
@@ -59,32 +82,32 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
       window.location.href = authUrl;
     } catch (error) {
       console.error('Error connecting to Google:', error);
-      alert('Failed to connect to Google Calendar. Please try again.');
+      openModal('Connection Failed', 'Failed to connect to Google Calendar. Please try again.', undefined, 'OK', false);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDisconnect = async () => {
-    if (!confirm('Are you sure you want to disconnect your Google Calendar?')) {
-      return;
-    }
+    const disconnectAction = async () => {
+      setLoading(true);
+      try {
+        await fetch('/api/google/disconnect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+        setIsConnected(false);
+        openModal('Success', 'Successfully disconnected from Google Calendar.', undefined, 'OK', false);
+      } catch (error) {
+        console.error('Error disconnecting:', error);
+        openModal('Error', 'Failed to disconnect. Please try again.', undefined, 'OK', false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setLoading(true);
-    try {
-      await fetch('/api/google/disconnect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      });
-      setIsConnected(false);
-      alert('Successfully disconnected from Google Calendar');
-    } catch (error) {
-      console.error('Error disconnecting:', error);
-      alert('Failed to disconnect. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    openModal('Confirm Disconnect', 'Are you sure you want to disconnect your Google Calendar?', disconnectAction, 'Disconnect');
   };
 
   const handleStartImport = async () => {
@@ -102,7 +125,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
       setCalendars(calendarList);
     } catch (error) {
       console.error('Error loading calendars:', error);
-      alert('Failed to load calendars');
+      openModal('Error', 'Failed to load calendars.', undefined, 'OK', false);
     }
   };
 
@@ -129,7 +152,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
       setImportStep('preview');
     } catch (error) {
       console.error('Error fetching events:', error);
-      alert('Failed to fetch events. Please try again.');
+      openModal('Error', 'Failed to fetch events. Please try again.', undefined, 'OK', false);
     } finally {
       setLoading(false);
     }
@@ -137,7 +160,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
 
   const handleImport = async () => {
     if (events.length === 0) {
-      alert('No events to import');
+      openModal('No Events', 'There are no events to import in the selected range.', undefined, 'OK', false);
       return;
     }
 
@@ -181,7 +204,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
         }
       }
 
-      alert(`Successfully imported ${importedCount} events${errorCount > 0 ? `. ${errorCount} events failed to import.` : '!'}`);
+      openModal('Import Complete', `Successfully imported ${importedCount} events${errorCount > 0 ? `. ${errorCount} events failed to import.` : '!'}`, undefined, 'OK', false);
       
       setShowImportModal(false);
       setEvents([]);
@@ -192,7 +215,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
       }
     } catch (error) {
       console.error('Error during import:', error);
-      alert('Failed to import events. Please try again.');
+      openModal('Import Failed', 'An error occurred while importing events. Please try again.', undefined, 'OK', false);
     } finally {
       setImporting(false);
     }
@@ -375,6 +398,16 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
           </div>
         </div>
       )}
+
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
     </>
   );
 }

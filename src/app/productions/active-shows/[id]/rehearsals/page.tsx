@@ -13,6 +13,7 @@ import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAccessTime, MdCalendarToday, M
 import { formatUSDate } from '@/lib/utils/dateUtils';
 import type { RehearsalEvent } from '@/lib/supabase/types';
 import RehearsalEventForm from '@/components/productions/RehearsalEventForm';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 // Helper function to format time string (HH:MM:SS) to 12-hour format
 function formatTimeString(timeString: string): string {
@@ -33,10 +34,32 @@ export default function RehearsalsPage() {
   const [canManage, setCanManage] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     loadData();
   }, [params.id]);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -44,8 +67,7 @@ export default function RehearsalsPage() {
     // Load audition
     const { data: auditionData, error: auditionError } = await getAuditionById(params.id as string);
     if (auditionError || !auditionData) {
-      alert('Error loading audition');
-      router.push('/cast');
+      openModal('Error', 'Error loading audition. Redirecting to dashboard.', () => router.push('/cast'), 'OK', false);
       return;
     }
     setAudition(auditionData);
@@ -62,20 +84,18 @@ export default function RehearsalsPage() {
   };
 
   const handleDelete = async (eventId: string) => {
-    if (!confirm('Are you sure you want to delete this rehearsal event?')) {
-      return;
-    }
+    const deleteAction = async () => {
+      setDeleting(eventId);
+      const { error } = await deleteRehearsalEvent(eventId);
+      if (error) {
+        openModal('Error', 'Failed to delete rehearsal event.', undefined, 'OK', false);
+      } else {
+        setRehearsalEvents(prev => prev.filter(e => e.rehearsal_events_id !== eventId));
+      }
+      setDeleting(null);
+    };
 
-    setDeleting(eventId);
-    const { error } = await deleteRehearsalEvent(eventId);
-
-    if (error) {
-      alert('Failed to delete rehearsal event');
-    } else {
-      setRehearsalEvents(prev => prev.filter(e => e.rehearsal_events_id !== eventId));
-    }
-
-    setDeleting(null);
+    openModal('Confirm Deletion', 'Are you sure you want to delete this rehearsal event?', deleteAction, 'Delete');
   };
 
   if (loading) {
@@ -93,6 +113,15 @@ export default function RehearsalsPage() {
   return (
     <ProtectedRoute>
       <StarryContainer>
+        <ConfirmationModal 
+          isOpen={modalConfig.isOpen}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          confirmButtonText={modalConfig.confirmButtonText}
+          showCancel={modalConfig.showCancel}
+        />
         <div className="min-h-screen py-8 px-4">
           <div className="max-w-6xl mx-auto">
             {/* Header */}

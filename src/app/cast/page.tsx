@@ -12,6 +12,7 @@ import DownloadCalendarButton from '@/components/auditions/DownloadCalendarButto
 import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd, MdEventNote, MdTheaterComedy } from 'react-icons/md';
 import WorkflowTransition from '@/components/productions/WorkflowTransition';
 import type { WorkflowStatus } from '@/lib/supabase/types';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 export default function CastDashboard() {
   const router = useRouter();
@@ -23,6 +24,14 @@ export default function CastDashboard() {
   const [filter, setFilter] = useState<'all' | 'casting' | 'active'>(
     (searchParams.get('filter') as 'all' | 'casting' | 'active') || 'all'
   );
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   // Update filter when URL changes
   useEffect(() => {
@@ -46,6 +55,20 @@ export default function CastDashboard() {
     init();
   }, [router]);
 
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
+
   const loadAuditions = async (userId: string) => {
     setLoading(true);
     const { data } = await getAuditionsWithDetails();
@@ -57,20 +80,18 @@ export default function CastDashboard() {
   };
 
   const handleDelete = async (auditionId: string) => {
-    if (!confirm('Are you sure you want to delete this audition? This cannot be undone.')) {
-      return;
-    }
+    const deleteAction = async () => {
+      setDeleting(auditionId);
+      const { error } = await deleteAudition(auditionId);
+      if (error) {
+        openModal('Error', 'Failed to delete audition.', undefined, 'OK', false);
+      } else {
+        setAuditions(auditions.filter(a => a.audition_id !== auditionId));
+      }
+      setDeleting(null);
+    };
 
-    setDeleting(auditionId);
-    const { error } = await deleteAudition(auditionId);
-    
-    if (!error) {
-      setAuditions(auditions.filter(a => a.audition_id !== auditionId));
-    } else {
-      alert('Failed to delete audition');
-    }
-    
-    setDeleting(null);
+    openModal('Confirm Deletion', 'Are you sure you want to delete this audition? This action cannot be undone.', deleteAction, 'Delete');
   };
 
   // Filter auditions based on workflow status
@@ -111,6 +132,15 @@ export default function CastDashboard() {
 
   return (
     <StarryContainer>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-6xl mx-auto on-background">
           {/* Header */}

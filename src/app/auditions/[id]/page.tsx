@@ -14,6 +14,7 @@ import ProductionTeamModal from '@/components/auditions/ProductionTeamModal';
 import Button from '@/components/Button';
 import { getAuditionRoles } from '@/lib/supabase/auditionRoles';
 import WorkflowTransition from '@/components/productions/WorkflowTransition';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 export default function AuditionDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -23,6 +24,14 @@ export default function AuditionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showProductionTeamModal, setShowProductionTeamModal] = useState(false);
   const [isProductionMember, setIsProductionMember] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   useEffect(() => {
     loadAudition();
@@ -30,20 +39,32 @@ export default function AuditionDetailPage() {
     checkAuth();
   }, [params.id]);
 
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
+
   const loadAudition = async () => {
     setLoading(true);
     const { data, error } = await getAuditionById(params.id as string);
     
     if (error) {
       console.error('Error loading audition:', error);
-      alert('Error loading audition: ' + error.message);
-      router.push('/auditions');
+      openModal('Error', `Error loading audition: ${error.message}`, () => router.push('/auditions'), 'OK', false);
       return;
     }
     
     if (!data) {
-      alert('Audition not found');
-      router.push('/auditions');
+      openModal('Not Found', 'Audition not found. Redirecting to auditions list.', () => router.push('/auditions'), 'OK', false);
       return;
     }
     
@@ -90,6 +111,15 @@ export default function AuditionDetailPage() {
 
   return (
     <StarryContainer>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
       <div className="neu-card-raised min-h-screen py-8 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}

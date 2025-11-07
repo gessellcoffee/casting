@@ -251,13 +251,12 @@ export default function AgendaItemForm({
               className="neu-button-secondary"
               disabled={saving}
             />
-            <button
+            <Button
               type="submit"
               disabled={saving}
               className="neu-button-primary"
-            >
-              {saving ? 'Saving...' : existingItem ? 'Update Item' : 'Add Item'}
-            </button>
+              text={saving ? 'Saving...' : existingItem ? 'Update Item' : 'Add Item'}
+            />
           </div>
         </form>
       </div>
