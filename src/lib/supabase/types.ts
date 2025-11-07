@@ -1101,7 +1101,13 @@ export type Database = {
       // Add views here
     };
     Functions: {
-      // Add functions here
+      bulk_assign_agenda_items: {
+        Args: {
+          p_agenda_item_id: string;
+          p_user_ids: string[];
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       resume_source_enum: 'manual' | 'application' | 'theater' | 'film' | 'television' | 'commercial' | 'voiceover' | 'other';
