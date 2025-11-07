@@ -95,7 +95,7 @@ export default function EditAuditionPage() {
     
     // Parse existing data
     const parsedDetails = {
-      auditionDates: data.audition_dates || [],
+      auditionDates: (data.audition_dates as string[]) || [],
       auditionLocation: data.audition_location || '',
       auditionDetails: data.audition_details || '',
       rehearsalDates: data.rehearsal_dates 

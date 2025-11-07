@@ -11,7 +11,7 @@ import Button from '@/components/Button';
 import DownloadCalendarButton from '@/components/auditions/DownloadCalendarButton';
 import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd, MdEventNote, MdTheaterComedy } from 'react-icons/md';
 import WorkflowTransition from '@/components/productions/WorkflowTransition';
-import type { WorkflowStatus } from '@/lib/supabase/types';
+import type { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 export default function CastDashboard() {

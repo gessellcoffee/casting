@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { WorkflowStatus } from '@/lib/supabase/types';
+import type { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import { getWorkflowStatusInfo } from '@/lib/supabase/workflowStatus';
 
 interface WorkflowStatusBadgeProps {

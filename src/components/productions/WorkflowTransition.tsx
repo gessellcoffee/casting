@@ -2,7 +2,7 @@
 
 import React, { useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import type { WorkflowStatus } from '@/lib/supabase/types';
+import type { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import { 
   updateWorkflowStatus, 
   getWorkflowStatusInfo, 
