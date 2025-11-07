@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import type { NotificationType } from '../supabase/types';
+import type { NotificationType } from '../supabase/notificationTypes';
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY);

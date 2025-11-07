@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendNotificationEmail } from '@/lib/email/emailService';
-import type { NotificationType } from '@/lib/supabase/types';
+import type { NotificationType } from '@/lib/supabase/notificationTypes';
 
 /**
  * API Route to send notification emails
