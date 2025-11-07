@@ -13,6 +13,7 @@ import AuditionInfo from '@/components/auditions/AuditionInfo';
 import ProductionTeamModal from '@/components/auditions/ProductionTeamModal';
 import Button from '@/components/Button';
 import { getAuditionRoles } from '@/lib/supabase/auditionRoles';
+import WorkflowTransition from '@/components/productions/WorkflowTransition';
 export default function AuditionDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -104,24 +105,38 @@ export default function AuditionDetailPage() {
 
           {/* Management Buttons (Only for audition owner or production members) */}
           {canManage && (
-            <div className="mt-6 flex gap-4 flex-wrap neu-card-raised" >
-              <label>Manage audition</label>
-              <br/>
-              <Button
-                text="Manage Callbacks"
-                onClick={() => router.push(`/auditions/${audition.audition_id}/callbacks`)}
-                variant="secondary"
-              />
-              <Button
-                text="Production Team"
-                onClick={() => setShowProductionTeamModal(true)}
-                variant="primary"
-              />
-              <Button
-                text="Cast Show"
-                onClick={() => router.push(`/auditions/${audition.audition_id}/cast-show`)}
-                variant="primary"
-              />
+            <div className="mt-6 neu-card-raised p-6 space-y-4">
+              <label className="block text-lg font-semibold text-neu-text-primary mb-4">Manage Audition</label>
+              
+              {/* Workflow Status */}
+              <div className="mb-4">
+                <WorkflowTransition
+                  auditionId={audition.audition_id}
+                  currentStatus={audition.workflow_status}
+                  onStatusChange={(newStatus) => {
+                    setAudition({ ...audition, workflow_status: newStatus });
+                  }}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 flex-wrap">
+                <Button
+                  text="Manage Callbacks"
+                  onClick={() => router.push(`/auditions/${audition.audition_id}/callbacks`)}
+                  variant="secondary"
+                />
+                <Button
+                  text="Production Team"
+                  onClick={() => setShowProductionTeamModal(true)}
+                  variant="primary"
+                />
+                <Button
+                  text="Cast Show"
+                  onClick={() => router.push(`/auditions/${audition.audition_id}/cast-show`)}
+                  variant="primary"
+                />
+              </div>
             </div>
           )}
 

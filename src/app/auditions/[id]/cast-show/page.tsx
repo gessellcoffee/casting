@@ -7,6 +7,7 @@ import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
 import CastShow from '@/components/casting/CastShow';
 import { Alert } from '@/components/ui/feedback';
+import WorkflowTransition from '@/components/productions/WorkflowTransition';
 
 interface AuditionWithShow {
   audition_id: string;
@@ -169,6 +170,18 @@ export default function CastShowPage() {
           >
             ← Back to Audition
           </button>
+
+          {/* Workflow Status Management */}
+          <div className="mb-6 neu-card-raised p-6">
+            <h2 className="text-lg font-semibold text-neu-text-primary mb-4">Production Status</h2>
+            <WorkflowTransition
+              auditionId={audition.audition_id}
+              currentStatus={audition.workflow_status}
+              onStatusChange={(newStatus) => {
+                setAudition({ ...audition, workflow_status: newStatus });
+              }}
+            />
+          </div>
 
           {error && (
             <Alert variant="error" className="mb-6">

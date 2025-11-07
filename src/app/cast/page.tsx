@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase';
 import { getAuditionsWithDetails } from '@/lib/supabase/auditionQueries';
 import { deleteAudition } from '@/lib/supabase/auditions';
@@ -9,14 +9,28 @@ import StarryContainer from '@/components/StarryContainer';
 import Link from 'next/link';
 import Button from '@/components/Button';
 import DownloadCalendarButton from '@/components/auditions/DownloadCalendarButton';
-import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd } from 'react-icons/md';
+import { MdEdit, MdDelete, MdVisibility, MdAssignment, MdCast, MdOutlinePersonAdd, MdEventNote, MdTheaterComedy } from 'react-icons/md';
+import WorkflowTransition from '@/components/productions/WorkflowTransition';
+import type { WorkflowStatus } from '@/lib/supabase/types';
 
 export default function CastDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [auditions, setAuditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'casting' | 'active'>(
+    (searchParams.get('filter') as 'all' | 'casting' | 'active') || 'all'
+  );
+
+  // Update filter when URL changes
+  useEffect(() => {
+    const urlFilter = (searchParams.get('filter') as 'all' | 'casting' | 'active') || 'all';
+    if (urlFilter !== filter) {
+      setFilter(urlFilter);
+    }
+  }, [searchParams, filter]);
 
   useEffect(() => {
     const init = async () => {
@@ -59,6 +73,32 @@ export default function CastDashboard() {
     setDeleting(null);
   };
 
+  // Filter auditions based on workflow status
+  const filteredAuditions = auditions.filter(audition => {
+    if (filter === 'all') return true;
+    if (filter === 'casting') {
+      return ['auditioning', 'casting', 'offering_roles'].includes(audition.workflow_status);
+    }
+    if (filter === 'active') {
+      return ['rehearsing', 'performing'].includes(audition.workflow_status);
+    }
+    return true;
+  });
+
+  // Helper function to determine which buttons to show based on workflow status
+  const getActionButtons = (audition: any) => {
+    const status = audition.workflow_status as WorkflowStatus;
+    const isCasting = ['auditioning', 'casting', 'offering_roles'].includes(status);
+    const isActive = ['rehearsing', 'performing'].includes(status);
+
+    return {
+      showCallbacks: isCasting,
+      showCastShow: isCasting,
+      showRehearsals: isActive,
+      showPerformances: status === 'performing',
+    };
+  };
+
   if (loading) {
     return (
       <StarryContainer>
@@ -74,13 +114,13 @@ export default function CastDashboard() {
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-6xl mx-auto on-background">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold text-neu-text-primary mb-2">
-                My Auditions
+                My Productions
               </h1>
               <p className="text-neu-text-primary/70">
-                Manage your audition postings
+                Manage your shows from auditions through performances
               </p>
             </div>
             <div className="nav-buttons">
@@ -88,11 +128,45 @@ export default function CastDashboard() {
             </div>
           </div>
 
+          {/* Filter Tabs */}
+          <div className="mb-6 flex gap-3 flex-wrap">
+            <button
+              onClick={() => {
+                setFilter('all');
+                router.push('/cast');
+              }}
+              className={filter === 'all' ? 'n-button-primary' : 'n-button-secondary'}
+            >
+              All Productions ({auditions.length})
+            </button>
+            <button
+              onClick={() => {
+                setFilter('casting');
+                router.push('/cast?filter=casting');
+              }}
+              className={filter === 'casting' ? 'n-button-primary' : 'n-button-secondary'}
+            >
+              Casting ({auditions.filter(a => ['auditioning', 'casting', 'offering_roles'].includes(a.workflow_status)).length})
+            </button>
+            <button
+              onClick={() => {
+                setFilter('active');
+                router.push('/cast?filter=active');
+              }}
+              className={filter === 'active' ? 'n-button-primary' : 'n-button-secondary'}
+            >
+              Active Shows ({auditions.filter(a => ['rehearsing', 'performing'].includes(a.workflow_status)).length})
+            </button>
+          </div>
+
           {/* Auditions List */}
-          {auditions.length === 0 ? (
+          {filteredAuditions.length === 0 ? (
             <div className="text-center py-12 p-8 rounded-xl neu-card-raised">
               <div className="text-neu-text-primary/70 mb-4">
-                You haven't posted any auditions yet
+                {auditions.length === 0 
+                  ? "You haven't posted any auditions yet"
+                  : `No productions in ${filter === 'casting' ? 'casting phase' : 'active shows'}`
+                }
               </div>
               <div className="nav-buttons inline-block">
                 <Button text="Post Your First Audition" href="/cast/new" />
@@ -100,7 +174,9 @@ export default function CastDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {auditions.map((audition) => (
+              {filteredAuditions.map((audition) => {
+                const actions = getActionButtons(audition);
+                return (
                 <div
                   key={audition.audition_id}
                   className="p-6 rounded-xl neu-card-raised hover:shadow-neu-raised-lg transition-all duration-300"
@@ -137,35 +213,78 @@ export default function CastDashboard() {
                       <div className="text-sm text-neu-text-primary/70">
                         Posted {new Date(audition.created_at).toLocaleDateString()}
                       </div>
+
+                      {/* Workflow Status */}
+                      <div className="mt-4">
+                        <WorkflowTransition
+                          auditionId={audition.audition_id}
+                          currentStatus={audition.workflow_status}
+                          onStatusChange={(newStatus) => {
+                            // Update the audition in the list
+                            setAuditions(prev => 
+                              prev.map(a => 
+                                a.audition_id === audition.audition_id 
+                                  ? { ...a, workflow_status: newStatus }
+                                  : a
+                              )
+                            );
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-3 lg:flex-shrink-0">
                       <div className="flex flex-row flex-wrap gap-2">
+                        {/* Always show */}
                         <Link href={`/cast/edit/${audition.audition_id}`}>
                           <button className="neu-icon-btn" title="Edit Audition">
                             <MdEdit className="w-5 h-5" />
                           </button>
                         </Link>
-                        <Link href={`/auditions/${audition.audition_id}/callbacks`}>
-                          <button className="neu-icon-btn" title="Manage Callbacks">
-                            <MdAssignment className="w-5 h-5" />
-                          </button>
-                        </Link>
-                        <Link href={`/auditions/${audition.audition_id}/cast-show`}>
-                          <button className="neu-icon-btn" title="Cast Show">
-                            <MdOutlinePersonAdd className="w-5 h-5" />
-                          </button>
-                        </Link>
                         <Link href={`/auditions/${audition.audition_id}`}>
-                          <button className="neu-icon-btn" title="View Audition">
+                          <button className="neu-icon-btn" title="View Details">
                             <MdVisibility className="w-5 h-5" />
                           </button>
                         </Link>
+
+                        {/* Casting phase buttons */}
+                        {actions.showCallbacks && (
+                          <Link href={`/auditions/${audition.audition_id}/callbacks`}>
+                            <button className="neu-icon-btn" title="Manage Callbacks">
+                              <MdAssignment className="w-5 h-5" />
+                            </button>
+                          </Link>
+                        )}
+                        {actions.showCastShow && (
+                          <Link href={`/auditions/${audition.audition_id}/cast-show`}>
+                            <button className="neu-icon-btn" title="Cast Show">
+                              <MdOutlinePersonAdd className="w-5 h-5" />
+                            </button>
+                          </Link>
+                        )}
+
+                        {/* Active show buttons */}
+                        {actions.showRehearsals && (
+                          <Link href={`/productions/active-shows/${audition.audition_id}/rehearsals`}>
+                            <button className="neu-icon-btn" title="Rehearsal Schedule">
+                              <MdEventNote className="w-5 h-5" />
+                            </button>
+                          </Link>
+                        )}
+                        {actions.showPerformances && (
+                          <Link href={`/productions/active-shows/${audition.audition_id}/performances`}>
+                            <button className="neu-icon-btn" title="Performance Schedule">
+                              <MdTheaterComedy className="w-5 h-5" />
+                            </button>
+                          </Link>
+                        )}
+
+                        {/* Always show delete */}
                         <button
                           onClick={() => handleDelete(audition.audition_id)}
                           disabled={deleting === audition.audition_id}
                           className="neu-icon-btn hover:text-neu-accent-danger disabled:opacity-50"
-                          title="Delete Audition"
+                          title="Delete Production"
                         >
                           <MdDelete className="w-5 h-5" />
                         </button>
@@ -179,7 +298,8 @@ export default function CastDashboard() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

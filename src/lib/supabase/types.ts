@@ -966,6 +966,135 @@ export type Database = {
           }
         ];
       };
+      rehearsal_events: {
+        Row: {
+          rehearsal_events_id: string;
+          audition_id: string | null;
+          date: string;
+          start_time: string;
+          end_time: string;
+          location: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          rehearsal_events_id?: string;
+          audition_id?: string | null;
+          date: string;
+          start_time: string;
+          end_time: string;
+          location?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          rehearsal_events_id?: string;
+          audition_id?: string | null;
+          date?: string;
+          start_time?: string;
+          end_time?: string;
+          location?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'rehearsal_events_audition_id_fkey';
+            columns: ['audition_id'];
+            referencedRelation: 'auditions';
+            referencedColumns: ['audition_id'];
+          }
+        ];
+      };
+      rehearsal_agenda_items: {
+        Row: {
+          rehearsal_agenda_items_id: string;
+          rehearsal_event_id: string;
+          title: string;
+          description: string | null;
+          start_time: string;
+          end_time: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          rehearsal_agenda_items_id?: string;
+          rehearsal_event_id: string;
+          title: string;
+          description?: string | null;
+          start_time: string;
+          end_time: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          rehearsal_agenda_items_id?: string;
+          rehearsal_event_id?: string;
+          title?: string;
+          description?: string | null;
+          start_time?: string;
+          end_time?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'rehearsal_agenda_items_rehearsal_event_id_fkey';
+            columns: ['rehearsal_event_id'];
+            referencedRelation: 'rehearsal_events';
+            referencedColumns: ['rehearsal_events_id'];
+          }
+        ];
+      };
+      agenda_assignments: {
+        Row: {
+          agenda_assignments_id: string;
+          agenda_item_id: string;
+          user_id: string;
+          status: 'pending' | 'accepted' | 'declined' | 'conflict';
+          conflict_note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          agenda_assignments_id?: string;
+          agenda_item_id: string;
+          user_id: string;
+          status?: 'pending' | 'accepted' | 'declined' | 'conflict';
+          conflict_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          agenda_assignments_id?: string;
+          agenda_item_id?: string;
+          user_id?: string;
+          status?: 'pending' | 'accepted' | 'declined' | 'conflict';
+          conflict_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'agenda_assignments_agenda_item_id_fkey';
+            columns: ['agenda_item_id'];
+            referencedRelation: 'rehearsal_agenda_items';
+            referencedColumns: ['rehearsal_agenda_items_id'];
+          },
+          {
+            foreignKeyName: 'agenda_assignments_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
       // Add more tables as needed
     };
     Views: {
@@ -1188,6 +1317,21 @@ export type GoogleCalendarToken = Database['public']['Tables']['google_calendar_
 export type GoogleCalendarTokenInsert = Database['public']['Tables']['google_calendar_tokens']['Insert'];
 export type GoogleCalendarTokenUpdate = Database['public']['Tables']['google_calendar_tokens']['Update'];
 
+// Rehearsal Event types for easier use
+export type RehearsalEventRow = Database['public']['Tables']['rehearsal_events']['Row'];
+export type RehearsalEventInsert = Database['public']['Tables']['rehearsal_events']['Insert'];
+export type RehearsalEventUpdate = Database['public']['Tables']['rehearsal_events']['Update'];
+
+// Rehearsal Agenda Item types for easier use
+export type RehearsalAgendaItemRow = Database['public']['Tables']['rehearsal_agenda_items']['Row'];
+export type RehearsalAgendaItemInsert = Database['public']['Tables']['rehearsal_agenda_items']['Insert'];
+export type RehearsalAgendaItemUpdate = Database['public']['Tables']['rehearsal_agenda_items']['Update'];
+
+// Agenda Assignment types for easier use
+export type AgendaAssignmentRow = Database['public']['Tables']['agenda_assignments']['Row'];
+export type AgendaAssignmentInsert = Database['public']['Tables']['agenda_assignments']['Insert'];
+export type AgendaAssignmentUpdate = Database['public']['Tables']['agenda_assignments']['Update'];
+
 // Auth-related types
 export interface AuthError {
   message: string;
@@ -1274,4 +1418,77 @@ export interface CalendarEvent {
   _isInstance?: boolean;
   _originalEventId?: string;
   _instanceDate?: string;
+}
+
+// =====================================================
+// PRODUCTIONS WORKFLOW TYPES
+// =====================================================
+
+export type WorkflowStatus = 
+  | 'auditioning'
+  | 'casting'
+  | 'offering_roles'
+  | 'rehearsing'
+  | 'performing'
+  | 'completed';
+
+export interface RehearsalEvent {
+  rehearsal_events_id: string;
+  audition_id: string;
+  date: string; // YYYY-MM-DD
+  start_time: string; // HH:MM:SS
+  end_time: string; // HH:MM:SS
+  location: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RehearsalAgendaItem {
+  rehearsal_agenda_items_id: string;
+  rehearsal_event_id: string;
+  title: string;
+  description: string | null;
+  start_time: string; // HH:MM:SS
+  end_time: string; // HH:MM:SS
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AgendaAssignmentStatus = 'assigned' | 'accepted' | 'declined' | 'conflict';
+
+export interface AgendaAssignment {
+  agenda_assignments_id: string;
+  agenda_item_id: string;
+  user_id: string;
+  status: AgendaAssignmentStatus;
+  conflict_note: string | null;
+  notified_at: string | null;
+  created_at: string;
+}
+
+export interface PerformanceEvent {
+  performance_events_id: string;
+  audition_id: string;
+  date: string; // YYYY-MM-DD
+  call_time: string; // HH:MM:SS
+  curtain_time: string; // HH:MM:SS
+  location: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Extended types with joined data
+export interface RehearsalEventWithAgenda extends RehearsalEvent {
+  agenda_items?: RehearsalAgendaItemWithAssignments[];
+}
+
+export interface RehearsalAgendaItemWithAssignments extends RehearsalAgendaItem {
+  assignments?: AgendaAssignmentWithProfile[];
+}
+
+export interface AgendaAssignmentWithProfile extends AgendaAssignment {
+  profile?: Profile;
 }

@@ -9,6 +9,7 @@ import NotificationsDropdown from "./NotificationsDropdown";
 import ThemeToggle from "./ThemeToggle";
 import { GrClose } from "react-icons/gr";
 import { GiHamburgerMenu } from "react-icons/gi";
+import { MdArrowDropDown } from "react-icons/md";
 import { supabase, signOut, getUser } from "@/lib/supabase";
 import { getProfile } from "@/lib/supabase/profile";
 import type { Profile } from "@/lib/supabase/types";
@@ -22,9 +23,11 @@ type NavigationBarProps = {
 
 export default function NavigationBar() {
       const [showMenu, setShowMenu] = useState(false);
+      const [showProductionsDropdown, setShowProductionsDropdown] = useState(false);
       const [user, setUser] = useState<any>(null);
       const [profile, setProfile] = useState<Profile | null>(null);
       const router = useRouter();
+      const productionsDropdownRef = useRef<HTMLDivElement>(null);
 
       useEffect(() => {
         // Get initial user
@@ -47,6 +50,18 @@ export default function NavigationBar() {
         }
       }, [user]);
 
+      // Close dropdown when clicking outside
+      useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (productionsDropdownRef.current && !productionsDropdownRef.current.contains(event.target as Node)) {
+            setShowProductionsDropdown(false);
+          }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+      }, []);
+
       const handleSignOut = async () => {
         await signOut();
         router.push('/');
@@ -63,7 +78,54 @@ export default function NavigationBar() {
     {user && (
       <>
         <Link className="neu-link" href="/auditions">Audition</Link>
-        <Link className="neu-link" href="/cast">Cast</Link>
+        
+        {/* Productions Dropdown */}
+        <div className="relative" ref={productionsDropdownRef}>
+          <span
+            onClick={() => setShowProductionsDropdown(!showProductionsDropdown)}
+            className="neu-link flex items-center gap-0.5 cursor-pointer"
+          >
+            Productions
+            <MdArrowDropDown className={`w-4 h-4 transition-transform ${showProductionsDropdown ? 'rotate-180' : ''}`} />
+          </span>
+          
+          {showProductionsDropdown && (
+            <div 
+              className="absolute top-full left-0 mt-2 w-48 rounded-xl shadow-xl overflow-hidden z-50"
+              style={{ 
+                background: 'var(--neu-surface)',
+                border: '1px solid var(--neu-border)',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              <Link 
+                href="/cast?filter=casting" 
+                className="block px-4 py-3 text-neu-text-primary hover:bg-neu-accent-primary/10 transition-colors border-b border-neu-border"
+                onClick={() => setShowProductionsDropdown(false)}
+              >
+                <div className="font-medium">Casting</div>
+                <div className="text-xs text-neu-text-secondary">Auditions & offers</div>
+              </Link>
+              <Link 
+                href="/cast?filter=active" 
+                className="block px-4 py-3 text-neu-text-primary hover:bg-neu-accent-primary/10 transition-colors border-b border-neu-border"
+                onClick={() => setShowProductionsDropdown(false)}
+              >
+                <div className="font-medium">Active Shows</div>
+                <div className="text-xs text-neu-text-secondary">Rehearsing & performing</div>
+              </Link>
+              <Link 
+                href="/cast" 
+                className="block px-4 py-3 text-neu-text-primary hover:bg-neu-accent-primary/10 transition-colors"
+                onClick={() => setShowProductionsDropdown(false)}
+              >
+                <div className="font-medium">All Productions</div>
+                <div className="text-xs text-neu-text-secondary">View everything</div>
+              </Link>
+            </div>
+          )}
+        </div>
+        
         <Link className="neu-link" href= "/users">Users</Link>
       </>
     )}
@@ -141,9 +203,19 @@ export default function NavigationBar() {
               <Link href="/auditions" onClick={() => setShowMenu(false)}>
                 <button className="w-full n-button-primary text-left px-4 py-3">Audition</button>
               </Link>
-              <Link href="/cast" onClick={() => setShowMenu(false)}>
-                <button className="w-full n-button-primary text-left px-4 py-3">Cast</button>
+              
+              {/* Productions Section */}
+              <div className="text-xs font-semibold text-neu-text-secondary px-4 py-2">Productions</div>
+              <Link href="/cast?filter=casting" onClick={() => setShowMenu(false)}>
+                <button className="w-full n-button-secondary text-left px-4 py-3">Casting</button>
               </Link>
+              <Link href="/cast?filter=active" onClick={() => setShowMenu(false)}>
+                <button className="w-full n-button-secondary text-left px-4 py-3">Active Shows</button>
+              </Link>
+              <Link href="/cast" onClick={() => setShowMenu(false)}>
+                <button className="w-full n-button-secondary text-left px-4 py-3">All Productions</button>
+              </Link>
+              
               <Link href="/users" onClick={() => setShowMenu(false)}>
                 <button className="w-full n-button-primary text-left px-4 py-3">Users</button>
               </Link>
