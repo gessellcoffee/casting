@@ -7,7 +7,17 @@
  */
 
 import { supabase } from '@/lib/supabase/client';
-import type { WorkflowStatus } from './types';
+
+/**
+ * Workflow status type definition
+ */
+export type WorkflowStatus =
+  | 'auditioning'
+  | 'casting'
+  | 'offering_roles'
+  | 'rehearsing'
+  | 'performing'
+  | 'completed';
 
 /**
  * Get the current workflow status for an audition
