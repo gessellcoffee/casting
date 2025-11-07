@@ -1569,6 +1569,10 @@ export type CompanyMemberWithProfile = Database['public']['Tables']['company_mem
 
 export type CompanyMemberRole = 'Owner' | 'Admin' | 'Member' | 'Viewer';
 
+export type CompanyApprovalRequest = Database['public']['Tables']['company_approval_requests']['Row'];
+export type CompanyApprovalRequestInsert = Database['public']['Tables']['company_approval_requests']['Insert'];
+export type CompanyApprovalRequestUpdate = Database['public']['Tables']['company_approval_requests']['Update'];
+
 export type UserResume = Database['public']['Tables']['user_resume']['Row'];
 export type ResumeSource = 'Equity' | 'Non-Equity' | 'Student' | 'Community' | 'Other';
 
