@@ -1434,7 +1434,7 @@ export type WorkflowStatus =
 
 export interface RehearsalEvent {
   rehearsal_events_id: string;
-  audition_id: string;
+  audition_id: string | null;
   date: string; // YYYY-MM-DD
   start_time: string; // HH:MM:SS
   end_time: string; // HH:MM:SS
