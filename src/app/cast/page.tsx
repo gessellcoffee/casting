@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase';
 import { getAuditionsWithDetails } from '@/lib/supabase/auditionQueries';
@@ -12,7 +14,7 @@ import WorkflowTransition from '@/components/productions/WorkflowTransition';
 import type { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
-export default function CastDashboard() {
+function CastDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
@@ -333,5 +335,22 @@ export default function CastDashboard() {
         </div>
       </div>
     </StarryContainer>
+  );
+}
+
+export default function CastDashboard() {
+  return (
+    <Suspense fallback={
+      <StarryContainer>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--neu-primary)]"></div>
+            <p className="mt-4 text-[var(--neu-text-secondary)]">Loading...</p>
+          </div>
+        </div>
+      </StarryContainer>
+    }>
+      <CastDashboardContent />
+    </Suspense>
   );
 }
