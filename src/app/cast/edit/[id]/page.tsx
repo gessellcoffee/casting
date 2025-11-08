@@ -9,6 +9,7 @@ import { deleteAuditionSlots, createAuditionSlots } from '@/lib/supabase/auditio
 import StarryContainer from '@/components/StarryContainer';
 import AuditionDetailsForm from '@/components/casting/AuditionDetailsForm';
 import SlotScheduler from '@/components/casting/SlotScheduler';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 type EditStep = 'details' | 'slots';
 
@@ -20,6 +21,14 @@ export default function EditAuditionPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<EditStep>('details');
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
   
   const [auditionDetails, setAuditionDetails] = useState({
     auditionDates: [] as string[],
@@ -51,6 +60,20 @@ export default function EditAuditionPage() {
     init();
   }, [params.id, router]);
 
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
+
   const loadAudition = async (userId: string) => {
     setLoading(true);
     
@@ -58,23 +81,25 @@ export default function EditAuditionPage() {
     
     if (error || !data) {
       console.error('Error loading audition:', error);
-      alert('Audition not found');
-      router.push('/cast');
+      openModal('Error', 'Audition not found. Redirecting to dashboard.', () => router.push('/cast'), 'OK', false);
       return;
     }
 
     // Check authorization
     if (data.user_id !== userId) {
-      alert('You can only edit your own auditions');
-      router.push('/cast');
+      openModal('Unauthorized', 'You can only edit your own auditions. Redirecting to dashboard.', () => router.push('/cast'), 'OK', false);
       return;
     }
 
     setAudition(data);
     
+    console.log('Loaded audition data:', data);
+    console.log('Audition slots from database:', data.slots);
+    console.log('Number of slots:', data.slots?.length || 0);
+    
     // Parse existing data
     const parsedDetails = {
-      auditionDates: data.audition_dates || [],
+      auditionDates: (data.audition_dates as string[]) || [],
       auditionLocation: data.audition_location || '',
       auditionDetails: data.audition_details || '',
       rehearsalDates: data.rehearsal_dates 
@@ -94,6 +119,7 @@ export default function EditAuditionPage() {
     
     setAuditionDetails(parsedDetails);
     setSlots(data.slots || []);
+    console.log('Set slots state to:', data.slots || []);
     setLoading(false);
   };
 
@@ -154,7 +180,7 @@ export default function EditAuditionPage() {
       router.push('/cast');
     } catch (err: any) {
       console.error('Error saving audition:', err);
-      alert(err.message || 'Failed to update audition');
+      openModal('Save Failed', err.message || 'Failed to update audition. Please try again.', undefined, 'OK', false);
       setSaving(false);
     }
   };
@@ -178,6 +204,15 @@ export default function EditAuditionPage() {
 
   return (
     <div className="min-h-screen px-4 py-8">
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
       <div className="max-w-4xl mx-auto">
         <StarryContainer starCount={10} className="card p-8">
           {/* Header */}

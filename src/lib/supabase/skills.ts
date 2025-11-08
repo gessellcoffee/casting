@@ -8,12 +8,13 @@ import { getProfile, updateProfile } from './profile';
 export async function getUserSkills(userId: string): Promise<string[]> {
   const profile = await getProfile(userId);
   
-  if (!profile || !profile.skills) {
+  const skills = profile?.skills as string[] | null;
+  if (!skills) {
     return [];
   }
 
   // Return sorted skills
-  return [...profile.skills].sort((a, b) => a.localeCompare(b));
+  return [...skills].sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -35,8 +36,9 @@ export async function getUniqueSkills(searchTerm: string = ''): Promise<Array<{ 
   const skillCounts = new Map<string, number>();
   
   data?.forEach((profile) => {
-    if (profile.skills && Array.isArray(profile.skills)) {
-      profile.skills.forEach((skill: string) => {
+    const skills = profile.skills as string[] | null;
+    if (skills && Array.isArray(skills)) {
+      skills.forEach((skill: string) => {
         const lowerSkill = skill.toLowerCase();
         if (!searchTerm || lowerSkill.includes(searchTerm.toLowerCase())) {
           skillCounts.set(skill, (skillCounts.get(skill) || 0) + 1);

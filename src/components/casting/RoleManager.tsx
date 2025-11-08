@@ -76,7 +76,7 @@ export default function RoleManager({
             description: role.description,
             role_type: role.role_type,
             gender: role.gender,
-            needs_understudy: role.needs_understudy,
+            needs_understudy: role.needs_understudy ?? false, // Convert null to false
           };
         });
         setLocalRoles(existingAsFormData);
@@ -100,7 +100,7 @@ export default function RoleManager({
             description: role.description,
             role_type: role.role_type,
             gender: role.gender,
-            needs_understudy: role.needs_understudy,
+            needs_understudy: role.needs_understudy ?? false, // Convert null to false
           }));
           setLocalRoles(templatesAsFormData);
         }

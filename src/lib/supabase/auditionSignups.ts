@@ -98,28 +98,13 @@ export async function getUserSignups(userId: string): Promise<AuditionSignup[]> 
  * Get all signups for a specific user with full details (slot, audition, show, role)
  */
 export async function getUserSignupsWithDetails(userId: string): Promise<UserSignupsWithDetails[]> {
-  const { data, error } = await supabase
+  // First, get all signups with slot details
+  const { data: signups, error: signupsError } = await supabase
     .from('audition_signups')
     .select(`
       *,
       audition_slots (
-        slot_id,
-        start_time,
-        end_time,
-        location,
-        auditions (
-          audition_id,
-          rehearsal_dates,
-          rehearsal_location,
-          performance_dates,
-          performance_location,
-          shows (
-            show_id,
-            title,
-            author,
-            description
-          )
-        )
+        *
       ),
       roles (
         role_id,
@@ -132,12 +117,52 @@ export async function getUserSignupsWithDetails(userId: string): Promise<UserSig
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching user signups with details:', error);
+  if (signupsError) {
+    console.error('Error fetching user signups with details:', signupsError);
     return [];
   }
 
-  return data || [];
+  if (!signups || signups.length === 0) return [];
+
+  // Get unique audition IDs
+  const auditionIds = [...new Set(
+    signups
+      .map(s => s.audition_slots?.audition_id)
+      .filter((id): id is string => id !== undefined && id !== null)
+  )];
+
+  if (auditionIds.length === 0) return [];
+
+  // Fetch full audition details
+  const { data: auditions, error: auditionsError } = await supabase
+    .from('auditions')
+    .select(`
+      *,
+      shows (
+        show_id,
+        title,
+        author,
+        description
+      )
+    `)
+    .in('audition_id', auditionIds);
+
+  if (auditionsError) {
+    console.error('Error fetching auditions:', auditionsError);
+    return [];
+  }
+
+  if (!auditions) return [];
+
+  // Group signups by audition
+  const result: UserSignupsWithDetails[] = auditions.map(audition => ({
+    audition,
+    signups: signups.filter(
+      signup => signup.audition_slots?.audition_id === audition.audition_id
+    ) as AuditionSignupWithDetails[]
+  }));
+
+  return result;
 }
 
 /**
@@ -657,4 +682,60 @@ export async function getUserProductionTeamAuditions(userId: string): Promise<an
   }
 
   return data || [];
+}
+
+/**
+ * Get signups with user details for multiple slot IDs
+ * Used for checking which users will be affected by slot deletions
+ */
+export async function getSignupsForSlots(slotIds: string[]): Promise<Array<{
+  signup_id: string;
+  user_id: string;
+  slot_id: string;
+  user: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  } | null;
+  slot: {
+    slot_id: string;
+    start_time: string;
+    end_time: string;
+  } | null;
+}>> {
+  if (slotIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .select(`
+      signup_id,
+      user_id,
+      slot_id,
+      profiles:user_id (
+        id,
+        first_name,
+        last_name,
+        email
+      ),
+      audition_slots:slot_id (
+        slot_id,
+        start_time,
+        end_time
+      )
+    `)
+    .in('slot_id', slotIds);
+
+  if (error) {
+    console.error('Error fetching signups for slots:', error);
+    return [];
+  }
+
+  return (data || []).map((signup: any) => ({
+    signup_id: signup.signup_id,
+    user_id: signup.user_id,
+    slot_id: signup.slot_id,
+    user: signup.profiles,
+    slot: signup.audition_slots,
+  }));
 }

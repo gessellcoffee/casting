@@ -8,6 +8,7 @@ import { getShowRoles, createRole, updateRole, deleteRole } from '@/lib/supabase
 import { getUser } from '@/lib/supabase/auth';
 import type { Show, Role, RoleInsert, RoleUpdate, RoleType, RoleGender } from '@/lib/supabase/types';
 import StarryContainer from '@/components/StarryContainer';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 export default function ShowDetailPage() {
   const router = useRouter();
@@ -27,6 +28,15 @@ export default function ShowDetailPage() {
 
   // Form states
   const [title, setTitle] = useState('');
+
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
   const [author, setAuthor] = useState('');
   const [description, setDescription] = useState('');
 
@@ -34,6 +44,20 @@ export default function ShowDetailPage() {
     loadCurrentUser();
     loadShowData();
   }, [showId]);
+
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
 
   const loadCurrentUser = async () => {
     const user = await getUser();
@@ -75,7 +99,7 @@ export default function ShowDetailPage() {
     });
     
     if (error) {
-      alert(`Error updating show: ${error.message}`);
+      openModal('Error', `Error updating show: ${error.message}`, undefined, 'OK', false);
       setSaving(false);
       return;
     }
@@ -98,7 +122,7 @@ export default function ShowDetailPage() {
 
   const handleSaveNewRole = async () => {
     if (!newRole || !newRole.role_name.trim()) {
-      alert('Role name is required');
+      openModal('Validation Error', 'Role name is required.', undefined, 'OK', false);
       return;
     }
     
@@ -106,7 +130,7 @@ export default function ShowDetailPage() {
     const { error } = await createRole(newRole);
     
     if (error) {
-      alert(`Error creating role: ${error.message}`);
+      openModal('Error', `Error creating role: ${error.message}`, undefined, 'OK', false);
       setSaving(false);
       return;
     }
@@ -121,7 +145,7 @@ export default function ShowDetailPage() {
     const { error } = await updateRole(roleId, updates);
     
     if (error) {
-      alert(`Error updating role: ${error.message}`);
+      openModal('Error', `Error updating role: ${error.message}`, undefined, 'OK', false);
       setSaving(false);
       return;
     }
@@ -132,19 +156,19 @@ export default function ShowDetailPage() {
   };
 
   const handleDeleteRole = async (roleId: string) => {
-    if (!confirm('Are you sure you want to delete this role?')) return;
-    
-    setSaving(true);
-    const { error } = await deleteRole(roleId);
-    
-    if (error) {
-      alert(`Error deleting role: ${error.message}`);
+    const deleteAction = async () => {
+      setSaving(true);
+      const { error } = await deleteRole(roleId);
+      if (error) {
+        openModal('Error', `Error deleting role: ${error.message}`, undefined, 'OK', false);
+        setSaving(false);
+        return;
+      }
       setSaving(false);
-      return;
-    }
-    
-    setSaving(false);
-    loadShowData();
+      loadShowData();
+    };
+
+    openModal('Confirm Deletion', 'Are you sure you want to delete this role?', deleteAction, 'Delete');
   };
 
   const handleToggleSelectMode = () => {
@@ -172,24 +196,24 @@ export default function ShowDetailPage() {
 
   const handleDeleteSelected = async () => {
     if (selectedRoles.size === 0) return;
-    
-    if (!confirm(`Are you sure you want to delete ${selectedRoles.size} role(s)?`)) return;
-    
-    setSaving(true);
-    
-    // Delete all selected roles
-    const deletePromises = Array.from(selectedRoles).map(roleId => deleteRole(roleId));
-    const results = await Promise.all(deletePromises);
-    
-    const errors = results.filter(r => r.error);
-    if (errors.length > 0) {
-      alert(`Error deleting ${errors.length} role(s)`);
-    }
-    
-    setSelectedRoles(new Set());
-    setSelectMode(false);
-    setSaving(false);
-    loadShowData();
+
+    const deleteAction = async () => {
+      setSaving(true);
+      const deletePromises = Array.from(selectedRoles).map(roleId => deleteRole(roleId));
+      const results = await Promise.all(deletePromises);
+      const errors = results.filter(r => r.error);
+
+      if (errors.length > 0) {
+        openModal('Deletion Error', `Failed to delete ${errors.length} role(s). Please try again.`, undefined, 'OK', false);
+      }
+
+      setSelectedRoles(new Set());
+      setSelectMode(false);
+      setSaving(false);
+      loadShowData();
+    };
+
+    openModal('Confirm Bulk Deletion', `Are you sure you want to delete ${selectedRoles.size} role(s)?`, deleteAction, 'Delete');
   };
 
   const roleTypes: RoleType[] = ['Principal', 'Ensemble', 'Understudy', 'Crew', 'Other'];
@@ -212,6 +236,15 @@ export default function ShowDetailPage() {
 
   return (
     <StarryContainer>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">

@@ -88,7 +88,7 @@ export default function CompanyPage() {
       vision: company.vision || '',
       mission: company.mission || '',
       values: company.values || '',
-      image_gallery: Array.isArray(company.image_gallery) ? company.image_gallery : [],
+      image_gallery: Array.isArray(company.image_gallery) ? (company.image_gallery as string[]) : [],
     });
     setEditingCompanyId(company.company_id);
     setIsCreating(false);
@@ -428,7 +428,7 @@ export default function CompanyPage() {
                                 Gallery
                               </label>
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {company.image_gallery.map((url, index) => (
+                                {(company.image_gallery as string[]).map((url, index) => (
                                   <div key={index} className="aspect-square rounded-lg overflow-hidden border border-neu-border">
                                     <img
                                       src={url}

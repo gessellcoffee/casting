@@ -41,8 +41,8 @@ export default function OffersPage() {
     setLoading(false);
   };
 
-  const acceptedOffers = allOffers.filter(o => o.cast_members?.status === 'Accepted');
-  const declinedOffers = allOffers.filter(o => o.cast_members?.status === 'Declined');
+  const acceptedOffers = allOffers.filter(o => o.cast_member?.status === 'Accepted');
+  const declinedOffers = allOffers.filter(o => o.cast_member?.status === 'Declined');
 
   if (loading) {
     return (

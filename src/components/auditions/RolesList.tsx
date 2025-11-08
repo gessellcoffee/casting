@@ -65,10 +65,10 @@ export default function RolesList({ roles, showId, auditionId }: RolesListProps)
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between mb-4 group"
       >
-        <h2 className="text-2xl font-semibold text-neu-text-primary group-hover:text-neu-accent-primary transition-colors">
+        <h2 className="text-xl sm:text-2xl font-semibold text-neu-text-primary group-hover:text-neu-accent-primary transition-colors">
           Roles {roles.length > 0 && `(${roles.length})`}
         </h2>
-        <span className="text-neu-text-primary group-hover:text-neu-accent-primary transition-all duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+        <span className="text-lg sm:text-xl text-neu-text-primary group-hover:text-neu-accent-primary transition-all duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           ▼
         </span>
       </button>
@@ -84,18 +84,19 @@ export default function RolesList({ roles, showId, auditionId }: RolesListProps)
               key={role.role_id}
               className="p-4 rounded-lg bg-neu-surface/50 border border-[#4a7bd9]/10"
             >
-              <div className="flex items-start justify-between mb-2">
+              {/* Mobile: Stack vertically, Desktop: Horizontal */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
                 <h3 className="text-lg font-semibold text-neu-text-primary">
                   {role.role_name}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {role.role_type && (
-                    <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border-focus text-neu-text-primary shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
+                    <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border-focus text-neu-text-primary shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)] whitespace-nowrap">
                       {role.role_type}
                     </span>
                   )}
                   {role.gender && (
-                    <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border text-neu-accent-secondary capitalize shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)]">
+                    <span className="px-2 py-1 rounded text-xs bg-neu-surface/80 border border-neu-border text-neu-accent-secondary capitalize shadow-[inset_2px_2px_5px_var(--neu-shadow-dark),inset_-2px_-2px_5px_var(--neu-shadow-light)] whitespace-nowrap">
                       {role.gender}
                     </span>
                   )}
@@ -114,22 +115,22 @@ export default function RolesList({ roles, showId, auditionId }: RolesListProps)
                   {/* Principals */}
                   {principals.length > 0 && (
                     <div className="mb-2">
-                      <p className="text-xs font-semibold text-neu-text-primary/70 uppercase mb-2">Cast</p>
+                      <p className="text-xs font-semibold text-neu-text-primary/70 uppercase mb-2 tracking-wide">Cast</p>
                       <div className="flex flex-wrap gap-2">
                         {principals.map((member) => (
                           <button
                             key={member.cast_member_id}
                             onClick={() => router.push(`/profile/${member.user_id}`)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors group"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors group"
                           >
                             {member.profile_photo_url && (
                               <img 
                                 src={member.profile_photo_url} 
                                 alt={member.full_name}
-                                className="w-6 h-6 rounded-full object-cover"
+                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover flex-shrink-0"
                               />
                             )}
-                            <span className="text-sm text-green-400 group-hover:text-green-300">
+                            <span className="text-sm sm:text-base text-green-400 group-hover:text-green-300 font-medium">
                               {member.full_name}
                             </span>
                           </button>
@@ -141,22 +142,22 @@ export default function RolesList({ roles, showId, auditionId }: RolesListProps)
                   {/* Understudies */}
                   {understudies.length > 0 && (
                     <div>
-                      <p className="text-xs font-semibold text-neu-text-primary/70 uppercase mb-2">Understudy</p>
+                      <p className="text-xs font-semibold text-neu-text-primary/70 uppercase mb-2 tracking-wide">Understudy</p>
                       <div className="flex flex-wrap gap-2">
                         {understudies.map((member) => (
                           <button
                             key={member.cast_member_id}
                             onClick={() => router.push(`/profile/${member.user_id}`)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-colors group"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-colors group"
                           >
                             {member.profile_photo_url && (
                               <img 
                                 src={member.profile_photo_url} 
                                 alt={member.full_name}
-                                className="w-6 h-6 rounded-full object-cover"
+                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover flex-shrink-0"
                               />
                             )}
-                            <span className="text-sm text-purple-400 group-hover:text-purple-300">
+                            <span className="text-sm sm:text-base text-purple-400 group-hover:text-purple-300 font-medium">
                               {member.full_name}
                             </span>
                           </button>

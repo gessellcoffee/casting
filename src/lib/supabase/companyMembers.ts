@@ -309,7 +309,7 @@ export async function getUserRoleInCompany(
     return null;
   }
 
-  return data?.role || null;
+  return (data?.role as CompanyMemberRole) || null;
 }
 
 /**

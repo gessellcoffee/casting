@@ -15,6 +15,8 @@ import SendCastingOfferModal from './SendCastingOfferModal';
 import RevokeOfferModal from './RevokeOfferModal';
 import Button from '../Button';
 import Avatar from '../shared/Avatar';
+import ConfirmationModal from '../shared/ConfirmationModal';
+import { useToast } from '@/contexts/ToastContext';
 
 interface CastShowProps {
   audition: Audition & {
@@ -55,6 +57,7 @@ export default function CastShow({
   onSave,
   onError,
 }: CastShowProps) {
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roles, setRoles] = useState<RoleWithCast[]>([]);
@@ -92,6 +95,15 @@ export default function CastShow({
     roleName: string;
     actorName: string;
   } | null>(null);
+
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
 
   const loadData = async () => {
     try {
@@ -196,6 +208,20 @@ export default function CastShow({
     loadData();
   }, [audition.audition_id]);
 
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
+
   // Helper function to get offer status for a cast member
   const getOfferStatus = (userId: string, auditionRoleId?: string | null, isUnderstudy?: boolean) => {
     // Find the cast member first
@@ -224,7 +250,7 @@ export default function CastShow({
 
     return {
       exists: true,
-      status: offer.cast_members?.status || 'Offered',
+      status: offer.cast_member?.status || 'Offered',
       respondedAt: offer.responded_at,
     };
   };
@@ -303,7 +329,7 @@ export default function CastShow({
       // Refresh data to update status
       await loadData();
       
-      alert(`Casting offer sent successfully to ${offerModalData.actorName}!`);
+      openModal('Offer Sent', `Casting offer sent successfully to ${offerModalData.actorName}!`, undefined, 'OK', false);
     } catch (err) {
       console.error('Error sending casting offer:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to send casting offer';
@@ -361,7 +387,7 @@ export default function CastShow({
       setShowRevokeModal(false);
       setRevokeModalData(null);
       setError(null);
-      alert(`Offer revoked successfully for ${revokeModalData.actorName}!`);
+      openModal('Offer Revoked', `Offer revoked successfully for ${revokeModalData.actorName}!`, undefined, 'OK', false);
       
       // Refresh data to update status
       await loadData();
@@ -396,7 +422,7 @@ export default function CastShow({
 
       // Show success message
       setError(null);
-      alert(`Casting offer sent successfully to ${availableActors.find(a => a.user_id === userId)?.full_name || 'the actor'}!`);
+      openModal('Offer Sent', `Casting offer sent successfully to ${availableActors.find(a => a.user_id === userId)?.full_name || 'the actor'}!`, undefined, 'OK', false);
       
       // Refresh data to update status
       await loadData();
@@ -599,13 +625,13 @@ export default function CastShow({
 
   const totalOffers = castingOffers.length;
   const pendingOffers = castingOffers.filter(o => 
-    o.cast_members?.status === 'Offered' && !o.responded_at
+    o.cast_member?.status === 'Offered' && !o.responded_at
   ).length;
   const acceptedOffers = castingOffers.filter(o => 
-    o.cast_members?.status === 'Accepted'
+    o.cast_member?.status === 'Accepted'
   ).length;
   const declinedOffers = castingOffers.filter(o => 
-    o.cast_members?.status === 'Declined'
+    o.cast_member?.status === 'Declined'
   ).length;
 
   if (isLoading) {
@@ -627,6 +653,15 @@ export default function CastShow({
 
   return (
     <StarryContainer>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -744,8 +779,8 @@ export default function CastShow({
                               <label className="flex items-center gap-2 text-sm text-neu-text-primary cursor-pointer">
                                 <input
                                   type="checkbox"
-                                  checked={role.needs_understudy}
-                                  onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy)}
+                                  checked={role.needs_understudy ?? false}
+                                  onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy ?? false)}
                                   className="rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                                 />
                                 <span>Needs Understudy</span>
@@ -822,7 +857,7 @@ export default function CastShow({
                                           onClick={() => {
                                             const exists = role.castMembers.some(cm => cm.user_id === selectedActor);
                                             if (!exists) {
-                                              alert('Please save the cast assignment first before sending an offer.');
+                                              showToast('Please save the cast assignment first before sending an offer.', 'warning');
                                               return;
                                             }
                                             openSendOfferModal(selectedActor, role.audition_role_id, false);
@@ -908,7 +943,7 @@ export default function CastShow({
                                             onClick={() => {
                                               const exists = role.understudyCastMembers.some(cm => cm.user_id === selectedUnderstudy);
                                               if (!exists) {
-                                                alert('Please save the cast assignment first before sending an offer.');
+                                                showToast('Please save the cast assignment first before sending an offer.', 'warning');
                                                 return;
                                               }
                                               openSendOfferModal(selectedUnderstudy, role.audition_role_id, true);

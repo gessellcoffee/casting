@@ -6,6 +6,8 @@ import NavigationBar from "../components/NavigationBar";
 import Footer from "../components/Footer";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { TooltipProvider } from "../contexts/TooltipContext";
+import { ToastProvider } from "../contexts/ToastContext";
+import ToastContainer from "../components/shared/ToastContainer";
 
 const sora = Sora({
   variable: "--font-geist-sans",
@@ -38,9 +40,12 @@ export default function RootLayout({
         />
         <ThemeProvider>
           <TooltipProvider>
-            <NavigationBar />
-            <main className="pt-4 sm:pt-8">{children}</main>
-            <Footer />
+            <ToastProvider>
+              <ToastContainer />
+              <NavigationBar />
+              <main className="pt-4 sm:pt-8">{children}</main>
+              <Footer />
+            </ToastProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>

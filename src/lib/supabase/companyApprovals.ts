@@ -273,5 +273,5 @@ export async function getApprovalRequestStatus(resumeEntryId: string): Promise<'
     return null;
   }
 
-  return data?.status || null;
+  return (data?.status as 'pending' | 'approved' | 'rejected' | null) || null;
 }

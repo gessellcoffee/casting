@@ -7,6 +7,7 @@ import { getCallbackSlots, createCallbackSlot } from '@/lib/supabase/callbackSlo
 import { sendCallbackInvitations } from '@/lib/supabase/callbackInvitations';
 import type { CallbackSlot, CallbackInvitationInsert } from '@/lib/supabase/types';
 import Button from '@/components/Button';
+import ConfirmationModal from '../shared/ConfirmationModal';
 
 interface CallbackSlotSelectorModalProps {
   auditionId: string;
@@ -29,6 +30,14 @@ export default function CallbackSlotSelectorModal({
   const [sending, setSending] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [castingNotes, setCastingNotes] = useState('');
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+    showCancel: true
+  });
   
   // New slot form
   const [newSlot, setNewSlot] = useState({
@@ -42,6 +51,20 @@ export default function CallbackSlotSelectorModal({
     loadSlots();
   }, [auditionId]);
 
+  const openModal = (title: string, message: string, onConfirmAction?: () => void, confirmText?: string, showCancelBtn: boolean = true) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        if (onConfirmAction) onConfirmAction();
+        setModalConfig({ ...modalConfig, isOpen: false });
+      },
+      confirmButtonText: confirmText || 'Confirm',
+      showCancel: showCancelBtn
+    });
+  };
+
   const loadSlots = async () => {
     setLoading(true);
     const slotsData = await getCallbackSlots(auditionId);
@@ -51,7 +74,7 @@ export default function CallbackSlotSelectorModal({
 
   const handleCreateSlot = async () => {
     if (!newSlot.startTime || !newSlot.endTime) {
-      alert('Please fill in start and end times');
+      openModal('Missing Information', 'Please fill in both start and end times for the new slot.', undefined, 'OK', false);
       return;
     }
 
@@ -64,7 +87,7 @@ export default function CallbackSlotSelectorModal({
     });
 
     if (error || !data) {
-      alert('Failed to create callback slot');
+      openModal('Error', 'Failed to create the callback slot. Please try again.', undefined, 'OK', false);
       return;
     }
 
@@ -76,12 +99,12 @@ export default function CallbackSlotSelectorModal({
 
   const handleSendInvitation = async () => {
     if (!selectedSlotId) {
-      alert('Please select a callback slot');
+      openModal('Slot Not Selected', 'Please select a callback slot before sending an invitation.', undefined, 'OK', false);
       return;
     }
 
     if (!signupId) {
-      alert('Cannot send callback invitation: signup ID is required');
+      openModal('Error', 'Cannot send callback invitation: a signup ID is required but was not provided.', undefined, 'OK', false);
       return;
     }
 
@@ -99,7 +122,7 @@ export default function CallbackSlotSelectorModal({
     const { error } = await sendCallbackInvitations([invitation]);
 
     if (error) {
-      alert('Failed to send callback invitation');
+      openModal('Error', 'Failed to send the callback invitation. Please try again.', undefined, 'OK', false);
       setSending(false);
       return;
     }
@@ -109,7 +132,17 @@ export default function CallbackSlotSelectorModal({
   };
 
   return (
-    <Transition appear show={true} as={Fragment}>
+    <>
+      <ConfirmationModal 
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        confirmButtonText={modalConfig.confirmButtonText}
+        showCancel={modalConfig.showCancel}
+      />
+      <Transition appear show={true} as={Fragment}>
       <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -303,5 +336,6 @@ export default function CallbackSlotSelectorModal({
         </div>
       </Dialog>
     </Transition>
+    </>
   );
 }

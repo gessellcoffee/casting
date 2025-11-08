@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import StarryContainer from '@/components/StarryContainer';
 import ResumeSection from '@/components/ResumeSection';
 import { getProfile } from '@/lib/supabase/profile';
-import type { Profile } from '@/lib/supabase/types';
+import type { Profile, UserPreferences } from '@/lib/supabase/types';
 import Link from 'next/link';
 
 export default function UserProfilePage() {
@@ -138,13 +138,13 @@ export default function UserProfilePage() {
             )}
 
             {/* Skills */}
-            {profile.skills && profile.skills.length > 0 && (
+            {profile.skills && profile.skills.toString().length > 0 && (
               <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                 <label className="block text-sm font-medium text-neu-text-primary/70 mb-3">
                   Skills
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {profile.skills.map((skill, index) => (
+                  {profile.skills.toString().split(',').map((skill, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 rounded-full bg-[#4a7bd9]/20 border border-neu-border text-neu-text-primary text-sm"
@@ -166,7 +166,7 @@ export default function UserProfilePage() {
                   {profile.image_gallery.map((url, index) => (
                     <div key={index} className="aspect-square rounded-lg overflow-hidden border border-neu-border">
                       <img
-                        src={url}
+                        src={url as string}
                         alt={`Gallery image ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -183,7 +183,7 @@ export default function UserProfilePage() {
                 isEditing={false}
                 resumeUrl={profile.resume_url}
                 isOwnProfile={false}
-                showCastingHistory={profile.preferences?.show_casting_history !== false}
+                showCastingHistory={(profile.preferences as UserPreferences)?.show_casting_history !== false}
               />
             </div>
           </div>

@@ -55,12 +55,22 @@ const US_LOCALE = 'en-US';
 const US_TIMEZONE = 'America/Chicago'; // CST/CDT
 
 /**
+ * Parse YYYY-MM-DD string as local date to avoid timezone issues
+ * @param dateString - Date string in YYYY-MM-DD format
+ * @returns Date object in local timezone
+ */
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
  * Format a date in MM/DD/YYYY format
  * @param date - The date to format (Date object or date string)
  * @returns The formatted date string in MM/DD/YYYY format
  */
 export function formatUSDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     month: '2-digit',
     day: '2-digit',
@@ -74,7 +84,7 @@ export function formatUSDate(date: Date | string): string {
  * @returns The formatted date string
  */
 export function formatUSDateShort(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     month: 'short',
     day: 'numeric',
@@ -88,7 +98,7 @@ export function formatUSDateShort(date: Date | string): string {
  * @returns The formatted date string
  */
 export function formatUSDateLong(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     month: 'long',
     day: 'numeric',
@@ -102,7 +112,7 @@ export function formatUSDateLong(date: Date | string): string {
  * @returns The formatted date string with weekday
  */
 export function formatUSDateWithWeekday(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     weekday: 'short',
     month: 'short',
@@ -117,7 +127,7 @@ export function formatUSDateWithWeekday(date: Date | string): string {
  * @returns The formatted date string with full weekday
  */
 export function formatUSDateWithFullWeekday(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     weekday: 'long',
     month: 'long',
@@ -181,7 +191,7 @@ export function formatUSDateTimeLong(date: Date | string): string {
  * @returns The formatted month and year string
  */
 export function formatUSMonthYear(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     month: 'long',
     year: 'numeric',
@@ -194,7 +204,7 @@ export function formatUSMonthYear(date: Date | string): string {
  * @returns The formatted month string
  */
 export function formatUSMonthShort(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     month: 'short',
   });
@@ -206,7 +216,7 @@ export function formatUSMonthShort(date: Date | string): string {
  * @returns The formatted month and day string
  */
 export function formatUSMonthDay(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString(US_LOCALE, {
     month: 'short',
     day: 'numeric',

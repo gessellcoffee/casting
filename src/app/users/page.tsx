@@ -244,9 +244,9 @@ export default function UsersDirectoryPage() {
                         )}
 
                         {/* Skills */}
-                        {user.skills && user.skills.length > 0 && (
+                        {user.skills && user.skills.toString().length > 0 && (
                           <div className="flex flex-wrap gap-1 justify-center">
-                            {user.skills.slice(0, 3).map((skill, index) => (
+                            {user.skills.toString().split(',').slice(0, 3).map((skill, index) => (
                               <span
                                 key={index}
                                 className="px-2 py-1 rounded-full bg-[#4a7bd9]/20 border border-neu-border text-neu-text-primary text-xs"
@@ -254,9 +254,9 @@ export default function UsersDirectoryPage() {
                                 {skill}
                               </span>
                             ))}
-                            {user.skills.length > 3 && (
+                            {user.skills.toString().split(',').length > 3 && (
                               <span className="px-2 py-1 rounded-full bg-neu-surface/50 border border-neu-border text-neu-text-primary/50 text-xs">
-                                +{user.skills.length - 3} more
+                                +{user.skills.toString().split(',').length - 3} more
                               </span>
                             )}
                           </div>
