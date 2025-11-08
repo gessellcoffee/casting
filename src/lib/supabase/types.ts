@@ -1563,20 +1563,50 @@ export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update'];
 
-export type CompanyMemberWithProfile = Database['public']['Tables']['company_members']['Row'] & {
-  profiles: Database['public']['Tables']['profiles']['Row'];
+export type CompanyMember = Database['public']['Tables']['company_members']['Row'];
+export type CompanyMemberInsert = Database['public']['Tables']['company_members']['Insert'];
+export type CompanyMemberUpdate = Database['public']['Tables']['company_members']['Update'];
+
+export type CompanyMemberWithProfile = CompanyMember & {
+  profiles: Profile;
+  role: CompanyMemberRole;
 };
 
-export type CompanyMemberRole = 'Owner' | 'Admin' | 'Member' | 'Viewer';
+export type CompanyMemberRole = 'owner' | 'moderator' | 'admin' | 'member' | 'viewer';
 
 export type CompanyApprovalRequest = Database['public']['Tables']['company_approval_requests']['Row'];
 export type CompanyApprovalRequestInsert = Database['public']['Tables']['company_approval_requests']['Insert'];
 export type CompanyApprovalRequestUpdate = Database['public']['Tables']['company_approval_requests']['Update'];
 
 export type UserResume = Database['public']['Tables']['user_resume']['Row'];
-export type ResumeSource = 'Equity' | 'Non-Equity' | 'Student' | 'Community' | 'Other';
+export type ResumeSource = 'Manual' | 'Application';
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+
+export type UserResumeInsert = Database['public']['Tables']['user_resume']['Insert'];
+export type UserResumeUpdate = Database['public']['Tables']['user_resume']['Update'];
+
+export type Show = Database['public']['Tables']['shows']['Row'];
+export type ShowInsert = Database['public']['Tables']['shows']['Insert'];
+export type ShowUpdate = Database['public']['Tables']['shows']['Update'];
+
+export type Role = Database['public']['Tables']['roles']['Row'];
+export type RoleInsert = Database['public']['Tables']['roles']['Insert'];
+export type RoleUpdate = Database['public']['Tables']['roles']['Update'];
+
+// Role enum types
+export type RoleType = Database['public']['Enums']['role_type_enum'];
+export type RoleGender = Database['public']['Enums']['role_genders'];
+
+export type ProductionTeamMember = Database['public']['Tables']['production_team_members']['Row'];
+export type ProductionTeamMemberInsert = Database['public']['Tables']['production_team_members']['Insert'];
+export type ProductionTeamMemberUpdate = Database['public']['Tables']['production_team_members']['Update'];
+
+export type ProductionTeamMemberWithProfile = ProductionTeamMember & {
+  profiles: Profile;
+};
 
 // Audition and Role types
 export type Audition = Database['public']['Tables']['auditions']['Row'];
@@ -1587,10 +1617,57 @@ export type AuditionRole = Database['public']['Tables']['audition_roles']['Row']
 export type AuditionRoleInsert = Database['public']['Tables']['audition_roles']['Insert'];
 export type AuditionRoleUpdate = Database['public']['Tables']['audition_roles']['Update'];
 
+export type AuditionSlot = Database['public']['Tables']['audition_slots']['Row'];
+export type AuditionSlotInsert = Database['public']['Tables']['audition_slots']['Insert'];
+export type AuditionSlotUpdate = Database['public']['Tables']['audition_slots']['Update'];
+
+export type AuditionSignup = Database['public']['Tables']['audition_signups']['Row'];
+export type AuditionSignupInsert = Database['public']['Tables']['audition_signups']['Insert'];
+export type AuditionSignupUpdate = Database['public']['Tables']['audition_signups']['Update'];
+
+export type EquityStatus = Database['public']['Enums']['equity_status_enum'];
+
+export type CallbackSlot = Database['public']['Tables']['callback_slots']['Row'];
+export type CallbackSlotInsert = Database['public']['Tables']['callback_slots']['Insert'];
+export type CallbackSlotUpdate = Database['public']['Tables']['callback_slots']['Update'];
+
+export type CallbackInvitation = Database['public']['Tables']['callback_invitations']['Row'];
+export type CallbackInvitationInsert = Database['public']['Tables']['callback_invitations']['Insert'];
+export type CallbackInvitationUpdate = Database['public']['Tables']['callback_invitations']['Update'];
+export type CallbackInvitationStatus = 'pending' | 'accepted' | 'declined' | 'maybe';
+
+
+// Extended types with details
+export interface AuditionSignupWithDetails extends AuditionSignup {
+  profiles?: Profile | {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    profile_photo_url: string | null;
+  };
+  audition_slots?: AuditionSlot | {
+    slot_id: string;
+    start_time: string;
+    end_time: string;
+    location: string | null;
+  };
+  roles?: Role | {
+    role_id: string;
+    role_name: string;
+    description: string | null;
+  } | null;
+}
+
+export interface UserSignupsWithDetails {
+  signups: AuditionSignupWithDetails[];
+  audition: Audition;
+}
+
 // Cast Member types
 export type CastMember = Database['public']['Tables']['cast_members']['Row'];
 export type CastMemberInsert = Database['public']['Tables']['cast_members']['Insert'];
 export type CastMemberUpdate = Database['public']['Tables']['cast_members']['Update'];
+export type CastStatus = Database['public']['Enums']['cast_status_enum'];
 
 // Casting Offer types
 export type CastingOffer = Database['public']['Tables']['casting_offers']['Row'];
@@ -1605,19 +1682,103 @@ export type RehearsalAgendaItem = Database['public']['Tables']['rehearsal_agenda
 export type RehearsalAgendaItemInsert = Database['public']['Tables']['rehearsal_agenda_items']['Insert'];
 export type RehearsalAgendaItemUpdate = Database['public']['Tables']['rehearsal_agenda_items']['Update'];
 
-export type RehearsalAgendaItemAssignment = Database['public']['Tables']['rehearsal_agenda_item_assignments']['Row'];
-export type RehearsalAgendaItemAssignmentInsert = Database['public']['Tables']['rehearsal_agenda_item_assignments']['Insert'];
-export type RehearsalAgendaItemAssignmentUpdate = Database['public']['Tables']['rehearsal_agenda_item_assignments']['Update'];
+export type AgendaAssignment = Database['public']['Tables']['agenda_assignments']['Row'];
+export type AgendaAssignmentInsert = Database['public']['Tables']['agenda_assignments']['Insert'];
+export type AgendaAssignmentUpdate = Database['public']['Tables']['agenda_assignments']['Update'];
 
-// User type (alias for Profile)
-export type User = Profile;
+export type User = Database['public']['Tables']['profiles']['Row'];
+// ============================================================================
+// TYPES
+// ============================================================================
 
-// User preferences structure
+import type { TooltipId } from '@/types/tooltip';
+
+// Helper types for JSONB fields
 export interface UserPreferences {
   dark_mode?: boolean;
   show_casting_history?: boolean;
   tooltips?: {
-    dismissed?: string[];
+    dismissed?: TooltipId[];
+  };
+}
+
+export interface TooltipPreferences {
+  dismissed?: TooltipId[];
+}
+
+export interface EducationEntry {
+  institution: string;
+  degree?: string;
+  field?: string;
+  startYear?: string;
+  endYear?: string;
+}
+
+export interface GalleryItem {
+  url: string;
+  caption?: string;
+  order?: number;
+}
+
+// Extended Profile type with properly typed JSONB fields
+export interface ProfileWithTypedFields extends Omit<Profile, 'skills' | 'preferences' | 'education' | 'image_gallery' | 'video_gallery'> {
+  skills: string[] | null;
+  preferences: UserPreferences | null;
+  education: EducationEntry[] | null;
+  image_gallery: GalleryItem[] | null;
+  video_gallery: GalleryItem[] | null;
+}
+
+// Event types
+export type EventFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+
+export interface RecurrenceRule {
+  frequency: EventFrequency;
+  interval?: number;
+  byDay?: string[];
+  byMonthDay?: number[];
+  byMonth?: number[];
+  until?: string;
+  count?: number;
+}
+
+export interface CalendarEvent {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  start: string;
+  end: string;
+  allDay: boolean;
+  location: string | null;
+  color: string | null;
+  isRecurring: boolean;
+  recurrenceRule: RecurrenceRule | null;
+  _isInstance?: boolean;
+  _originalEventId?: string;
+  _instanceDate?: string;
+}
+
+export interface EventFormData {
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  location?: string;
+  color?: string;
+  isRecurring: boolean;
+  recurrenceRule?: RecurrenceRule;
+  recurrence: {
+    frequency: string;
+    customFrequencyType?: string;
+    interval: number;
+    byDay: string[];
+    byMonthDay: number[];
+    byMonth: number[];
+    endType?: 'never' | 'on' | 'after';
+    endDate?: string;
+    occurrences?: number;
   };
 }
 
@@ -1625,7 +1786,14 @@ export interface UserPreferences {
 export type CastingOfferWithDetails = CastingOffer & {
   cast_member: CastMember & {
     user: Profile;
+    equity_status: EquityStatus;
+    audition: Audition;
+    audition_slots: AuditionSlot;
+    audition_signups: AuditionSignup;
+    show: Show;
+    roles: Role;
     audition_role: AuditionRole;
   };
   audition: Audition;
+  profiles?: Profile;
 };

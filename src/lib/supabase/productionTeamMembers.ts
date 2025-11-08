@@ -344,7 +344,7 @@ export async function generateProductionCalendar(
     // Prepare calendar data (convert null to undefined for optional fields)
     const calendarData: AuditionCalendarData = {
       showTitle: audition.shows?.title || 'Untitled Show',
-      auditionDates: audition.audition_dates || [],
+      auditionDates: (audition.audition_dates as string[]) || [],
       auditionLocation: audition.audition_location || undefined,
       rehearsalDates,
       rehearsalLocation: audition.rehearsal_location || undefined,

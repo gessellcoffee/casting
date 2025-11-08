@@ -174,7 +174,7 @@ export default function PersonalEventModal({
                       <div className="text-sm text-neu-text-primary/70">
                         <span className="font-medium text-neu-text-primary">Repeats:</span>{' '}
                         {event.recurrenceRule.frequency}
-                        {event.recurrenceRule.interval > 1 &&
+                        {event.recurrenceRule.interval && event.recurrenceRule.interval > 1 &&
                           ` (every ${event.recurrenceRule.interval})`}
                         {event.recurrenceRule.until && (
                           <span>

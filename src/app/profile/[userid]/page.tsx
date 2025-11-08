@@ -166,7 +166,7 @@ export default function UserProfilePage() {
                   {profile.image_gallery.map((url, index) => (
                     <div key={index} className="aspect-square rounded-lg overflow-hidden border border-neu-border">
                       <img
-                        src={url}
+                        src={url as string}
                         alt={`Gallery image ${index + 1}`}
                         className="w-full h-full object-cover"
                       />

@@ -4,7 +4,8 @@
 
 import { supabase } from './client';
 import { getAuthenticatedUser } from './auth';
-import type { TooltipId, TooltipPreferences } from '@/types/tooltip';
+import type { TooltipId } from '@/types/tooltip';
+import type { UserPreferences, TooltipPreferences } from './types';
 
 /**
  * Get user's tooltip preferences
@@ -31,7 +32,7 @@ export async function getTooltipPreferences(): Promise<{
       return { data: null, error: profileError };
     }
 
-    const tooltipPrefs = profile?.preferences?.tooltips as TooltipPreferences;
+    const tooltipPrefs = (profile?.preferences as UserPreferences)?.tooltips;
     
     return { 
       data: tooltipPrefs || { dismissed: [] }, 
@@ -74,9 +75,9 @@ export async function dismissTooltip(tooltipId: TooltipId): Promise<{
       .update({
         preferences: {
           tooltips: updatedTooltipPrefs,
-        },
+        } as any,
       })
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .select('preferences')
       .single();
 
@@ -86,7 +87,7 @@ export async function dismissTooltip(tooltipId: TooltipId): Promise<{
     }
 
     return { 
-      data: profile?.preferences?.tooltips as TooltipPreferences, 
+      data: (profile?.preferences as UserPreferences)?.tooltips || null, 
       error: null 
     };
   } catch (error) {
@@ -124,7 +125,7 @@ export async function resetTooltip(tooltipId: TooltipId): Promise<{
       .update({
         preferences: {
           tooltips: updatedTooltipPrefs,
-        },
+        } as any,
       })
       .eq('id', user.id)
       .select('preferences')
@@ -136,7 +137,7 @@ export async function resetTooltip(tooltipId: TooltipId): Promise<{
     }
 
     return { 
-      data: profile?.preferences?.tooltips as TooltipPreferences, 
+      data: (profile?.preferences as UserPreferences)?.tooltips || null, 
       error: null 
     };
   } catch (error) {
@@ -167,7 +168,7 @@ export async function resetAllTooltips(): Promise<{
       .update({
         preferences: {
           tooltips: updatedTooltipPrefs,
-        },
+        } as any,
       })
       .eq('id', user.id)
       .select('preferences')
@@ -179,7 +180,7 @@ export async function resetAllTooltips(): Promise<{
     }
 
     return { 
-      data: profile?.preferences?.tooltips as TooltipPreferences, 
+      data: (profile?.preferences as UserPreferences)?.tooltips || null, 
       error: null 
     };
   } catch (error) {

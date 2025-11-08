@@ -104,7 +104,8 @@ export async function generateResumePDF(data: PDFResumeData): Promise<void> {
   // ==========================================
   // SKILLS
   // ==========================================
-  if (profile.skills && profile.skills.length > 0) {
+  const skills = profile.skills as string[] | null;
+  if (skills && skills.length > 0) {
     checkPageBreak(0.5);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -113,7 +114,7 @@ export async function generateResumePDF(data: PDFResumeData): Promise<void> {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    const skillsText = profile.skills.join(' • ');
+    const skillsText = skills.join(' • ');
     const skillLines = doc.splitTextToSize(skillsText, contentWidth);
     skillLines.forEach((line: string) => {
       checkPageBreak(lineHeight);

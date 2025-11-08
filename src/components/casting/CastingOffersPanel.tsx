@@ -218,14 +218,14 @@ export default function CastingOffersPanel({ auditionId, currentUserId }: Castin
                     <div className="flex items-center gap-3">
                       {offer ? (
                         <>
-                          <OfferStatusBadge status={offer.cast_members?.status || null} />
-                          {offer.roles && (
+                          <OfferStatusBadge status={offer.cast_member?.status || null} />
+                          {offer.cast_member.roles && (
                             <span className="text-sm text-neu-text-secondary">
-                              {offer.cast_members?.is_understudy ? 'Understudy - ' : ''}
-                              {offer.roles.role_name}
+                              {offer.cast_member?.is_understudy ? 'Understudy - ' : ''}
+                              {offer.cast_member.roles.role_name}
                             </span>
                           )}
-                          {!offer.roles && (
+                          {!offer.cast_member.roles && (
                             <span className="text-sm text-neu-text-secondary">Ensemble</span>
                           )}
                           <span className="text-xs text-neu-text-secondary">

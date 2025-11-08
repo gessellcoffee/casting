@@ -77,10 +77,10 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
     openModal('Confirm Decline', 'Are you sure you want to decline this casting offer? This action cannot be undone.', declineAction, 'Decline');
   };
 
-  const showTitle = offer.auditions?.shows?.title || 'Untitled Show';
-  const roleName = offer.roles?.role_name || 'Ensemble';
-  const isUnderstudy = offer.cast_members?.is_understudy || false;
-  const status = offer.cast_members?.status || null;
+  const showTitle = offer.cast_member?.show?.title || 'Untitled Show';
+  const roleName = offer.cast_member?.audition_role?.role_name || 'Ensemble';
+  const isUnderstudy = offer.cast_member?.is_understudy || false;
+  const status = offer.cast_member?.status || null;
   const isPending = status === 'Offered' && !offer.responded_at;
 
   return (
@@ -104,8 +104,8 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
             </span>
             <OfferStatusBadge status={status} />
           </div>
-          {offer.auditions?.shows?.author && (
-            <p className="text-sm text-neu-text-secondary">by {offer.auditions.shows.author}</p>
+          {offer.cast_member.show?.author && (
+            <p className="text-sm text-neu-text-secondary">by {offer.cast_member.show.author}</p>
           )}
         </div>
         <button
@@ -125,10 +125,10 @@ export default function CastingOfferCard({ offer, userId, onUpdate }: CastingOff
       )}
 
       {/* Role Details */}
-      {offer.roles?.description && (
+      {offer.cast_member.roles?.description && (
         <div className="mb-4">
           <p className="text-sm text-neu-text-secondary mb-1 font-semibold">Role Description:</p>
-          <p className="text-sm text-neu-text-primary">{offer.roles.description}</p>
+          <p className="text-sm text-neu-text-primary">{offer.cast_member.roles.description}</p>
         </div>
       )}
 

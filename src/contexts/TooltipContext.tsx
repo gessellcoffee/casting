@@ -40,7 +40,7 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await getTooltipPreferences();
       if (!error && data) {
-        setDismissedTooltips(data.dismissed);
+        setDismissedTooltips(data.dismissed || []);
       }
     } catch (error) {
       console.error('Error loading tooltip preferences:', error);
@@ -57,7 +57,7 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await dismissTooltipDb(tooltipId);
       if (!error && data) {
-        setDismissedTooltips(data.dismissed);
+        setDismissedTooltips(data.dismissed || []);
       }
     } catch (error) {
       console.error('Error dismissing tooltip:', error);
@@ -77,7 +77,7 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await resetTooltipDb(tooltipId);
       if (!error && data) {
-        setDismissedTooltips(data.dismissed);
+        setDismissedTooltips(data.dismissed || []);
         // Also remove from temporarily hidden
         setTemporarilyHidden((prev) => prev.filter((id) => id !== tooltipId));
       }
@@ -90,7 +90,7 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await resetAllTooltipsDb();
       if (!error && data) {
-        setDismissedTooltips(data.dismissed);
+        setDismissedTooltips(data.dismissed || []);
         setTemporarilyHidden([]);
       }
     } catch (error) {

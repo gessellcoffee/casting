@@ -85,7 +85,7 @@ export default function EventForm({
   // Initialize form with event data when in edit mode
   useEffect(() => {
     if (initialEvent) {
-      const actualFrequency = (initialEvent.recurrenceRule?.frequency as EventFrequency) || 'WEEKLY';
+      const actualFrequency = initialEvent.recurrenceRule?.frequency || 'WEEKLY';
       // Determine if this was a custom recurrence (has byDay selections and interval > 1 or specific pattern)
       const hasCustomPattern = initialEvent.recurrenceRule?.byDay && initialEvent.recurrenceRule.byDay.length > 0;
       const isCustom = hasCustomPattern && (actualFrequency === 'WEEKLY' || actualFrequency === 'MONTHLY' || actualFrequency === 'YEARLY');
@@ -93,15 +93,15 @@ export default function EventForm({
       setFormData({
         title: initialEvent.title,
         description: initialEvent.description || '',
-        start: initialEvent.start instanceof Date ? initialEvent.start.toISOString().slice(0, 16) : initialEvent.start,
-        end: initialEvent.end instanceof Date ? initialEvent.end.toISOString().slice(0, 16) : initialEvent.end,
+        start: initialEvent.start,
+        end: initialEvent.end,
         allDay: initialEvent.allDay || false,
         location: initialEvent.location || '',
         color: initialEvent.color || '#3b82f6',
         isRecurring: initialEvent.isRecurring || false,
         recurrence: {
           frequency: isCustom ? 'CUSTOM' : actualFrequency,
-          customFrequencyType: (actualFrequency as 'WEEKLY' | 'MONTHLY' | 'YEARLY'),
+          customFrequencyType: actualFrequency,
           interval: initialEvent.recurrenceRule?.interval || 1,
           byDay: initialEvent.recurrenceRule?.byDay || [],
           byMonthDay: initialEvent.recurrenceRule?.byMonthDay || [],

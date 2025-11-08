@@ -8,7 +8,7 @@ import ResumeSection from '@/components/ResumeSection';
 import { getUser } from '@/lib/supabase';
 import { getProfile, updateProfile } from '@/lib/supabase/profile';
 import { uploadProfilePhoto } from '@/lib/supabase/storage';
-import type { Profile } from '@/lib/supabase/types';
+import type { Profile, UserPreferences } from '@/lib/supabase/types';
 import Button from '@/components/Button';
 import SkillsSection from '@/components/SkillsSection';
 import Link from 'next/link';
@@ -63,15 +63,16 @@ export default function ProfilePage() {
               profile_photo_url: profileData.profile_photo_url || '',
               resume_url: profileData.resume_url || '',
               image_gallery: Array.isArray(profileData.image_gallery) 
-                ? profileData.image_gallery 
+                ? profileData.image_gallery.filter((item): item is string => typeof item === 'string') 
                 : [],
               location: profileData.location || '',
               location_lat: profileData.location_lat || null,
               location_lng: profileData.location_lng || null,
             });
             // Load casting history privacy setting
+            const prefs = profileData.preferences as UserPreferences | null;
             setShowCastingHistory(
-              profileData.preferences?.show_casting_history !== false
+              prefs?.show_casting_history !== false
             );
           }
         }
@@ -150,7 +151,7 @@ export default function ProfilePage() {
         location_lat: formData.location_lat,
         location_lng: formData.location_lng,
         preferences: {
-          ...profile?.preferences,
+          ...((profile?.preferences as UserPreferences) || {}),
           show_casting_history: showCastingHistory,
         },
       });
@@ -181,8 +182,8 @@ export default function ProfilePage() {
         description: profile.description || '',
         profile_photo_url: profile.profile_photo_url || '',
         resume_url: profile.resume_url || '',
-        image_gallery: Array.isArray(profile.image_gallery) 
-          ? profile.image_gallery 
+        image_gallery: Array.isArray(profile.image_gallery)
+          ? profile.image_gallery.filter((item): item is string => typeof item === 'string')
           : [],
         location: profile.location || '',
         location_lat: profile.location_lat || null,

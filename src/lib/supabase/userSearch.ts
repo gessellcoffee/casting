@@ -95,8 +95,9 @@ export async function getAllSkills(): Promise<string[]> {
     // Flatten and deduplicate skills
     const allSkills = new Set<string>();
     data?.forEach((profile) => {
-      if (profile.skills && Array.isArray(profile.skills)) {
-        profile.skills.forEach((skill) => allSkills.add(skill));
+      const skills = profile.skills as string[] | null;
+      if (skills && Array.isArray(skills)) {
+        skills.forEach((skill: string) => allSkills.add(skill));
       }
     });
 

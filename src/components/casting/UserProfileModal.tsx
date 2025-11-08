@@ -316,7 +316,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                 )}
 
                 {/* Skills */}
-                {profile?.skills && profile.skills.length > 0 && (
+                {profile?.skills && profile.skills.toString().split(',').length > 0 && (
                   <div className="rounded-2xl shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
                     <button
                       onClick={() => toggleSection('skills')}
@@ -334,7 +334,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                     {expandedSections.skills && (
                       <div className="px-4 pb-4">
                         <div className="flex flex-wrap gap-2">
-                          {profile.skills.map((skill, index) => (
+                          {profile.skills.toString().split(',').map((skill, index) => (
                             <span
                               key={index}
                               className="px-3 py-1 rounded-full shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] text-neu-text-primary text-sm border border-neu-border"

@@ -599,7 +599,7 @@ export default function ResumeSection({
                   show_name: entry.show_name,
                   role: entry.role_name,
                   date_of_production: entry.year ? entry.year.toString() : '',
-                  source: 'manual' as ResumeSource,
+                  source: 'Manual' as ResumeSource,
                 });
               }
               
