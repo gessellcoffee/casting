@@ -658,3 +658,59 @@ export async function getUserProductionTeamAuditions(userId: string): Promise<an
 
   return data || [];
 }
+
+/**
+ * Get signups with user details for multiple slot IDs
+ * Used for checking which users will be affected by slot deletions
+ */
+export async function getSignupsForSlots(slotIds: string[]): Promise<Array<{
+  signup_id: string;
+  user_id: string;
+  slot_id: string;
+  user: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  } | null;
+  slot: {
+    slot_id: string;
+    start_time: string;
+    end_time: string;
+  } | null;
+}>> {
+  if (slotIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .select(`
+      signup_id,
+      user_id,
+      slot_id,
+      profiles:user_id (
+        id,
+        first_name,
+        last_name,
+        email
+      ),
+      audition_slots:slot_id (
+        slot_id,
+        start_time,
+        end_time
+      )
+    `)
+    .in('slot_id', slotIds);
+
+  if (error) {
+    console.error('Error fetching signups for slots:', error);
+    return [];
+  }
+
+  return (data || []).map((signup: any) => ({
+    signup_id: signup.signup_id,
+    user_id: signup.user_id,
+    slot_id: signup.slot_id,
+    user: signup.profiles,
+    slot: signup.audition_slots,
+  }));
+}

@@ -1,0 +1,190 @@
+/* Base layer - light in light mode, dark in dark mode */
+.baseLayer {
+  position: absolute;
+  inset: 0;
+  z-index: -30;
+  background: linear-gradient(to bottom right, #e8f0fc, #f5f8ff, #e0ebf8);
+}
+
+[data-theme='dark'] .baseLayer {
+  background: linear-gradient(to bottom right, #1a2744, #0f1729, #1e2a47);
+}
+
+/* Milky Way diagonal band */
+.milkyWayBand {
+  position: absolute;
+  inset: 0;
+  z-index: -28;
+  background: linear-gradient(to bottom right, rgba(107, 141, 214, 0.15), rgba(139, 92, 246, 0.1), rgba(74, 123, 217, 0.15));
+  transform: rotate(-15deg) scale(1.5);
+  transform-origin: center;
+}
+
+[data-theme='dark'] .milkyWayBand {
+  background: linear-gradient(to bottom right, rgba(107, 141, 214, 0.25), rgba(139, 92, 246, 0.2), rgba(74, 123, 217, 0.25));
+}
+
+/* Galactic core clusters */
+.coreCluster1 {
+  pointer-events: none;
+  position: absolute;
+  left: -4rem;
+  top: 0;
+  z-index: -20;
+  height: 32rem;
+  width: 32rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), rgba(107, 141, 214, 0.2) 30%, rgba(74, 123, 217, 0.1) 60%, transparent 80%);
+  filter: blur(50px);
+}
+
+[data-theme='dark'] .coreCluster1 {
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.6), rgba(107, 141, 214, 0.4) 30%, rgba(74, 123, 217, 0.2) 60%, transparent 80%);
+}
+
+.coreCluster2 {
+  pointer-events: none;
+  position: absolute;
+  right: -4rem;
+  bottom: 0;
+  z-index: -20;
+  height: 28rem;
+  width: 28rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(107, 141, 214, 0.28), rgba(90, 143, 245, 0.18) 35%, rgba(74, 123, 217, 0.08) 65%, transparent 85%);
+  filter: blur(45px);
+}
+
+[data-theme='dark'] .coreCluster2 {
+  background: radial-gradient(circle at center, rgba(107, 141, 214, 0.55), rgba(90, 143, 245, 0.35) 35%, rgba(74, 123, 217, 0.15) 65%, transparent 85%);
+}
+
+/* Star cluster regions */
+.starCluster1 {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -18;
+  height: 24rem;
+  width: 40rem;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse at center, rgba(148, 176, 246, 0.25), rgba(139, 92, 246, 0.15) 40%, transparent 70%);
+  filter: blur(40px);
+}
+
+[data-theme='dark'] .starCluster1 {
+  background: radial-gradient(ellipse at center, rgba(148, 176, 246, 0.5), rgba(139, 92, 246, 0.3) 40%, transparent 70%);
+}
+
+.starCluster2 {
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: -18;
+  height: 20rem;
+  width: 36rem;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse at center, rgba(90, 143, 245, 0.23), rgba(107, 141, 214, 0.13) 45%, transparent 75%);
+  filter: blur(35px);
+}
+
+[data-theme='dark'] .starCluster2 {
+  background: radial-gradient(ellipse at center, rgba(90, 143, 245, 0.45), rgba(107, 141, 214, 0.25) 45%, transparent 75%);
+}
+
+/* Nebula accents */
+.nebula1 {
+  pointer-events: none;
+  position: absolute;
+  top: 25%;
+  right: 0;
+  z-index: -17;
+  height: 16rem;
+  width: 16rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.33), rgba(107, 141, 214, 0.18) 50%, transparent 70%);
+  filter: blur(30px);
+}
+
+[data-theme='dark'] .nebula1 {
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.65), rgba(107, 141, 214, 0.35) 50%, transparent 70%);
+}
+
+.nebula2 {
+  pointer-events: none;
+  position: absolute;
+  bottom: 33.333333%;
+  left: 0;
+  z-index: -17;
+  height: 18rem;
+  width: 18rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(107, 141, 214, 0.3), rgba(90, 143, 245, 0.15) 55%, transparent 75%);
+  filter: blur(32px);
+}
+
+[data-theme='dark'] .nebula2 {
+  background: radial-gradient(circle at center, rgba(107, 141, 214, 0.6), rgba(90, 143, 245, 0.3) 55%, transparent 75%);
+}
+
+/* Center overlay for text contrast */
+.centerOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.5) 0%, transparent 50%, rgba(255, 255, 255, 0.2) 100%);
+}
+
+[data-theme='dark'] .centerOverlay {
+  background: radial-gradient(ellipse at center, rgba(10, 14, 39, 0.4) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+/* Hero title */
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  padding-bottom: 0.5rem;
+  line-height: 1.1;
+  color: #2d4a7c;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+[data-theme='dark'] .heroTitle {
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(to right, #4a7bd9, #5a8ff5, #94b0f6);
+  filter: drop-shadow(0 0 20px rgba(90, 143, 245, 0.6));
+}
+
+@media (min-width: 640px) {
+  .heroTitle {
+    font-size: 4.5rem;
+  }
+}
+
+/* Hero subtitle */
+.heroSubtitle {
+  margin-top: 2rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  text-wrap: pretty;
+  color: #1e3a5f;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+[data-theme='dark'] .heroSubtitle {
+  color: var(--neu-text-primary);
+  opacity: 0.95;
+}
+
+@media (min-width: 640px) {
+  .heroSubtitle {
+    font-size: 1.25rem;
+    line-height: 2rem;
+  }
+}

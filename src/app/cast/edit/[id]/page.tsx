@@ -93,6 +93,10 @@ export default function EditAuditionPage() {
 
     setAudition(data);
     
+    console.log('Loaded audition data:', data);
+    console.log('Audition slots from database:', data.slots);
+    console.log('Number of slots:', data.slots?.length || 0);
+    
     // Parse existing data
     const parsedDetails = {
       auditionDates: (data.audition_dates as string[]) || [],
@@ -115,6 +119,7 @@ export default function EditAuditionPage() {
     
     setAuditionDetails(parsedDetails);
     setSlots(data.slots || []);
+    console.log('Set slots state to:', data.slots || []);
     setLoading(false);
   };
 

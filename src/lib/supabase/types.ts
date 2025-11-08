@@ -1577,3 +1577,34 @@ export type UserResume = Database['public']['Tables']['user_resume']['Row'];
 export type ResumeSource = 'Equity' | 'Non-Equity' | 'Student' | 'Community' | 'Other';
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
+
+// Audition and Role types
+export type Audition = Database['public']['Tables']['auditions']['Row'];
+export type AuditionInsert = Database['public']['Tables']['auditions']['Insert'];
+export type AuditionUpdate = Database['public']['Tables']['auditions']['Update'];
+
+export type AuditionRole = Database['public']['Tables']['audition_roles']['Row'];
+export type AuditionRoleInsert = Database['public']['Tables']['audition_roles']['Insert'];
+export type AuditionRoleUpdate = Database['public']['Tables']['audition_roles']['Update'];
+
+// Cast Member types
+export type CastMember = Database['public']['Tables']['cast_members']['Row'];
+export type CastMemberInsert = Database['public']['Tables']['cast_members']['Insert'];
+export type CastMemberUpdate = Database['public']['Tables']['cast_members']['Update'];
+
+// Casting Offer types
+export type CastingOffer = Database['public']['Tables']['casting_offers']['Row'];
+export type CastingOfferInsert = Database['public']['Tables']['casting_offers']['Insert'];
+export type CastingOfferUpdate = Database['public']['Tables']['casting_offers']['Update'];
+
+// User type (alias for Profile)
+export type User = Profile;
+
+// Extended types with relations
+export type CastingOfferWithDetails = CastingOffer & {
+  cast_member: CastMember & {
+    user: Profile;
+    audition_role: AuditionRole;
+  };
+  audition: Audition;
+};

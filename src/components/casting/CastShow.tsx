@@ -16,6 +16,7 @@ import RevokeOfferModal from './RevokeOfferModal';
 import Button from '../Button';
 import Avatar from '../shared/Avatar';
 import ConfirmationModal from '../shared/ConfirmationModal';
+import { useToast } from '@/contexts/ToastContext';
 
 interface CastShowProps {
   audition: Audition & {
@@ -56,6 +57,7 @@ export default function CastShow({
   onSave,
   onError,
 }: CastShowProps) {
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roles, setRoles] = useState<RoleWithCast[]>([]);
@@ -248,7 +250,7 @@ export default function CastShow({
 
     return {
       exists: true,
-      status: offer.cast_members?.status || 'Offered',
+      status: offer.cast_member?.status || 'Offered',
       respondedAt: offer.responded_at,
     };
   };
@@ -623,13 +625,13 @@ export default function CastShow({
 
   const totalOffers = castingOffers.length;
   const pendingOffers = castingOffers.filter(o => 
-    o.cast_members?.status === 'Offered' && !o.responded_at
+    o.cast_member?.status === 'Offered' && !o.responded_at
   ).length;
   const acceptedOffers = castingOffers.filter(o => 
-    o.cast_members?.status === 'Accepted'
+    o.cast_member?.status === 'Accepted'
   ).length;
   const declinedOffers = castingOffers.filter(o => 
-    o.cast_members?.status === 'Declined'
+    o.cast_member?.status === 'Declined'
   ).length;
 
   if (isLoading) {
@@ -777,8 +779,8 @@ export default function CastShow({
                               <label className="flex items-center gap-2 text-sm text-neu-text-primary cursor-pointer">
                                 <input
                                   type="checkbox"
-                                  checked={role.needs_understudy}
-                                  onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy)}
+                                  checked={role.needs_understudy ?? false}
+                                  onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy ?? false)}
                                   className="rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
                                 />
                                 <span>Needs Understudy</span>
@@ -855,7 +857,7 @@ export default function CastShow({
                                           onClick={() => {
                                             const exists = role.castMembers.some(cm => cm.user_id === selectedActor);
                                             if (!exists) {
-                                              alert('Please save the cast assignment first before sending an offer.');
+                                              showToast('Please save the cast assignment first before sending an offer.', 'warning');
                                               return;
                                             }
                                             openSendOfferModal(selectedActor, role.audition_role_id, false);
@@ -941,7 +943,7 @@ export default function CastShow({
                                             onClick={() => {
                                               const exists = role.understudyCastMembers.some(cm => cm.user_id === selectedUnderstudy);
                                               if (!exists) {
-                                                alert('Please save the cast assignment first before sending an offer.');
+                                                showToast('Please save the cast assignment first before sending an offer.', 'warning');
                                                 return;
                                               }
                                               openSendOfferModal(selectedUnderstudy, role.audition_role_id, true);

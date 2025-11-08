@@ -3,6 +3,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AddressInput from '@/components/ui/AddressInput';
 import Tooltip from '../shared/Tooltip';
+import CopyToManyModal from './CopyToManyModal';
+import ConflictResolutionModal from './ConflictResolutionModal';
+import SlotCopyConfirmationModal from './SlotCopyConfirmationModal';
+import { getSignupsForSlots } from '@/lib/supabase/auditionSignups';
+import { createNotification } from '@/lib/supabase/notifications';
+import { getUser } from '@/lib/supabase';
+import { useToast } from '@/contexts/ToastContext';
 
 interface SlotData {
   start_time: string;
@@ -39,6 +46,7 @@ export default function SlotScheduler({
   onNext,
   onBack,
 }: SlotSchedulerProps) {
+  const { showToast } = useToast();
   const [localSlots, setLocalSlots] = useState<SlotData[]>(
     slots.length > 0 ? slots : []
   );
@@ -89,6 +97,22 @@ export default function SlotScheduler({
   
   // Time increment configuration
   const [timeIncrement, setTimeIncrement] = useState(5); // minutes per grid row
+  
+  // Copy day functionality
+  const [copiedDay, setCopiedDay] = useState<number | null>(null);
+  
+  // Copy to many functionality
+  const [showCopyToManyModal, setShowCopyToManyModal] = useState(false);
+  const [copyToManySourceDay, setCopyToManySourceDay] = useState<number | null>(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [pendingCopyData, setPendingCopyData] = useState<{
+    targetDates: Date[];
+    sourceDaySlots: SlotData[];
+    conflictingSlots: SlotData[];
+    affectedUsers: any[];
+    isReplacing: boolean;
+  } | null>(null);
   
   // Ref for scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -308,6 +332,274 @@ export default function SlotScheduler({
     }
   };
 
+  const copyDaySlots = (dayIndex: number) => {
+    setCopiedDay(dayIndex);
+  };
+
+  const pasteDaySlots = (targetDayIndex: number) => {
+    if (copiedDay === null) return;
+    
+    const sourceDayDate = getDayDate(copiedDay);
+    const targetDayDate = getDayDate(targetDayIndex);
+    
+    // Get all slots for the copied day
+    const sourceDaySlots = localSlots.filter(slot => {
+      const slotDate = new Date(slot.start_time);
+      return (
+        slotDate.getFullYear() === sourceDayDate.getFullYear() &&
+        slotDate.getMonth() === sourceDayDate.getMonth() &&
+        slotDate.getDate() === sourceDayDate.getDate()
+      );
+    });
+
+    if (sourceDaySlots.length === 0) {
+      showToast('No slots to copy from the selected day.', 'warning');
+      return;
+    }
+
+    // Create new slots for target day with same times
+    const newSlots = sourceDaySlots.map(slot => {
+      const sourceStart = new Date(slot.start_time);
+      const sourceEnd = new Date(slot.end_time);
+      
+      const targetStart = new Date(targetDayDate);
+      targetStart.setHours(sourceStart.getHours(), sourceStart.getMinutes(), 0, 0);
+      
+      const targetEnd = new Date(targetDayDate);
+      targetEnd.setHours(sourceEnd.getHours(), sourceEnd.getMinutes(), 0, 0);
+      
+      return {
+        start_time: targetStart.toISOString(),
+        end_time: targetEnd.toISOString(),
+        location: slot.location,
+        max_signups: slot.max_signups,
+      };
+    });
+
+    setLocalSlots([...localSlots, ...newSlots]);
+    setCopiedDay(null);
+  };
+
+  // Copy to many handlers
+  const openCopyToManyModal = (dayIndex: number) => {
+    const dayDate = getDayDate(dayIndex);
+    const hasSlotsForDay = localSlots.some(slot => {
+      const slotDate = new Date(slot.start_time);
+      return (
+        slotDate.getFullYear() === dayDate.getFullYear() &&
+        slotDate.getMonth() === dayDate.getMonth() &&
+        slotDate.getDate() === dayDate.getDate()
+      );
+    });
+
+    if (!hasSlotsForDay) {
+      showToast('No slots to copy from this day.', 'warning');
+      return;
+    }
+
+    setCopyToManySourceDay(dayIndex);
+    setShowCopyToManyModal(true);
+  };
+
+  const handleCopyToManyConfirm = async (targetDates: Date[]) => {
+    if (copyToManySourceDay === null) return;
+
+    setShowCopyToManyModal(false);
+
+    const sourceDayDate = getDayDate(copyToManySourceDay);
+    
+    // Get all slots for the source day
+    const sourceDaySlots = localSlots.filter(slot => {
+      const slotDate = new Date(slot.start_time);
+      return (
+        slotDate.getFullYear() === sourceDayDate.getFullYear() &&
+        slotDate.getMonth() === sourceDayDate.getMonth() &&
+        slotDate.getDate() === sourceDayDate.getDate()
+      );
+    });
+
+    // Check for conflicts on target days
+    const conflictingSlots: SlotData[] = [];
+    
+    for (const targetDate of targetDates) {
+      for (const sourceSlot of sourceDaySlots) {
+        const sourceStart = new Date(sourceSlot.start_time);
+        const sourceEnd = new Date(sourceSlot.end_time);
+        
+        const targetStart = new Date(targetDate);
+        targetStart.setHours(sourceStart.getHours(), sourceStart.getMinutes(), 0, 0);
+        
+        const targetEnd = new Date(targetDate);
+        targetEnd.setHours(sourceEnd.getHours(), sourceEnd.getMinutes(), 0, 0);
+
+        // Check if any existing slot overlaps with this time
+        const hasConflict = localSlots.some(existingSlot => {
+          const existingStart = new Date(existingSlot.start_time);
+          const existingEnd = new Date(existingSlot.end_time);
+          
+          // Check if on same day
+          if (!(
+            existingStart.getFullYear() === targetDate.getFullYear() &&
+            existingStart.getMonth() === targetDate.getMonth() &&
+            existingStart.getDate() === targetDate.getDate()
+          )) {
+            return false;
+          }
+
+          // Check for time overlap
+          return (
+            (targetStart >= existingStart && targetStart < existingEnd) ||
+            (targetEnd > existingStart && targetEnd <= existingEnd) ||
+            (targetStart <= existingStart && targetEnd >= existingEnd)
+          );
+        });
+
+        if (hasConflict) {
+          // Find the conflicting slot
+          const conflictSlot = localSlots.find(existingSlot => {
+            const existingStart = new Date(existingSlot.start_time);
+            const existingEnd = new Date(existingSlot.end_time);
+            
+            if (!(
+              existingStart.getFullYear() === targetDate.getFullYear() &&
+              existingStart.getMonth() === targetDate.getMonth() &&
+              existingStart.getDate() === targetDate.getDate()
+            )) {
+              return false;
+            }
+
+            return (
+              (targetStart >= existingStart && targetStart < existingEnd) ||
+              (targetEnd > existingStart && targetEnd <= existingEnd) ||
+              (targetStart <= existingStart && targetEnd >= existingEnd)
+            );
+          });
+
+          if (conflictSlot && !conflictingSlots.includes(conflictSlot)) {
+            conflictingSlots.push(conflictSlot);
+          }
+        }
+      }
+    }
+
+    // Store pending copy data
+    setPendingCopyData({
+      targetDates,
+      sourceDaySlots,
+      conflictingSlots,
+      affectedUsers: [],
+      isReplacing: false,
+    });
+
+    // If conflicts exist, show conflict resolution modal
+    if (conflictingSlots.length > 0) {
+      setShowConflictModal(true);
+    } else {
+      // No conflicts, proceed to confirmation
+      setShowConfirmationModal(true);
+    }
+  };
+
+  const handleConflictResolution = async (shouldReplace: boolean) => {
+    setShowConflictModal(false);
+
+    if (!pendingCopyData) return;
+
+    let affectedUsers: any[] = [];
+
+    // If replacing, get affected users from conflicting slots
+    if (shouldReplace && pendingCopyData.conflictingSlots.length > 0) {
+      // Note: In a real implementation, we'd need slot IDs from the database
+      // For now, we'll proceed without checking signups since these are unsaved slots
+      affectedUsers = [];
+    }
+
+    setPendingCopyData({
+      ...pendingCopyData,
+      affectedUsers,
+      isReplacing: shouldReplace,
+    });
+
+    setShowConfirmationModal(true);
+  };
+
+  const handleFinalConfirmation = async (customMessage: string) => {
+    if (!pendingCopyData) return;
+
+    setShowConfirmationModal(false);
+
+    const { targetDates, sourceDaySlots, conflictingSlots, isReplacing, affectedUsers } = pendingCopyData;
+
+    let updatedSlots = [...localSlots];
+
+    // If replacing, remove conflicting slots
+    if (isReplacing) {
+      updatedSlots = updatedSlots.filter(slot => !conflictingSlots.includes(slot));
+    }
+
+    // Create new slots for each target date
+    for (const targetDate of targetDates) {
+      const newSlots = sourceDaySlots.map(slot => {
+        const sourceStart = new Date(slot.start_time);
+        const sourceEnd = new Date(slot.end_time);
+        
+        const targetStart = new Date(targetDate);
+        targetStart.setHours(sourceStart.getHours(), sourceStart.getMinutes(), 0, 0);
+        
+        const targetEnd = new Date(targetDate);
+        targetEnd.setHours(sourceEnd.getHours(), sourceEnd.getMinutes(), 0, 0);
+        
+        return {
+          start_time: targetStart.toISOString(),
+          end_time: targetEnd.toISOString(),
+          location: slot.location,
+          max_signups: slot.max_signups,
+        };
+      });
+
+      updatedSlots = [...updatedSlots, ...newSlots];
+    }
+
+    setLocalSlots(updatedSlots);
+
+    // Send notifications to affected users
+    if (affectedUsers.length > 0) {
+      await sendCancellationNotifications(affectedUsers, customMessage);
+    }
+
+    // Reset state
+    setPendingCopyData(null);
+    setCopyToManySourceDay(null);
+
+    showToast(`Successfully copied ${sourceDaySlots.length} slot(s) to ${targetDates.length} day(s)!`, 'success');
+  };
+
+  const sendCancellationNotifications = async (affectedUsers: any[], customMessage: string) => {
+    try {
+      const currentUser = await getUser();
+      if (!currentUser) return;
+
+      // Get audition details for notification
+      // Note: We'd need to pass auditionId and show details as props for full implementation
+      const baseMessage = "Your audition slot has been cancelled. Please sign up again when you have time. We apologize for the inconvenience.";
+      const fullMessage = customMessage ? `${baseMessage}\n\n${customMessage}` : baseMessage;
+
+      // Send notification to each affected user
+      for (const affected of affectedUsers) {
+        await createNotification({
+          recipient_id: affected.user_id,
+          sender_id: currentUser.id,
+          type: 'general',
+          title: 'Audition Slot Cancelled',
+          message: fullMessage,
+          action_url: null, // Would be `/auditions/${auditionId}` in full implementation
+        });
+      }
+    } catch (error) {
+      console.error('Error sending cancellation notifications:', error);
+    }
+  };
+
   const handleNext = () => {
     if (localSlots.length === 0) {
       setError('Please add at least one time slot');
@@ -339,7 +631,7 @@ export default function SlotScheduler({
           Drag to select time blocks on the calendar below. You can create single slots or generate multiple slots automatically.
         </p>
         {availableDates.length > 0 && (
-          <div className="mt-3 p-3 rounded-lg bg-[#5a8ff5]/10 border border-neu-border-focus">
+          <div className="mt-3 neu-info-box">
             <p className="text-sm text-neu-text-primary">
               📅 Only showing dates from your selected audition dates ({availableDates.length} {availableDates.length === 1 ? 'day' : 'days'} available)
             </p>
@@ -349,7 +641,7 @@ export default function SlotScheduler({
 
       {/* Default Settings */}
       
-      <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+      <div className="neu-container-light space-y-4">
         <h3 className="text-lg font-medium text-neu-text-primary">Default Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
@@ -456,16 +748,16 @@ export default function SlotScheduler({
       <div ref={scrollContainerRef} className="relative overflow-x-auto overflow-y-auto" style={{ maxHeight: '80vh' }}>
         <div className="inline-block min-w-full">
           {/* Sticky Header Row */}
-          <div className="sticky top-0 z-30 text-neu-text-primary bg-neu-surface">
+          <div className="sticky top-0 z-30 text-neu-text-primary pb-2" style={{ backgroundColor: 'var(--neu-surface)' }}>
 
-            <div className="grid grid-cols-8 gap-1 bg-neu-surface border-2 border-neu-border rounded-t-xl">
-              <div className="bg-neu-surface p-2 text-center text-sm font-medium text-neu-text-primary border border-neu-border">
+            <div className="grid grid-cols-8 gap-1 border-2 border-neu-border rounded-t-xl" style={{ backgroundColor: 'var(--neu-surface)' }}>
+              <div className="p-2 text-center text-sm font-medium text-neu-text-primary border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
                 <div>Time</div>
 
                 {localSlots.length > 0 && (
                   <button
                     onClick={clearAllSlots}
-                    className="mt-1 text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
+                    className="mt-1 neu-button-sm neu-icon-btn-danger"
                     title="Clear all slots"
                   >
                     Clear All
@@ -475,11 +767,33 @@ export default function SlotScheduler({
               {days.map((day, index) => {
                 const dayDate = getDayDate(index);
                 const isAvailable = isDateAvailable(dayDate);
+                const isCopied = copiedDay === index;
+                const hasSlotsForDay = localSlots.some(slot => {
+                  const slotDate = new Date(slot.start_time);
+                  return (
+                    slotDate.getFullYear() === dayDate.getFullYear() &&
+                    slotDate.getMonth() === dayDate.getMonth() &&
+                    slotDate.getDate() === dayDate.getDate()
+                  );
+                });
                 
                 return (
                   <div 
                     key={day} 
-                    className={`bg-neu-surface p-2 text-center border border-neu-border ${!isAvailable ? 'opacity-40' : ''}`}
+                    className={`p-2 text-center border ${
+                      !isAvailable 
+                        ? 'border-neu-border' 
+                        : isCopied
+                        ? 'border-blue-400'
+                        : 'border-neu-border'
+                    }`}
+                    style={{ 
+                      backgroundColor: !isAvailable 
+                        ? 'var(--neu-surface-dark)' 
+                        : isCopied
+                        ? '#c5d9f2'
+                        : 'var(--neu-surface)'
+                    }}
                   >
                     <div className="text-sm font-medium text-neu-text-primary">{day}</div>
                     <div className="text-xs text-neu-text-primary/60">
@@ -487,6 +801,54 @@ export default function SlotScheduler({
                     </div>
                     {!isAvailable && (
                       <div className="text-[10px] text-red-400/60 mt-0.5">Unavailable</div>
+                    )}
+                    {isAvailable && (
+                      <div className="flex gap-1 mt-1 justify-center">
+                        {hasSlotsForDay && !isCopied && (
+                          <>
+                            <button
+                              onClick={() => copyDaySlots(index)}
+                              className="neu-icon-btn-sm neu-icon-btn-primary"
+                              title="Copy this day's slots to one other day"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => openCopyToManyModal(index)}
+                              className="neu-icon-btn-sm neu-icon-btn-purple"
+                              title="Copy this day's slots to multiple days"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+                        {isCopied && (
+                          <button
+                            onClick={() => setCopiedDay(null)}
+                            className="neu-icon-btn-sm neu-icon-btn-danger"
+                            title="Cancel copy"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                        {copiedDay !== null && copiedDay !== index && (
+                          <button
+                            onClick={() => pasteDaySlots(index)}
+                            className="neu-icon-btn-sm neu-icon-btn-success"
+                            title="Paste copied slots to this day"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 );
@@ -528,13 +890,16 @@ export default function SlotScheduler({
                             : hasSlot && !slotAtBlock
                             ? ' cursor-pointer border-2 border-black'
                             : isSelected
-                            ? 'bg-gradient-to-br from-[#d4e4f7] to-[#c5d9f2] border border-[#b8d4f1] cursor-pointer rounded-md shadow-[inset_2px_2px_4px_rgba(255,255,255,0.8),inset_-2px_-2px_4px_rgba(107,141,214,0.2),1px_1px_3px_rgba(107,141,214,0.15)]'
+                            ? 'calendar-cell-selected'
                             : 'bg-neu-surface/30 hover:bg-neu-surface/60 cursor-pointer'
                         }`}
                       >
                         {slotAtBlock && (
                           <div
-                            className="absolute inset-0 rounded-md overflow-hidden group cursor-pointer transition-all duration-300 z-10 bg-gradient-to-br from-[#d1f4e0] to-[#bfefd7] border border-[#a7e9c8] shadow-[inset_2px_2px_4px_rgba(255,255,255,0.9),inset_-2px_-2px_4px_rgba(52,211,153,0.15),1px_1px_3px_rgba(52,211,153,0.12)] hover:shadow-[inset_2px_2px_5px_rgba(255,255,255,0.95),inset_-2px_-2px_5px_rgba(52,211,153,0.2),2px_2px_4px_rgba(52,211,153,0.18)]"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onMouseEnter={(e) => e.stopPropagation()}
+                            onMouseUp={(e) => e.stopPropagation()}
+                            className="calendar-slot group"
                             style={{ height: `${getSlotHeight(slotAtBlock)}px` }}
                           >
                             <button
@@ -587,7 +952,7 @@ export default function SlotScheduler({
 
       {/* Scheduled Slots List */}
       {localSlots.length > 0 && (
-        <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border">
+        <div className="neu-container-light">
           <h3 className="text-lg font-medium text-neu-text-primary mb-3">
             Scheduled Slots ({localSlots.length})
           </h3>
@@ -595,7 +960,7 @@ export default function SlotScheduler({
             {localSlots.map((slot, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 rounded-lg bg-neu-surface/50 text-sm"
+                className="flex items-center justify-between neu-container-sm text-sm"
               >
                 <div className="text-neu-text-primary">
                   <div className="font-medium">
@@ -875,6 +1240,46 @@ export default function SlotScheduler({
           Next
         </button>
       </div>
+
+      {/* Copy to Many Modal */}
+      <CopyToManyModal
+        isOpen={showCopyToManyModal}
+        onClose={() => {
+          setShowCopyToManyModal(false);
+          setCopyToManySourceDay(null);
+        }}
+        availableDates={availableDates}
+        sourceDayDate={copyToManySourceDay !== null ? getDayDate(copyToManySourceDay) : new Date()}
+        onConfirm={handleCopyToManyConfirm}
+      />
+
+      {/* Conflict Resolution Modal */}
+      <ConflictResolutionModal
+        isOpen={showConflictModal}
+        conflictCount={pendingCopyData?.conflictingSlots.length || 0}
+        onReplace={() => handleConflictResolution(true)}
+        onAllowOverlapping={() => handleConflictResolution(false)}
+        onCancel={() => {
+          setShowConflictModal(false);
+          setPendingCopyData(null);
+        }}
+      />
+
+      {/* Confirmation Modal */}
+      <SlotCopyConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => {
+          setShowConfirmationModal(false);
+          setPendingCopyData(null);
+        }}
+        onConfirm={handleFinalConfirmation}
+        targetDaysCount={pendingCopyData?.targetDates.length || 0}
+        slotsToCopyCount={pendingCopyData?.sourceDaySlots.length || 0}
+        slotsToDeleteCount={pendingCopyData?.conflictingSlots.length || 0}
+        affectedUsers={pendingCopyData?.affectedUsers || []}
+        isReplacing={pendingCopyData?.isReplacing || false}
+      />
     </div>
   );
 }
+
