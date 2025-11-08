@@ -1597,6 +1597,18 @@ export type CastingOffer = Database['public']['Tables']['casting_offers']['Row']
 export type CastingOfferInsert = Database['public']['Tables']['casting_offers']['Insert'];
 export type CastingOfferUpdate = Database['public']['Tables']['casting_offers']['Update'];
 
+export type RehearsalEvent = Database['public']['Tables']['rehearsal_events']['Row'];
+export type RehearsalEventInsert = Database['public']['Tables']['rehearsal_events']['Insert'];
+export type RehearsalEventUpdate = Database['public']['Tables']['rehearsal_events']['Update'];
+
+export type RehearsalAgendaItem = Database['public']['Tables']['rehearsal_agenda_items']['Row'];
+export type RehearsalAgendaItemInsert = Database['public']['Tables']['rehearsal_agenda_items']['Insert'];
+export type RehearsalAgendaItemUpdate = Database['public']['Tables']['rehearsal_agenda_items']['Update'];
+
+export type RehearsalAgendaItemAssignment = Database['public']['Tables']['rehearsal_agenda_item_assignments']['Row'];
+export type RehearsalAgendaItemAssignmentInsert = Database['public']['Tables']['rehearsal_agenda_item_assignments']['Insert'];
+export type RehearsalAgendaItemAssignmentUpdate = Database['public']['Tables']['rehearsal_agenda_item_assignments']['Update'];
+
 // User type (alias for Profile)
 export type User = Profile;
 
