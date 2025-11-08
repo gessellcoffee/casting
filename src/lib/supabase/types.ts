@@ -1612,6 +1612,15 @@ export type RehearsalAgendaItemAssignmentUpdate = Database['public']['Tables']['
 // User type (alias for Profile)
 export type User = Profile;
 
+// User preferences structure
+export interface UserPreferences {
+  dark_mode?: boolean;
+  show_casting_history?: boolean;
+  tooltips?: {
+    dismissed?: string[];
+  };
+}
+
 // Extended types with relations
 export type CastingOfferWithDetails = CastingOffer & {
   cast_member: CastMember & {
