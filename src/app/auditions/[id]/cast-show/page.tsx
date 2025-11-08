@@ -32,6 +32,8 @@ interface AuditionWithShow {
   payment: string | null;
   payment_type: string | null;
   notes: string | null;
+  instructions: string | null;
+  workflow_status: 'auditioning' | 'casting' | 'offering_roles' | 'rehearsing' | 'performing' | 'completed' | null;
   show: {
     title: string;
     author: string | null;
@@ -176,7 +178,7 @@ export default function CastShowPage() {
             <h2 className="text-lg font-semibold text-neu-text-primary mb-4">Production Status</h2>
             <WorkflowTransition
               auditionId={audition.audition_id}
-              currentStatus={audition.workflow_status}
+              currentStatus={audition.workflow_status || 'auditioning'}
               onStatusChange={(newStatus) => {
                 setAudition({ ...audition, workflow_status: newStatus });
               }}
