@@ -3,7 +3,6 @@ import type { CastingOffer, CastingOfferInsert, CastingOfferUpdate, CastingOffer
 import { createNotification } from './notifications';
 import { createCastMember, updateCastMemberStatus } from './castMembers';
 import { getUserByEmail, isValidEmail } from './userLookup';
-import { sendCastingInvitationEmail } from '../email/invitationService';
 
 /**
  * Create a single casting offer
@@ -792,22 +791,29 @@ export async function createCastingOfferByEmail(
 
       const showTitle = (auditionData as any)?.shows?.title || 'a production';
 
-      // Send invitation email
-      const emailResult = await sendCastingInvitationEmail({
-        recipientEmail: offerData.email,
-        showTitle,
-        roleName,
-        isUnderstudy: offerData.isUnderstudy,
-        isEnsemble: !offerData.roleId && !offerData.auditionRoleId,
-        senderName,
-        message: offerData.offerMessage,
-        invitationType: 'casting_offer',
+      // Send invitation email via API route
+      const response = await fetch('/api/send-invitation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipientEmail: offerData.email,
+          showTitle,
+          roleName,
+          isUnderstudy: offerData.isUnderstudy,
+          isEnsemble: !offerData.roleId && !offerData.auditionRoleId,
+          senderName,
+          message: offerData.offerMessage,
+          invitationType: 'casting_offer',
+        }),
       });
 
-      if (!emailResult.success) {
+      if (!response.ok) {
+        const errorData = await response.json();
         return {
           data: null,
-          error: new Error(`Failed to send invitation email: ${emailResult.error}`),
+          error: new Error(`Failed to send invitation email: ${errorData.error || 'Unknown error'}`),
           userExists: false,
           invitationSent: false,
         };

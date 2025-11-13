@@ -3,7 +3,6 @@ import { getAuthenticatedUser } from './auth';
 import type { CallbackInvitation, CallbackInvitationInsert, CallbackInvitationUpdate, CallbackInvitationStatus } from './types';
 import { createNotification } from './notifications';
 import { getUserByEmail, isValidEmail } from './userLookup';
-import { sendCastingInvitationEmail } from '../email/invitationService';
 
 /**
  * Get a callback invitation by ID
@@ -765,22 +764,29 @@ export async function sendCallbackInvitationByEmail(
         callbackLocation = slotData.location || undefined;
       }
 
-      // Send invitation email
-      const emailResult = await sendCastingInvitationEmail({
-        recipientEmail: invitationData.email,
-        showTitle,
-        senderName,
-        message: invitationData.message,
-        invitationType: 'callback',
-        callbackDate,
-        callbackTime,
-        callbackLocation,
+      // Send invitation email via API route
+      const response = await fetch('/api/send-invitation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipientEmail: invitationData.email,
+          showTitle,
+          senderName,
+          message: invitationData.message,
+          invitationType: 'callback',
+          callbackDate,
+          callbackTime,
+          callbackLocation,
+        }),
       });
 
-      if (!emailResult.success) {
+      if (!response.ok) {
+        const errorData = await response.json();
         return {
           data: null,
-          error: new Error(`Failed to send invitation email: ${emailResult.error}`),
+          error: new Error(`Failed to send invitation email: ${errorData.error || 'Unknown error'}`),
           userExists: false,
           invitationSent: false,
         };
