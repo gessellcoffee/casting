@@ -44,8 +44,8 @@ async function sendEmailNotification(
       }
     }
 
-    // Call the email API route
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/send-notification-email`, {
+    // Call the email API route (use relative path for client-side compatibility)
+    const response = await fetch('/api/send-notification-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
