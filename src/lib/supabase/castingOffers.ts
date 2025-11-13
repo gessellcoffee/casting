@@ -2,6 +2,8 @@ import { supabase } from './client';
 import type { CastingOffer, CastingOfferInsert, CastingOfferUpdate, CastingOfferWithDetails } from './types';
 import { createNotification } from './notifications';
 import { createCastMember, updateCastMemberStatus } from './castMembers';
+import { getUserByEmail, isValidEmail } from './userLookup';
+import { sendCastingInvitationEmail } from '../email/invitationService';
 
 /**
  * Create a single casting offer
@@ -694,5 +696,136 @@ export async function revokeCastingOffer(
   } catch (error) {
     console.error('Error revoking casting offer:', error);
     return { error };
+  }
+}
+
+/**
+ * Create a casting offer by email address
+ * If the email exists in the system, creates a normal casting offer
+ * If the email doesn't exist, sends an invitation email to join the platform
+ */
+export async function createCastingOfferByEmail(
+  offerData: {
+    auditionId: string;
+    email: string;
+    roleId: string | null;
+    auditionRoleId?: string | null;
+    isUnderstudy: boolean;
+    sentBy: string;
+    offerMessage?: string;
+    offerNotes?: string;
+  }
+): Promise<{ 
+  data: CastingOffer | null; 
+  error: any; 
+  userExists: boolean;
+  invitationSent?: boolean;
+}> {
+  try {
+    // Validate email format
+    if (!isValidEmail(offerData.email)) {
+      return { 
+        data: null, 
+        error: new Error('Invalid email format'), 
+        userExists: false 
+      };
+    }
+
+    // Look up user by email
+    const user = await getUserByEmail(offerData.email);
+
+    if (user) {
+      // User exists - create normal casting offer
+      const { data, error } = await createCastingOffer({
+        ...offerData,
+        userId: user.id,
+      });
+
+      return { 
+        data, 
+        error, 
+        userExists: true 
+      };
+    } else {
+      // User doesn't exist - send invitation email
+      
+      // Get audition and show details
+      const { data: auditionData } = await supabase
+        .from('auditions')
+        .select(`
+          audition_id,
+          shows (
+            title
+          )
+        `)
+        .eq('audition_id', offerData.auditionId)
+        .single();
+
+      // Get role name
+      let roleName: string | undefined;
+      if (offerData.auditionRoleId) {
+        const { data: roleData } = await supabase
+          .from('audition_roles')
+          .select('role_name')
+          .eq('audition_role_id', offerData.auditionRoleId)
+          .single();
+        roleName = roleData?.role_name;
+      } else if (offerData.roleId) {
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('role_name')
+          .eq('role_id', offerData.roleId)
+          .single();
+        roleName = roleData?.role_name;
+      }
+
+      // Get sender name
+      const { data: senderData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', offerData.sentBy)
+        .single();
+
+      const senderName = senderData
+        ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.email
+        : 'The casting director';
+
+      const showTitle = (auditionData as any)?.shows?.title || 'a production';
+
+      // Send invitation email
+      const emailResult = await sendCastingInvitationEmail({
+        recipientEmail: offerData.email,
+        showTitle,
+        roleName,
+        isUnderstudy: offerData.isUnderstudy,
+        isEnsemble: !offerData.roleId && !offerData.auditionRoleId,
+        senderName,
+        message: offerData.offerMessage,
+        invitationType: 'casting_offer',
+      });
+
+      if (!emailResult.success) {
+        return {
+          data: null,
+          error: new Error(`Failed to send invitation email: ${emailResult.error}`),
+          userExists: false,
+          invitationSent: false,
+        };
+      }
+
+      return {
+        data: null,
+        error: null,
+        userExists: false,
+        invitationSent: true,
+      };
+    }
+  } catch (error) {
+    console.error('Error in createCastingOfferByEmail:', error);
+    return { 
+      data: null, 
+      error, 
+      userExists: false 
+    };
   }
 }

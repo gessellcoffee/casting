@@ -114,7 +114,7 @@ function CastDashboardContent() {
 
     return {
       showCallbacks: isCasting,
-      showCastShow: isCasting,
+      showCastShow: true, // Always show cast show button for all workflow states
       showRehearsals: isActive,
       showPerformances: status === 'performing',
     };

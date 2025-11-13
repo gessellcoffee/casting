@@ -59,6 +59,7 @@ export default function ReviewAndSubmit({
         is_paid: castingData.auditionDetails.isPaid,
         pay_range: castingData.auditionDetails.payRange || null,
         pay_comments: castingData.auditionDetails.payComments || null,
+        workflow_status: castingData.auditionDetails.workflowStatus,
       });
 
       if (auditionError || !audition) {
@@ -124,19 +125,21 @@ export default function ReviewAndSubmit({
         }
       }
 
-      // Step 3: Create audition slots
-      const slotsData = castingData.slots.map((slot: any) => ({
-        audition_id: audition.audition_id,
-        start_time: slot.start_time,
-        end_time: slot.end_time,
-        location: slot.location || null,
-        max_signups: slot.max_signups,
-      }));
+      // Step 3: Create audition slots (only if provided and needed for workflow status)
+      if (castingData.slots && castingData.slots.length > 0) {
+        const slotsData = castingData.slots.map((slot: any) => ({
+          audition_id: audition.audition_id,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          location: slot.location || null,
+          max_signups: slot.max_signups,
+        }));
 
-      const { error: slotsError } = await createAuditionSlots(slotsData);
+        const { error: slotsError } = await createAuditionSlots(slotsData);
 
-      if (slotsError) {
-        throw new Error(`Failed to create audition slots - ${slotsError.message}`);
+        if (slotsError) {
+          throw new Error(`Failed to create audition slots - ${slotsError.message}`);
+        }
       }
 
       // Step 4: Create production team members

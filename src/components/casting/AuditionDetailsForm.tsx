@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { EquityStatus } from '@/lib/supabase/types';
+import type { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import DateArrayInput from '@/components/ui/DateArrayInput';
 import AddressInput from '@/components/ui/AddressInput';
 import FormInput from '@/components/ui/forms/FormInput';
@@ -35,12 +36,13 @@ interface AuditionDetails {
   payRange: string;
   payComments: string;
   productionTeam?: ProductionTeamMember[];
+  workflowStatus: WorkflowStatus;
 }
 
 interface AuditionDetailsFormProps {
   details: AuditionDetails;
   onUpdate: (details: AuditionDetails) => void;
-  onNext: () => void;
+  onNext: (details: AuditionDetails) => void;
   onBack: () => void;
 }
 
@@ -67,6 +69,14 @@ export default function AuditionDetailsForm({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const equityStatuses: EquityStatus[] = ['Equity', 'Non-Equity', 'Hybrid'];
+  const workflowStatuses: { value: WorkflowStatus; label: string; description: string }[] = [
+    { value: 'auditioning', label: 'Auditioning', description: 'Currently holding auditions' },
+    { value: 'casting', label: 'Casting', description: 'Reviewing auditions and making casting decisions' },
+    { value: 'offering_roles', label: 'Offering Roles', description: 'Sending casting offers to actors' },
+    { value: 'rehearsing', label: 'Rehearsing', description: 'In rehearsal with cast' },
+    { value: 'performing', label: 'Performing', description: 'Currently running performances' },
+    { value: 'completed', label: 'Completed', description: 'Production has finished' },
+  ];
 
   // Search for users when query changes
   useEffect(() => {
@@ -171,24 +181,57 @@ export default function AuditionDetailsForm({
     
     setError(null);
     onUpdate(localDetails);
-    onNext();
+    onNext(localDetails);
   };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
-          Audition Details
+          Production Details
         </h2>
         <p className="text-neu-text-primary/70 mb-6">
-          Provide additional information about auditions, rehearsals, performances, and production details.
+          Provide information about your production's current status, auditions, rehearsals, and performances.
         </p>
       </div>
 
       <div className="space-y-4">
-        {/* Audition Information */}
+        {/* Production Status */}
         <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
-          <h3 className="text-lg font-medium text-neu-text-primary">Audition Information</h3>
+          <h3 className="text-lg font-medium text-neu-text-primary">Production Status</h3>
+          <p className="text-sm text-neu-text-primary/70">
+            Select the current stage of your production. This determines which features are available.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {workflowStatuses.map((status) => (
+              <button
+                key={status.value}
+                type="button"
+                onClick={() => updateField('workflowStatus', status.value)}
+                className={`p-4 rounded-xl text-left transition-all border ${
+                  localDetails.workflowStatus === status.value
+                    ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark),inset_-4px_-4px_8px_var(--neu-shadow-light)] border-neu-accent-primary bg-neu-accent-primary/5'
+                    : 'shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border-neu-border hover:border-neu-accent-primary/50'
+                }`}
+                style={{ backgroundColor: localDetails.workflowStatus === status.value ? undefined : 'var(--neu-surface)' }}
+              >
+                <div className="font-semibold text-neu-text-primary">{status.label}</div>
+                <div className="text-xs text-neu-text-secondary mt-1">{status.description}</div>
+              </button>
+            ))}
+          </div>
+          
+          {localDetails.workflowStatus !== 'auditioning' && (
+            <Alert variant="info" className="mt-3">
+              Audition slots are not required for productions in {localDetails.workflowStatus} status.
+            </Alert>
+          )}
+        </div>
+        {/* Audition Information - Only shown for auditioning status */}
+        {localDetails.workflowStatus === 'auditioning' && (
+          <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">
+            <h3 className="text-lg font-medium text-neu-text-primary">Audition Information</h3>
           
           <DateArrayInput
             label="Audition Dates"
@@ -220,6 +263,7 @@ export default function AuditionDetailsForm({
             </p>
           </div>
         </div>
+        )}
 
         {/* Rehearsal Information */}
         <div className="p-4 rounded-xl bg-neu-surface/50 border border-neu-border space-y-4">

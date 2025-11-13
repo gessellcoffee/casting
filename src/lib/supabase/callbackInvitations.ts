@@ -2,6 +2,8 @@ import { supabase } from './client';
 import { getAuthenticatedUser } from './auth';
 import type { CallbackInvitation, CallbackInvitationInsert, CallbackInvitationUpdate, CallbackInvitationStatus } from './types';
 import { createNotification } from './notifications';
+import { getUserByEmail, isValidEmail } from './userLookup';
+import { sendCastingInvitationEmail } from '../email/invitationService';
 
 /**
  * Get a callback invitation by ID
@@ -579,4 +581,224 @@ export async function getUserAcceptedCallbacks(userId: string): Promise<any[]> {
   }
 
   return data || [];
+}
+
+/**
+ * Send a callback invitation by email address
+ * If the email exists in the system, creates a normal callback invitation
+ * If the email doesn't exist, sends an invitation email to join the platform
+ */
+export async function sendCallbackInvitationByEmail(
+  invitationData: {
+    auditionId: string;
+    email: string;
+    callbackSlotId: string;
+    invitedBy: string;
+    message?: string;
+  }
+): Promise<{ 
+  data: CallbackInvitation | null; 
+  error: any; 
+  userExists: boolean;
+  invitationSent?: boolean;
+}> {
+  try {
+    // Validate email format
+    if (!isValidEmail(invitationData.email)) {
+      return { 
+        data: null, 
+        error: new Error('Invalid email format'), 
+        userExists: false 
+      };
+    }
+
+    // Look up user by email
+    const user = await getUserByEmail(invitationData.email);
+
+    if (user) {
+      // User exists - create normal callback invitation
+      // Note: For email-based invitations, we need to find or create a signup_id
+      // First, try to find an existing signup for this user and audition
+      const { data: existingSignup } = await supabase
+        .from('audition_signups')
+        .select('signup_id')
+        .eq('user_id', user.id)
+        .eq('audition_slots.audition_id', invitationData.auditionId)
+        .limit(1)
+        .single();
+
+      if (!existingSignup) {
+        // If no signup exists, we can't create a callback invitation
+        // The user needs to have signed up for an audition slot first
+        return {
+          data: null,
+          error: new Error('User must sign up for an audition slot before receiving a callback invitation'),
+          userExists: true,
+        };
+      }
+
+      const newInvitation: CallbackInvitationInsert = {
+        audition_id: invitationData.auditionId,
+        user_id: user.id,
+        callback_slot_id: invitationData.callbackSlotId,
+        signup_id: existingSignup.signup_id,
+        status: 'pending',
+      };
+
+      const { data, error } = await createCallbackInvitation(newInvitation);
+      
+      if (error) {
+        return { data: null, error, userExists: true };
+      }
+
+      // Send notification to existing user
+      const { data: audition } = await supabase
+        .from('auditions')
+        .select(`
+          audition_id,
+          shows (
+            title
+          )
+        `)
+        .eq('audition_id', invitationData.auditionId)
+        .single();
+
+      const { data: slot } = await supabase
+        .from('callback_slots')
+        .select('start_time, end_time, location')
+        .eq('callback_slot_id', invitationData.callbackSlotId)
+        .single();
+
+      const { data: senderData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', invitationData.invitedBy)
+        .single();
+
+      const showTitle = (audition as any)?.shows?.title || 'Unknown Show';
+      const senderName = senderData
+        ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim()
+        : 'The casting director';
+
+      if (slot) {
+        const startTime = new Date(slot.start_time);
+        const formattedDate = startTime.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+        const formattedTime = startTime.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+
+        await createNotification({
+          recipient_id: user.id,
+          sender_id: invitationData.invitedBy,
+          type: 'casting_decision',
+          title: `Callback Invitation for ${showTitle}`,
+          message: `${senderName} has invited you to a callback for ${showTitle} on ${formattedDate} at ${formattedTime}${slot.location ? ` at ${slot.location}` : ''}. Please respond to accept or decline.`,
+          action_url: `/callbacks/${data?.invitation_id}`,
+          reference_id: data?.invitation_id,
+          reference_type: 'callback_invitation',
+          is_actionable: true,
+        });
+      }
+
+      return { 
+        data, 
+        error: null, 
+        userExists: true 
+      };
+    } else {
+      // User doesn't exist - send invitation email
+      
+      // Get audition and show details
+      const { data: auditionData } = await supabase
+        .from('auditions')
+        .select(`
+          audition_id,
+          shows (
+            title
+          )
+        `)
+        .eq('audition_id', invitationData.auditionId)
+        .single();
+
+      // Get callback slot details
+      const { data: slotData } = await supabase
+        .from('callback_slots')
+        .select('start_time, end_time, location')
+        .eq('callback_slot_id', invitationData.callbackSlotId)
+        .single();
+
+      // Get sender name
+      const { data: senderData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', invitationData.invitedBy)
+        .single();
+
+      const senderName = senderData
+        ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.email
+        : 'The casting director';
+
+      const showTitle = (auditionData as any)?.shows?.title || 'a production';
+
+      let callbackDate: string | undefined;
+      let callbackTime: string | undefined;
+      let callbackLocation: string | undefined;
+
+      if (slotData) {
+        const startTime = new Date(slotData.start_time);
+        callbackDate = startTime.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+        callbackTime = startTime.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+        callbackLocation = slotData.location || undefined;
+      }
+
+      // Send invitation email
+      const emailResult = await sendCastingInvitationEmail({
+        recipientEmail: invitationData.email,
+        showTitle,
+        senderName,
+        message: invitationData.message,
+        invitationType: 'callback',
+        callbackDate,
+        callbackTime,
+        callbackLocation,
+      });
+
+      if (!emailResult.success) {
+        return {
+          data: null,
+          error: new Error(`Failed to send invitation email: ${emailResult.error}`),
+          userExists: false,
+          invitationSent: false,
+        };
+      }
+
+      return {
+        data: null,
+        error: null,
+        userExists: false,
+        invitationSent: true,
+      };
+    }
+  } catch (error) {
+    console.error('Error in sendCallbackInvitationByEmail:', error);
+    return { 
+      data: null, 
+      error, 
+      userExists: false 
+    };
+  }
 }

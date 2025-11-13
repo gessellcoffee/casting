@@ -44,6 +44,7 @@ interface CastingData {
     payRange: string;
     payComments: string;
     productionTeam?: ProductionTeamMember[];
+    workflowStatus: 'auditioning' | 'casting' | 'offering_roles' | 'rehearsing' | 'performing' | 'completed';
   };
   slots: any[];
 }
@@ -74,6 +75,7 @@ export default function NewCastingPage() {
       payRange: '',
       payComments: '',
       productionTeam: [],
+      workflowStatus: 'auditioning',
     },
     slots: [],
   });
@@ -92,7 +94,11 @@ export default function NewCastingPage() {
     checkAuth();
   }, [router]);
 
-  const steps: { key: CastingStep; label: string }[] = [
+  // Determine if slots step should be included based on workflow status
+  // Only 'auditioning' status requires audition slots
+  const needsAuditionSlots = castingData.auditionDetails.workflowStatus === 'auditioning';
+
+  const allSteps: { key: CastingStep; label: string }[] = [
     { key: 'company', label: 'Company' },
     { key: 'show', label: 'Show' },
     { key: 'roles', label: 'Roles' },
@@ -101,9 +107,13 @@ export default function NewCastingPage() {
     { key: 'review', label: 'Review' },
   ];
 
+  // Filter out slots step if not needed
+  const steps = needsAuditionSlots ? allSteps : allSteps.filter(s => s.key !== 'slots');
+
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
 
   const handleNext = () => {
+    // Note: Details step handles its own navigation to account for workflow status
     const nextIndex = currentStepIndex + 1;
     if (nextIndex < steps.length) {
       setCurrentStep(steps[nextIndex].key);
@@ -111,9 +121,16 @@ export default function NewCastingPage() {
   };
 
   const handleBack = () => {
-    const prevIndex = currentStepIndex - 1;
-    if (prevIndex >= 0) {
-      setCurrentStep(steps[prevIndex].key);
+    // Determine previous step based on current step and workflow status
+    if (currentStep === 'review') {
+      // Going back from review, check if we have slots
+      const needsSlots = castingData.auditionDetails.workflowStatus === 'auditioning';
+      setCurrentStep(needsSlots ? 'slots' : 'details');
+    } else {
+      const prevIndex = currentStepIndex - 1;
+      if (prevIndex >= 0) {
+        setCurrentStep(steps[prevIndex].key);
+      }
     }
   };
 
@@ -136,10 +153,10 @@ export default function NewCastingPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#4a7bd9] via-[#5a8ff5] to-[#94b0f6] drop-shadow-[0_0_15px_rgba(90,143,245,0.5)] pb-2">
-              Post an Audition
+              Create a Production
             </h1>
             <p className="text-neu-text-primary/90 mt-2">
-              Create a new audition posting for your show
+              Set up a new production for your show
             </p>
           </div>
 
@@ -264,7 +281,13 @@ export default function NewCastingPage() {
                 onUpdate={(details) => {
                   updateCastingData({ auditionDetails: details });
                 }}
-                onNext={handleNext}
+                onNext={(details) => {
+                  // Update state with fresh details
+                  updateCastingData({ auditionDetails: details });
+                  // Use the fresh details to determine next step
+                  const needsSlots = details.workflowStatus === 'auditioning';
+                  setCurrentStep(needsSlots ? 'slots' : 'review');
+                }}
                 onBack={handleBack}
               />
             )}

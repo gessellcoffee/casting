@@ -92,12 +92,7 @@ export default function DownloadMyCalendarButton({
         onClick={handleDownload}
         disabled={downloading || totalEvents === 0}
         className={`
-          rounded-xl font-medium transition-all duration-300
-          disabled:opacity-50 disabled:cursor-not-allowed
-          flex items-center justify-center
-          ${sizeClasses[size]}
-          ${variantClasses[variant]}
-          ${className}
+          n-button-primary inline
         `}
         title={totalEvents === 0 ? 'No events to download' : 'Download all your auditions and performances to your calendar'}
       >
@@ -112,7 +107,7 @@ export default function DownloadMyCalendarButton({
             <span>Download My Calendar</span>
             <Download size={size === 'sm' ? 14 : size === 'lg' ? 18 : 16} />
             {totalEvents > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-xs font-semibold">
+              <span className="">
                 {totalEvents}
               </span>
             )}
@@ -129,7 +124,7 @@ export default function DownloadMyCalendarButton({
       
       {/* Empty state hint */}
       {totalEvents === 0 && !downloading && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-3 rounded-lg bg-neu-surface/90 border border-neu-border text-neu-text-primary/70 text-sm z-10 shadow-lg whitespace-nowrap">
+        <div className="">
           Sign up for auditions to enable calendar download
         </div>
       )}

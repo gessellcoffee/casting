@@ -119,10 +119,10 @@ export default function MyAuditionsPage() {
           </div>
           
           <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3">
-            <GoogleCalendarImport 
+            {/* <GoogleCalendarImport 
               userId={user.id}
               onImportComplete={loadData}
-            />
+            /> */}
             <DownloadMyCalendarButton
               signups={signups}
               callbacks={callbacks}

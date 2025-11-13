@@ -13,6 +13,7 @@ import UserProfileModal from './UserProfileModal';
 import SendOfferModal from './SendOfferModal';
 import SendCastingOfferModal from './SendCastingOfferModal';
 import RevokeOfferModal from './RevokeOfferModal';
+import SearchableCastSelect from './SearchableCastSelect';
 import Button from '../Button';
 import Avatar from '../shared/Avatar';
 import ConfirmationModal from '../shared/ConfirmationModal';
@@ -748,6 +749,9 @@ export default function CastShow({
               </svg>
               Cast Roles
             </h2>
+            <p className="text-sm text-neu-text-primary/60 mb-4">
+              Search by name or email. Enter any email to invite someone not yet on the platform.
+            </p>
             <div className="overflow-hidden border border-neu-border rounded-lg">
               <table className="min-w-full divide-y divide-neu-border">
                 <thead className="bg-neu-surface/30">
@@ -792,25 +796,22 @@ export default function CastShow({
                               {/* Principal Cast */}
                               <div>
                                 <div className="text-xs font-semibold text-neu-text-primary/70 mb-2 uppercase">Principal</div>
-                                <FormSelect
+                                <SearchableCastSelect
                                   value={selectedActor}
-                                  onChange={(e) => handleRoleCastChange(role.audition_role_id, e.target.value)}
-                                  className="block w-full"
-                                  disabled={availableActors.length === 0}
-                                >
-                                  <option value="">
-                                    {availableActors.length === 0
-                                      ? 'No actors available'
-                                      : 'Select principal actor...'}
-                                  </option>
-                                  {availableActors
-                                    .filter((actor) => actor.user_id === selectedActor || (actor.user_id !== selectedUnderstudy))
-                                    .map((actor) => (
-                                      <option key={actor.user_id} value={actor.user_id}>
-                                        {actor.full_name} ({actor.email})
-                                      </option>
-                                    ))}
-                                </FormSelect>
+                                  onChange={(userId) => handleRoleCastChange(role.audition_role_id, userId)}
+                                  availableActors={availableActors}
+                                  placeholder="Search by name or email..."
+                                  disabled={false}
+                                  auditionId={audition.audition_id}
+                                  roleId={role.role_id || null}
+                                  auditionRoleId={role.audition_role_id}
+                                  isUnderstudy={false}
+                                  currentUserId={user.id}
+                                  onInviteSent={() => {
+                                    showToast('Invitation sent successfully!', 'success');
+                                    loadData();
+                                  }}
+                                />
                                 {selectedActor && (() => {
                                   const offerStatus = getOfferStatus(selectedActor, role.audition_role_id, false);
                                   const actorData = availableActors.find(a => a.user_id === selectedActor);
@@ -878,25 +879,22 @@ export default function CastShow({
                               {role.needs_understudy && (
                                 <div className="border-t border-neu-border pt-3">
                                   <div className="text-xs font-semibold text-neu-text-primary/70 mb-2 uppercase">Understudy</div>
-                                  <FormSelect
+                                  <SearchableCastSelect
                                     value={selectedUnderstudy}
-                                    onChange={(e) => handleUnderstudyCastChange(role.audition_role_id, e.target.value)}
-                                    className="block w-full"
-                                    disabled={availableActors.length === 0}
-                                  >
-                                    <option value="">
-                                      {availableActors.length === 0
-                                        ? 'No actors available'
-                                        : 'Select understudy actor...'}
-                                    </option>
-                                    {availableActors
-                                      .filter((actor) => actor.user_id === selectedUnderstudy || (actor.user_id !== selectedActor))
-                                      .map((actor) => (
-                                        <option key={actor.user_id} value={actor.user_id}>
-                                          {actor.full_name} ({actor.email})
-                                        </option>
-                                      ))}
-                                  </FormSelect>
+                                    onChange={(userId) => handleUnderstudyCastChange(role.audition_role_id, userId)}
+                                    availableActors={availableActors}
+                                    placeholder="Search by name or email..."
+                                    disabled={false}
+                                    auditionId={audition.audition_id}
+                                    roleId={role.role_id || null}
+                                    auditionRoleId={role.audition_role_id}
+                                    isUnderstudy={true}
+                                    currentUserId={user.id}
+                                    onInviteSent={() => {
+                                      showToast('Invitation sent successfully!', 'success');
+                                      loadData();
+                                    }}
+                                  />
                                   {selectedUnderstudy && (() => {
                                     const offerStatus = getOfferStatus(selectedUnderstudy, role.audition_role_id, true);
                                     const understudyData = availableActors.find(a => a.user_id === selectedUnderstudy);
