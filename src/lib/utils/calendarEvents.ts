@@ -29,22 +29,28 @@ export function getDateRange(dateData: string | string[] | null | undefined): { 
 }
 
 /**
- * Generate calendar events for rehearsal and performance dates
+ * Generate calendar events for all production-related activities
  */
 export interface ProductionDateEvent {
-  type: 'rehearsal' | 'performance';
+  type: 'rehearsal' | 'performance' | 'audition_slot' | 'rehearsal_event';
   title: string;
   show: any;
   date: Date;
+  startTime?: Date; // For timed events (slots, rehearsal events)
+  endTime?: Date;   // For timed events (slots, rehearsal events)
   location: string | null;
   auditionId: string;
   role?: string;
   userRole?: 'cast' | 'owner' | 'production_team';
+  eventId?: string; // For rehearsal events
+  slotId?: string;  // For audition slots
 }
 
 export function generateProductionEvents(
   auditions: any[],
-  userRole: 'cast' | 'owner' | 'production_team'
+  userRole: 'cast' | 'owner' | 'production_team',
+  auditionSlots?: any[], // For owners/production team
+  rehearsalEvents?: any[] // For owners/production team
 ): ProductionDateEvent[] {
   const events: ProductionDateEvent[] = [];
 
@@ -104,6 +110,75 @@ export function generateProductionEvents(
       });
     }
   });
+
+  // Add audition slots for owners/production team
+  if ((userRole === 'owner' || userRole === 'production_team') && auditionSlots) {
+    console.log(`Processing ${auditionSlots.length} audition slots for ${userRole}`, auditionSlots);
+    auditionSlots.forEach(slot => {
+      const startTime = new Date(slot.start_time);
+      const endTime = new Date(slot.end_time);
+      const audition = slot.auditions;
+      
+      console.log('Processing slot:', {
+        slot_id: slot.slot_id,
+        start_time: slot.start_time,
+        has_audition: !!audition,
+        has_shows: !!(audition && audition.shows)
+      });
+      
+      if (audition && audition.shows) {
+        const event: ProductionDateEvent = {
+          type: 'audition_slot',
+          title: `${audition.shows.title} - Audition Slot`,
+          show: audition.shows,
+          date: startTime,
+          startTime,
+          endTime,
+          location: slot.location,
+          auditionId: audition.audition_id,
+          userRole,
+          slotId: slot.slot_id
+        };
+        console.log('Adding audition slot event:', event);
+        events.push(event);
+      } else {
+        console.warn('Skipping slot - missing audition or shows data:', slot);
+      }
+    });
+  }
+
+  // Add rehearsal events for owners/production team
+  if ((userRole === 'owner' || userRole === 'production_team') && rehearsalEvents) {
+    rehearsalEvents.forEach(event => {
+      const audition = event.auditions;
+      
+      if (audition && audition.shows) {
+        // Combine date and time for proper datetime
+        const eventDate = new Date(event.date);
+        const [startHours, startMinutes] = event.start_time.split(':');
+        const [endHours, endMinutes] = event.end_time.split(':');
+        
+        const startTime = new Date(eventDate);
+        startTime.setHours(parseInt(startHours), parseInt(startMinutes), 0);
+        
+        const endTime = new Date(eventDate);
+        endTime.setHours(parseInt(endHours), parseInt(endMinutes), 0);
+        
+        events.push({
+          type: 'rehearsal_event',
+          title: `${audition.shows.title} - Rehearsal`,
+          show: audition.shows,
+          date: startTime,
+          startTime,
+          endTime,
+          location: event.location,
+          auditionId: audition.audition_id,
+          userRole,
+          eventId: event.rehearsal_events_id
+        });
+      }
+    });
+  }
 
   return events;
 }

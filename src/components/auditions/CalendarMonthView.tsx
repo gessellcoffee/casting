@@ -12,6 +12,7 @@ import { isToday } from '@/lib/utils/dateUtils';
 import { useRouter } from 'next/navigation';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import type { EventTypeFilter } from './CalendarLegend';
 
 
 interface CalendarMonthViewProps {
@@ -21,9 +22,10 @@ interface CalendarMonthViewProps {
   currentDate: Date;
   userId: string;
   onRefresh?: () => void;
+  eventFilters?: EventTypeFilter;
 }
 
-export default function CalendarMonthView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh }: CalendarMonthViewProps) {
+export default function CalendarMonthView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh, eventFilters }: CalendarMonthViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
@@ -134,7 +136,9 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
 
   const getPersonalForDate = (date: Date) => {
     const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    return personalByDate[dateKey] || [];
+    const personalEvents = personalByDate[dateKey] || [];
+    // Filter based on eventFilters if provided
+    return eventFilters?.personalEvents === false ? [] : personalEvents;
   };
 
   // Group production events by individual dates
@@ -248,24 +252,57 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                   );
                 })}
 
-                {/* Production Events (Rehearsal/Performance) */}
+                {/* Production Events (Rehearsal/Performance/Audition Slots/Rehearsal Events) */}
                 {dayProduction.slice(0, Math.max(0, 3 - daySignups.length - Math.min(dayPersonal.length, Math.max(0, 2 - daySignups.length)))).map((evt) => {
+                  // Determine color and icon based on event type
+                  let bgColor, borderColor, textColor, icon;
+                  
+                  if (evt.type === 'rehearsal') {
+                    // Cast member rehearsal dates (orange)
+                    bgColor = 'bg-orange-500/20';
+                    borderColor = 'border-orange-500/50';
+                    textColor = 'text-orange-400';
+                    icon = '🎭';
+                  } else if (evt.type === 'performance') {
+                    // Cast member performance dates (red)
+                    bgColor = 'bg-red-500/20';
+                    borderColor = 'border-red-500/50';
+                    textColor = 'text-red-400';
+                    icon = '🎪';
+                  } else if (evt.type === 'audition_slot') {
+                    // Owner/production team audition slots (teal)
+                    bgColor = 'bg-teal-500/20';
+                    borderColor = 'border-teal-500/50';
+                    textColor = 'text-teal-400';
+                    icon = '📋';
+                  } else if (evt.type === 'rehearsal_event') {
+                    // Owner/production team rehearsal events (amber)
+                    bgColor = 'bg-amber-500/20';
+                    borderColor = 'border-amber-500/50';
+                    textColor = 'text-amber-400';
+                    icon = '🎬';
+                  }
+                  
                   return (
                     <div
-                      key={`prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                      className={`w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs backdrop-blur-sm border text-neu-text-primary transition-all duration-200 truncate ${
-                        evt.type === 'rehearsal' 
-                          ? 'bg-orange-500/20 border-orange-500/50' 
-                          : 'bg-blue-500/20 border-blue-500/50'
-                      }`}
+                      key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date.getTime()}-${evt.startTime?.getTime() || ''}`}
+                      className={`w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs backdrop-blur-sm border text-neu-text-primary transition-all duration-200 truncate ${bgColor} ${borderColor}`}
                       title={evt.title}
                     >
                       <div className="font-medium truncate flex items-center gap-1">
-                        <span className="flex-shrink-0">{evt.type === 'rehearsal' ? '🎭' : '🎪'}</span>
+                        <span className="flex-shrink-0">{icon}</span>
                         <span className="truncate">{evt.show.title}</span>
                       </div>
-                      {evt.role && (
-                        <div className={`text-[9px] sm:text-[10px] truncate ${evt.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400'}`}>
+                      {evt.startTime && (
+                        <div className={`text-[9px] sm:text-[10px] truncate ${textColor}`}>
+                          {evt.startTime.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        </div>
+                      )}
+                      {evt.role && !evt.startTime && (
+                        <div className={`text-[9px] sm:text-[10px] truncate ${textColor}`}>
                           {evt.role}
                         </div>
                       )}

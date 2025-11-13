@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
-import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions } from '@/lib/supabase/auditionSignups';
+import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
@@ -16,6 +16,8 @@ export default function MyAuditionsPage() {
   const [signups, setSignups] = useState<any[]>([]);
   const [callbacks, setCallbacks] = useState<any[]>([]);
   const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
+  const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
+  const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,23 +36,55 @@ export default function MyAuditionsPage() {
       }
 
       setUser(currentUser);
-      const [userSignups, userCallbacks, castShows, ownedAuditions, productionTeamAuditions] = await Promise.all([
+      const [
+        userSignups, 
+        userCallbacks, 
+        castShows, 
+        ownedAuditions, 
+        productionTeamAuditions,
+        ownedSlots,
+        productionTeamSlots,
+        ownedRehearsalEvents,
+        productionTeamRehearsalEvents
+      ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
         getUserCastShows(currentUser.id),
         getUserOwnedAuditions(currentUser.id),
-        getUserProductionTeamAuditions(currentUser.id)
+        getUserProductionTeamAuditions(currentUser.id),
+        getUserOwnedAuditionSlots(currentUser.id),
+        getUserProductionTeamAuditionSlots(currentUser.id),
+        getUserOwnedRehearsalEvents(currentUser.id),
+        getUserProductionTeamRehearsalEvents(currentUser.id)
       ]);
       
       setSignups(userSignups);
       setCallbacks(userCallbacks);
+      setHasOwnedAuditions(ownedAuditions.length > 0);
+      setHasProductionTeamAuditions(productionTeamAuditions.length > 0);
       
-      // Generate production events (rehearsal and performance dates)
+      // Combine slots and rehearsal events
+      const allSlots = [...ownedSlots, ...productionTeamSlots];
+      const allRehearsalEvents = [...ownedRehearsalEvents, ...productionTeamRehearsalEvents];
+      
+      console.log('Calendar Data Summary:', {
+        ownedAuditions: ownedAuditions.length,
+        ownedSlots: ownedSlots.length,
+        productionTeamSlots: productionTeamSlots.length,
+        allSlots: allSlots.length,
+        allRehearsalEvents: allRehearsalEvents.length,
+        hasOwnedAuditions: ownedAuditions.length > 0,
+        hasProductionTeamAuditions: productionTeamAuditions.length > 0
+      });
+      
+      // Generate production events (rehearsal/performance dates, audition slots, rehearsal events)
       const allProductionEvents = [
         ...generateProductionEvents(castShows, 'cast'),
-        ...generateProductionEvents(ownedAuditions, 'owner'),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team')
+        ...generateProductionEvents(ownedAuditions, 'owner', allSlots, allRehearsalEvents),
+        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, allRehearsalEvents)
       ];
+      
+      console.log('Generated production events:', allProductionEvents.length, allProductionEvents);
       
       setProductionEvents(allProductionEvents);
     } catch (error) {
@@ -104,7 +138,9 @@ export default function MyAuditionsPage() {
           callbacks={callbacks} 
           productionEvents={productionEvents}
           userId={user.id} 
-          onRefresh={loadData} 
+          onRefresh={loadData}
+          hasOwnedAuditions={hasOwnedAuditions}
+          hasProductionTeamAuditions={hasProductionTeamAuditions}
         />
       </div>
     </div>

@@ -658,7 +658,6 @@ export async function getUserProductionTeamAuditions(userId: string): Promise<an
   const { data, error } = await supabase
     .from('production_team_members')
     .select(`
-      audition_id,
       role_title,
       auditions (
         audition_id,
@@ -678,6 +677,174 @@ export async function getUserProductionTeamAuditions(userId: string): Promise<an
 
   if (error) {
     console.error('Error fetching user production team auditions:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get all audition slots for auditions owned by the user
+ * For calendar display
+ */
+export async function getUserOwnedAuditionSlots(userId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('audition_slots')
+    .select(`
+      slot_id,
+      audition_id,
+      start_time,
+      end_time,
+      location,
+      auditions!inner (
+        audition_id,
+        user_id,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      )
+    `)
+    .eq('auditions.user_id', userId)
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching user owned audition slots:', error);
+    return [];
+  }
+
+  console.log('Owned audition slots fetched:', data?.length || 0, data);
+  return data || [];
+}
+
+/**
+ * Get all audition slots for auditions where user is production team
+ * For calendar display
+ */
+export async function getUserProductionTeamAuditionSlots(userId: string): Promise<any[]> {
+  // First get audition IDs where user is production team
+  const { data: teamData, error: teamError } = await supabase
+    .from('production_team_members')
+    .select('audition_id')
+    .eq('user_id', userId)
+    .eq('status', 'active');
+
+  if (teamError || !teamData || teamData.length === 0) {
+    return [];
+  }
+
+  const auditionIds = teamData.map(t => t.audition_id);
+
+  // Get slots for those auditions
+  const { data, error } = await supabase
+    .from('audition_slots')
+    .select(`
+      slot_id,
+      audition_id,
+      start_time,
+      end_time,
+      location,
+      auditions!inner (
+        audition_id,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      )
+    `)
+    .in('audition_id', auditionIds)
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching production team audition slots:', error);
+    return [];
+  }
+
+  console.log('Production team audition slots fetched:', data?.length || 0, data);
+  return data || [];
+}
+
+/**
+ * Get all rehearsal events for auditions owned by the user
+ * For calendar display
+ */
+export async function getUserOwnedRehearsalEvents(userId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('rehearsal_events')
+    .select(`
+      rehearsal_events_id,
+      date,
+      start_time,
+      end_time,
+      location,
+      notes,
+      auditions!inner (
+        audition_id,
+        user_id,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      )
+    `)
+    .eq('auditions.user_id', userId)
+    .order('date', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching user owned rehearsal events:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get all rehearsal events for auditions where user is production team
+ * For calendar display
+ */
+export async function getUserProductionTeamRehearsalEvents(userId: string): Promise<any[]> {
+  // First get audition IDs where user is production team
+  const { data: teamData, error: teamError } = await supabase
+    .from('production_team_members')
+    .select('audition_id')
+    .eq('user_id', userId)
+    .eq('status', 'active');
+
+  if (teamError || !teamData || teamData.length === 0) {
+    return [];
+  }
+
+  const auditionIds = teamData.map(t => t.audition_id);
+
+  // Get rehearsal events for those auditions
+  const { data, error } = await supabase
+    .from('rehearsal_events')
+    .select(`
+      rehearsal_events_id,
+      date,
+      start_time,
+      end_time,
+      location,
+      notes,
+      auditions!inner (
+        audition_id,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      )
+    `)
+    .in('audition_id', auditionIds)
+    .order('date', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching production team rehearsal events:', error);
     return [];
   }
 

@@ -151,7 +151,7 @@ export default function DateArrayInput({
             ? 'bg-neu-accent-primary text-neu-primary font-semibold border-2 border-neu-primary   shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)]' 
             : 'bg-neu-surface text-neu-text-primary hover:bg-neu-surface-light  shadow-[2px_2px_5px_var(--neu-shadow-dark),-2px_-2px_5px_var(--neu-shadow-light)]'
           }
-          ${isToday && !isSelected ? 'ring-2 ring-neu-accent-primary/40' : ''}
+          ${isToday && !isSelected ? 'ring-2 ring-amber-400' : ''}
         `}
       >
         {day}

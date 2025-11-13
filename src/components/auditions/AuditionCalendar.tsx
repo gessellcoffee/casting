@@ -5,6 +5,7 @@ import { MdChevronLeft, MdChevronRight, MdCalendarToday, MdList } from 'react-ic
 import CalendarMonthView from './CalendarMonthView';
 import CalendarWeekView from './CalendarWeekView';
 import CalendarListView from './CalendarListView';
+import CalendarLegend, { EventTypeFilter } from './CalendarLegend';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 
 type ViewMode = 'month' | 'week' | 'list';
@@ -15,12 +16,80 @@ interface AuditionCalendarProps {
   productionEvents?: ProductionDateEvent[];
   userId: string;
   onRefresh?: () => void;
+  hasOwnedAuditions?: boolean;
+  hasProductionTeamAuditions?: boolean;
 }
 
-export default function AuditionCalendar({ signups, callbacks = [], productionEvents = [], userId, onRefresh }: AuditionCalendarProps) {
+export default function AuditionCalendar({ 
+  signups, 
+  callbacks = [], 
+  productionEvents = [], 
+  userId, 
+  onRefresh,
+  hasOwnedAuditions = false,
+  hasProductionTeamAuditions = false
+}: AuditionCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCallbacks, setShowCallbacks] = useState(true);
+  
+  // Event type filters
+  const [eventFilters, setEventFilters] = useState<EventTypeFilter>({
+    auditionSignups: true,
+    callbacks: true,
+    personalEvents: true,
+    rehearsalDates: true,
+    performanceDates: true,
+    auditionSlots: true,
+    rehearsalEvents: true
+  });
+  
+  // Determine user role based on what events they have
+  const userRole = useMemo(() => {
+    const hasActorEvents = signups.length > 0 || callbacks.length > 0;
+    // Check if user has any events where they are owner or production team
+    // OR if they have owned/production team auditions (even without events yet)
+    const hasCreatorEvents = hasOwnedAuditions || 
+                            hasProductionTeamAuditions || 
+                            productionEvents.some(e => 
+                              e.userRole === 'owner' || e.userRole === 'production_team'
+                            );
+    
+    console.log('User role detection:', {
+      hasActorEvents,
+      hasCreatorEvents,
+      hasOwnedAuditions,
+      hasProductionTeamAuditions,
+      productionEventsCount: productionEvents.length,
+      productionEventTypes: productionEvents.map(e => ({ type: e.type, userRole: e.userRole }))
+    });
+    
+    if (hasActorEvents && hasCreatorEvents) return 'both';
+    if (hasCreatorEvents) return 'creator';
+    return 'actor';
+  }, [signups, callbacks, productionEvents, hasOwnedAuditions, hasProductionTeamAuditions]);
+  
+  // Filter events based on selected filters
+  const filteredSignups = useMemo(() => 
+    eventFilters.auditionSignups ? signups : [],
+    [signups, eventFilters.auditionSignups]
+  );
+  
+  const filteredCallbacks = useMemo(() => 
+    eventFilters.callbacks ? callbacks : [],
+    [callbacks, eventFilters.callbacks]
+  );
+  
+  const filteredProductionEvents = useMemo(() => 
+    productionEvents.filter(evt => {
+      if (evt.type === 'rehearsal' && !eventFilters.rehearsalDates) return false;
+      if (evt.type === 'performance' && !eventFilters.performanceDates) return false;
+      if (evt.type === 'audition_slot' && !eventFilters.auditionSlots) return false;
+      if (evt.type === 'rehearsal_event' && !eventFilters.rehearsalEvents) return false;
+      return true;
+    }),
+    [productionEvents, eventFilters]
+  );
 
   // Navigate to previous period
   const handlePrevious = () => {
@@ -161,21 +230,29 @@ export default function AuditionCalendar({ signups, callbacks = [], productionEv
 
       {/* Calendar Content */}
       <div className="p-6">
+        {/* Event Type Legend/Filter */}
+        <CalendarLegend 
+          filters={eventFilters}
+          onFilterChange={setEventFilters}
+          userRole={userRole}
+        />
+        
         {viewMode === 'month' && (
           <CalendarMonthView 
-            signups={signups}
-            callbacks={showCallbacks ? callbacks : []}
-            productionEvents={productionEvents}
+            signups={filteredSignups}
+            callbacks={showCallbacks ? filteredCallbacks : []}
+            productionEvents={filteredProductionEvents}
             currentDate={currentDate}
             userId={userId}
             onRefresh={onRefresh}
+            eventFilters={eventFilters}
           />
         )}
         {viewMode === 'week' && (
           <CalendarWeekView 
-            signups={signups}
-            callbacks={showCallbacks ? callbacks : []}
-            productionEvents={productionEvents}
+            signups={filteredSignups}
+            callbacks={showCallbacks ? filteredCallbacks : []}
+            productionEvents={filteredProductionEvents}
             currentDate={currentDate}
             userId={userId}
             onRefresh={onRefresh}
@@ -183,9 +260,9 @@ export default function AuditionCalendar({ signups, callbacks = [], productionEv
         )}
         {viewMode === 'list' && (
           <CalendarListView 
-            signups={signups}
-            callbacks={showCallbacks ? callbacks : []}
-            productionEvents={productionEvents}
+            signups={filteredSignups}
+            callbacks={showCallbacks ? filteredCallbacks : []}
+            productionEvents={filteredProductionEvents}
             userId={userId}
             onRefresh={onRefresh}
           />
