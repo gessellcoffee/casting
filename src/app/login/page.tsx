@@ -169,14 +169,14 @@ export default function LoginPage() {
           </form>
 
           {/* Divider */}
-          <div className="relative my-6">
+          {/* <div className="relative my-6">
             <hr className="w-full border-neutral-200 mb-2" />
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-neu-surface text-neu-text-primary/60">
                 Or continue with
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Google Sign In */}
 

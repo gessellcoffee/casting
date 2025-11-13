@@ -3,6 +3,8 @@ import type { CastingOffer, CastingOfferInsert, CastingOfferUpdate, CastingOffer
 import { createNotification } from './notifications';
 import { createCastMember, updateCastMemberStatus } from './castMembers';
 import { getUserByEmail, isValidEmail } from './userLookup';
+import { createPendingSignup } from './pendingSignups';
+import type { CastingOfferRequestData } from '@/types/pendingSignup';
 
 /**
  * Create a single casting offer
@@ -746,7 +748,7 @@ export async function createCastingOfferByEmail(
         userExists: true 
       };
     } else {
-      // User doesn't exist - send invitation email
+      // User doesn't exist - create pending signup
       
       // Get audition and show details
       const { data: auditionData } = await supabase
@@ -778,45 +780,56 @@ export async function createCastingOfferByEmail(
         roleName = roleData?.role_name;
       }
 
-      // Get sender name
-      const { data: senderData } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, email')
-        .eq('id', offerData.sentBy)
-        .single();
-
-      const senderName = senderData
-        ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.email
-        : 'The casting director';
-
       const showTitle = (auditionData as any)?.shows?.title || 'a production';
 
-      // Send invitation email via API route
-      const response = await fetch('/api/send-invitation-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          recipientEmail: offerData.email,
-          showTitle,
-          roleName,
-          isUnderstudy: offerData.isUnderstudy,
-          isEnsemble: !offerData.roleId && !offerData.auditionRoleId,
-          senderName,
-          message: offerData.offerMessage,
-          invitationType: 'casting_offer',
-        }),
+      // Create pending signup with casting offer data
+      const requestData: CastingOfferRequestData = {
+        audition_id: offerData.auditionId,
+        role_id: offerData.roleId || undefined,
+        audition_role_id: offerData.auditionRoleId || undefined,
+        is_understudy: offerData.isUnderstudy,
+        offer_message: offerData.offerMessage || '',
+        show_title: showTitle,
+        role_name: roleName || 'Ensemble'
+      };
+
+      const { data: pendingSignup, error: pendingError } = await createPendingSignup({
+        email: offerData.email,
+        request_type: 'casting_offer',
+        request_data: requestData,
+        invited_by: offerData.sentBy
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (pendingError) {
         return {
           data: null,
-          error: new Error(`Failed to send invitation email: ${errorData.error || 'Unknown error'}`),
+          error: pendingError,
           userExists: false,
           invitationSent: false,
         };
+      }
+
+      // Get sender profile for email
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', offerData.sentBy)
+        .single() as any;
+
+      // Send invitation email via API route (non-blocking)
+      if (senderProfile) {
+        const inviterFullName = `${senderProfile.first_name || ''} ${senderProfile.last_name || ''}`.trim() || senderProfile.email;
+        fetch('/api/send-pending-signup-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: offerData.email,
+            requestType: 'casting_offer',
+            requestData,
+            inviterUsername: senderProfile.email,
+            inviterFullName: inviterFullName
+          })
+        }).catch(err => console.error('Error sending invitation email:', err));
       }
 
       return {

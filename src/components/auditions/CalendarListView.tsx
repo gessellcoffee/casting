@@ -348,6 +348,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                   event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
                                   event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
                                   event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
+                                  event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
                                   'text-neu-accent-primary'
                                 ) : 'text-neu-accent-primary'
                               }`}>
@@ -357,6 +358,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                 {isProduction && event.type === 'performance' && <span className="flex-shrink-0">🎪</span>}
                                 {isProduction && event.type === 'audition_slot' && <span className="flex-shrink-0">📋</span>}
                                 {isProduction && event.type === 'rehearsal_event' && <span className="flex-shrink-0">🎬</span>}
+                                {isProduction && event.type === 'agenda_item' && <span className="flex-shrink-0">🎬</span>}
                                 <span className="truncate">{showTitle}</span>
                               </h4>
                               {showAuthor && (
@@ -385,12 +387,14 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                   event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
                                   event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
                                   event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
+                                  event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
                                   'text-neu-accent-primary'
                                 }`}>
                                   {event.type === 'rehearsal' ? 'Rehearsal Period' : 
                                    event.type === 'performance' ? 'Performance Run' :
                                    event.type === 'audition_slot' ? 'Audition Slot' :
                                    event.type === 'rehearsal_event' ? 'Rehearsal Event' :
+                                   event.type === 'agenda_item' ? 'Rehearsal' :
                                    'Production Event'}
                                 </p>
                               )}

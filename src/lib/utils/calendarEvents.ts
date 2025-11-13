@@ -32,18 +32,20 @@ export function getDateRange(dateData: string | string[] | null | undefined): { 
  * Generate calendar events for all production-related activities
  */
 export interface ProductionDateEvent {
-  type: 'rehearsal' | 'performance' | 'audition_slot' | 'rehearsal_event';
+  type: 'rehearsal' | 'performance' | 'audition_slot' | 'rehearsal_event' | 'agenda_item';
   title: string;
   show: any;
   date: Date;
-  startTime?: Date; // For timed events (slots, rehearsal events)
-  endTime?: Date;   // For timed events (slots, rehearsal events)
+  startTime?: Date; // For timed events (slots, rehearsal events, agenda items)
+  endTime?: Date;   // For timed events (slots, rehearsal events, agenda items)
   location: string | null;
   auditionId: string;
   role?: string;
   userRole?: 'cast' | 'owner' | 'production_team';
   eventId?: string; // For rehearsal events
   slotId?: string;  // For audition slots
+  agendaItemId?: string; // For agenda items
+  description?: string; // For agenda items
 }
 
 export function generateProductionEvents(
@@ -179,6 +181,52 @@ export function generateProductionEvents(
       }
     });
   }
+
+  return events;
+}
+
+/**
+ * Generate calendar events from rehearsal agenda items
+ * This replaces the old rehearsal_event display with individual agenda items
+ */
+export function generateAgendaItemEvents(agendaItems: any[]): ProductionDateEvent[] {
+  const events: ProductionDateEvent[] = [];
+
+  agendaItems.forEach(item => {
+    const rehearsalEvent = item.rehearsal_event;
+    
+    if (!rehearsalEvent || !rehearsalEvent.auditions || !rehearsalEvent.auditions.shows) {
+      return;
+    }
+
+    const audition = rehearsalEvent.auditions;
+    const eventDate = new Date(rehearsalEvent.date);
+    
+    // Parse start and end times
+    const [startHours, startMinutes] = item.start_time.split(':');
+    const [endHours, endMinutes] = item.end_time.split(':');
+    
+    const startTime = new Date(eventDate);
+    startTime.setHours(parseInt(startHours), parseInt(startMinutes), 0);
+    
+    const endTime = new Date(eventDate);
+    endTime.setHours(parseInt(endHours), parseInt(endMinutes), 0);
+    
+    events.push({
+      type: 'agenda_item',
+      title: `${audition.shows.title} - ${item.title}`,
+      show: audition.shows,
+      date: startTime,
+      startTime,
+      endTime,
+      location: rehearsalEvent.location,
+      auditionId: audition.audition_id,
+      userRole: 'cast', // All users seeing agenda items are involved in the production
+      eventId: rehearsalEvent.rehearsal_events_id,
+      agendaItemId: item.rehearsal_agenda_items_id,
+      description: item.description
+    });
+  });
 
   return events;
 }

@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
-import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents } from '@/lib/supabase/auditionSignups';
+import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
 import GoogleCalendarImport from '@/components/calendar/GoogleCalendarImport';
-import { generateProductionEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { generateProductionEvents, generateAgendaItemEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 
 export default function MyAuditionsPage() {
   const router = useRouter();
@@ -37,15 +37,16 @@ export default function MyAuditionsPage() {
 
       setUser(currentUser);
       const [
-        userSignups, 
-        userCallbacks, 
-        castShows, 
-        ownedAuditions, 
+        userSignups,
+        userCallbacks,
+        castShows,
+        ownedAuditions,
         productionTeamAuditions,
         ownedSlots,
         productionTeamSlots,
         ownedRehearsalEvents,
-        productionTeamRehearsalEvents
+        productionTeamRehearsalEvents,
+        userAgendaItems
       ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
@@ -55,7 +56,8 @@ export default function MyAuditionsPage() {
         getUserOwnedAuditionSlots(currentUser.id),
         getUserProductionTeamAuditionSlots(currentUser.id),
         getUserOwnedRehearsalEvents(currentUser.id),
-        getUserProductionTeamRehearsalEvents(currentUser.id)
+        getUserProductionTeamRehearsalEvents(currentUser.id),
+        getUserRehearsalAgendaItems(currentUser.id)
       ]);
       
       setSignups(userSignups);
@@ -73,15 +75,17 @@ export default function MyAuditionsPage() {
         productionTeamSlots: productionTeamSlots.length,
         allSlots: allSlots.length,
         allRehearsalEvents: allRehearsalEvents.length,
+        userAgendaItems: userAgendaItems.length,
         hasOwnedAuditions: ownedAuditions.length > 0,
         hasProductionTeamAuditions: productionTeamAuditions.length > 0
       });
       
-      // Generate production events (rehearsal/performance dates, audition slots, rehearsal events)
+      // Generate production events (rehearsal/performance dates, audition slots, agenda items)
       const allProductionEvents = [
         ...generateProductionEvents(castShows, 'cast'),
-        ...generateProductionEvents(ownedAuditions, 'owner', allSlots, allRehearsalEvents),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, allRehearsalEvents)
+        ...generateProductionEvents(ownedAuditions, 'owner', allSlots),
+        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots),
+        ...generateAgendaItemEvents(userAgendaItems)
       ];
       
       console.log('Generated production events:', allProductionEvents.length, allProductionEvents);

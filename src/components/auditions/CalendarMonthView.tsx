@@ -281,6 +281,12 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                     borderColor = 'border-amber-500/50';
                     textColor = 'text-amber-400';
                     icon = '🎬';
+                  } else if (evt.type === 'agenda_item') {
+                    // Rehearsal agenda items (amber - same as rehearsal events)
+                    bgColor = 'bg-amber-500/20';
+                    borderColor = 'border-amber-500/50';
+                    textColor = 'text-amber-400';
+                    icon = '🎬';
                   }
                   
                   return (

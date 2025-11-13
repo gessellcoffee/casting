@@ -86,6 +86,7 @@ export default function AuditionCalendar({
       if (evt.type === 'performance' && !eventFilters.performanceDates) return false;
       if (evt.type === 'audition_slot' && !eventFilters.auditionSlots) return false;
       if (evt.type === 'rehearsal_event' && !eventFilters.rehearsalEvents) return false;
+      if (evt.type === 'agenda_item' && !eventFilters.rehearsalEvents) return false; // Use same filter as rehearsal_event
       return true;
     }),
     [productionEvents, eventFilters]

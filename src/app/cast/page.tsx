@@ -75,6 +75,7 @@ function CastDashboardContent() {
     
     // Filter to only show user's auditions
     const userAuditions = data?.filter(audition => audition.user_id === userId) || [];
+    
     setAuditions(userAuditions);
     setLoading(false);
   };
@@ -154,7 +155,7 @@ function CastDashboardContent() {
               </p>
             </div>
             <div className="nav-buttons">
-              <Button text="+ Create New Audition" href="/cast/new" />
+              <Button text="+ Create New Production" href="/cast/new" />
             </div>
           </div>
 
@@ -194,12 +195,12 @@ function CastDashboardContent() {
             <div className="text-center py-12 p-8 rounded-xl neu-card-raised">
               <div className="text-neu-text-primary/70 mb-4">
                 {auditions.length === 0 
-                  ? "You haven't posted any auditions yet"
+                  ? "You haven't posted any productions yet"
                   : `No productions in ${filter === 'casting' ? 'casting phase' : 'active shows'}`
                 }
               </div>
               <div className="nav-buttons inline-block">
-                <Button text="Post Your First Audition" href="/cast/new" />
+                <Button text="Post Your First Production" href="/cast/new" />
               </div>
             </div>
           ) : (

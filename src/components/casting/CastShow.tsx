@@ -8,7 +8,9 @@ import { getAuditionSignups } from '@/lib/supabase/auditionSignups';
 import { createCastMember, getAuditionCastMembers, deleteCastMember } from '@/lib/supabase/castMembers';
 import { createBulkCastingOffers, createCastingOffer, getAuditionOffers, revokeCastingOffer } from '@/lib/supabase/castingOffers';
 import type { CastingOfferWithDetails } from '@/lib/supabase/types';
-import { X } from 'lucide-react';
+import { getUserPendingSignups, cancelPendingSignup } from '@/lib/supabase/pendingSignups';
+import type { PendingSignupWithInviter } from '@/types/pendingSignup';
+import { X, Mail, XCircle } from 'lucide-react';
 import UserProfileModal from './UserProfileModal';
 import SendOfferModal from './SendOfferModal';
 import SendCastingOfferModal from './SendCastingOfferModal';
@@ -35,6 +37,8 @@ interface CastShowProps {
 interface RoleWithCast extends AuditionRole {
   castMembers: CastMember[];
   understudyCastMembers: CastMember[];
+  pendingCasts: PendingSignupWithInviter[];
+  pendingUnderstudies: PendingSignupWithInviter[];
   auditionees: Array<{
     user_id: string;
     full_name: string | null;
@@ -78,6 +82,8 @@ export default function CastShow({
   const [sendingOffers, setSendingOffers] = useState(false);
   const [sendingIndividualOffer, setSendingIndividualOffer] = useState<string | null>(null);
   const [castingOffers, setCastingOffers] = useState<CastingOfferWithDetails[]>([]);
+  const [pendingSignups, setPendingSignups] = useState<PendingSignupWithInviter[]>([]);
+  const [cancellingPending, setCancellingPending] = useState<string | null>(null);
   
   // Individual offer modal state
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -118,6 +124,13 @@ export default function CastShow({
 
       // Get existing cast members
       const castMembers = await getAuditionCastMembers(audition.audition_id);
+
+      // Get pending signups for this audition
+      const { data: allPendingSignups } = await getUserPendingSignups(false);
+      const auditionPendingSignups = allPendingSignups?.filter(
+        (ps: any) => ps.request_type === 'casting_offer' && ps.request_data.audition_id === audition.audition_id
+      ) || [];
+      setPendingSignups(auditionPendingSignups);
 
       // Combine actors from signups and cast members
       const actorsMap = new Map();
@@ -160,16 +173,24 @@ export default function CastShow({
           (cm) => cm.audition_role_id === role.audition_role_id && cm.is_understudy
         );
 
+        // Filter pending signups for this role
+        const rolePendingCasts = auditionPendingSignups.filter(
+          (ps: any) => ps.request_data.audition_role_id === role.audition_role_id && !ps.request_data.is_understudy
+        );
+        const rolePendingUnderstudies = auditionPendingSignups.filter(
+          (ps: any) => ps.request_data.audition_role_id === role.audition_role_id && ps.request_data.is_understudy
+        );
+
         return {
           ...role,
           castMembers: roleCastMembers,
           understudyCastMembers: understudyCastMembers,
+          pendingCasts: rolePendingCasts,
+          pendingUnderstudies: rolePendingUnderstudies,
           auditionees: roleSignups.map((s: any) => ({
             user_id: s.user_id,
-            full_name: s.profiles?.first_name && s.profiles.last_name
-              ? `${s.profiles.first_name} ${s.profiles.last_name}`
-              : s.profiles?.email || 'Unknown User',
-            email: s.profiles?.email || 'No email',
+            full_name: s.profiles?.full_name || null,
+            email: s.profiles?.email || '',
             signup_id: s.signup_id,
             profile_photo_url: s.profiles?.profile_photo_url || null,
           })),
@@ -483,6 +504,32 @@ export default function CastShow({
       onError(errorMessage);
     } finally {
       setSendingIndividualOffer(null);
+    }
+  };
+
+  // Cancel a pending invitation
+  const handleCancelPendingInvitation = async (pendingSignupId: string, email: string) => {
+    if (!confirm(`Cancel invitation to ${email}? They will be notified via email.`)) {
+      return;
+    }
+
+    try {
+      setCancellingPending(pendingSignupId);
+
+      const { error } = await cancelPendingSignup(pendingSignupId);
+
+      if (error) {
+        throw error;
+      }
+
+      showToast('Invitation cancelled successfully', 'success');
+      await loadData();
+    } catch (err) {
+      console.error('Error cancelling pending invitation:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel invitation';
+      showToast(errorMessage, 'error');
+    } finally {
+      setCancellingPending(null);
     }
   };
 
@@ -924,6 +971,39 @@ export default function CastShow({
                                 })()}
                               </div>
 
+                              {/* Pending Principal Casts */}
+                              {role.pendingCasts && role.pendingCasts.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                  {role.pendingCasts.map((pending: any) => (
+                                    <div key={pending.pending_signup_id} className="flex items-center gap-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                                      <Mail className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium text-neu-text-primary truncate">
+                                          {pending.email}
+                                        </div>
+                                        <div className="text-xs text-purple-400 flex items-center gap-2">
+                                          <span>⏳ Pending Signup</span>
+                                          <span className="text-neu-text-primary/50">•</span>
+                                          <span className="text-neu-text-primary/70">
+                                            Invited {new Date(pending.invitation_sent_at).toLocaleDateString()}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCancelPendingInvitation(pending.pending_signup_id, pending.email)}
+                                        disabled={cancellingPending === pending.pending_signup_id}
+                                        className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                        title="Cancel invitation"
+                                      >
+                                        <XCircle className="w-4 h-4" />
+                                        {cancellingPending === pending.pending_signup_id ? 'Cancelling...' : 'Cancel'}
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
                               {/* Understudy Cast */}
                               {role.needs_understudy && (
                                 <div className="border-t border-neu-border pt-3">
@@ -1005,6 +1085,39 @@ export default function CastShow({
                                       </div>
                                     );
                                   })()}
+
+                                  {/* Pending Understudy Casts */}
+                                  {role.pendingUnderstudies && role.pendingUnderstudies.length > 0 && (
+                                    <div className="mt-3 space-y-2">
+                                      {role.pendingUnderstudies.map((pending: any) => (
+                                        <div key={pending.pending_signup_id} className="flex items-center gap-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                                          <Mail className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                                          <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium text-neu-text-primary truncate">
+                                              {pending.email}
+                                            </div>
+                                            <div className="text-xs text-purple-400 flex items-center gap-2">
+                                              <span>⏳ Pending Signup (Understudy)</span>
+                                              <span className="text-neu-text-primary/50">•</span>
+                                              <span className="text-neu-text-primary/70">
+                                                Invited {new Date(pending.invitation_sent_at).toLocaleDateString()}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleCancelPendingInvitation(pending.pending_signup_id, pending.email)}
+                                            disabled={cancellingPending === pending.pending_signup_id}
+                                            className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                            title="Cancel invitation"
+                                          >
+                                            <XCircle className="w-4 h-4" />
+                                            {cancellingPending === pending.pending_signup_id ? 'Cancelling...' : 'Cancel'}
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>

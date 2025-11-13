@@ -906,3 +906,135 @@ export async function getSignupsForSlots(slotIds: string[]): Promise<Array<{
     slot: signup.audition_slots,
   }));
 }
+
+/**
+ * Get rehearsal agenda items for a user across all their productions
+ * Returns items where:
+ * 1. User is explicitly assigned to the agenda item, OR
+ * 2. User is a cast member AND the agenda item has no assigned users (full cast call), OR
+ * 3. User is the production owner AND the agenda item has no assigned users, OR
+ * 4. User is a production team member AND the agenda item has no assigned users
+ */
+export async function getUserRehearsalAgendaItems(userId: string): Promise<any[]> {
+  try {
+    // Step 1: Get all auditions where user is involved (cast, owner, or production team)
+    const [castShows, ownedAuditions, productionTeamData] = await Promise.all([
+      getUserCastShows(userId),
+      getUserOwnedAuditions(userId),
+      supabase
+        .from('production_team_members')
+        .select('audition_id')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+    ]);
+
+    const castAuditionIds = castShows.map((show: any) => show.audition_id);
+    const ownedAuditionIds = ownedAuditions.map((aud: any) => aud.audition_id);
+    const teamAuditionIds = productionTeamData.data?.map((t: any) => t.audition_id) || [];
+
+    // Combine all audition IDs (user is involved in these productions)
+    const allAuditionIds = Array.from(new Set([...castAuditionIds, ...ownedAuditionIds, ...teamAuditionIds]));
+
+    if (allAuditionIds.length === 0) {
+      return [];
+    }
+
+    // Step 2: Get all rehearsal events for these auditions
+    const { data: rehearsalEvents, error: eventsError } = await supabase
+      .from('rehearsal_events')
+      .select(`
+        rehearsal_events_id,
+        audition_id,
+        date,
+        start_time,
+        end_time,
+        location,
+        notes,
+        auditions!inner (
+          audition_id,
+          user_id,
+          shows (
+            show_id,
+            title,
+            author
+          )
+        )
+      `)
+      .in('audition_id', allAuditionIds)
+      .order('date', { ascending: true })
+      .order('start_time', { ascending: true });
+
+    if (eventsError || !rehearsalEvents || rehearsalEvents.length === 0) {
+      console.error('Error fetching rehearsal events:', eventsError);
+      return [];
+    }
+
+    const rehearsalEventIds = rehearsalEvents.map(e => e.rehearsal_events_id);
+
+    // Step 3: Get all agenda items for these rehearsal events
+    const { data: allAgendaItems, error: itemsError } = await supabase
+      .from('rehearsal_agenda_items')
+      .select('*')
+      .in('rehearsal_event_id', rehearsalEventIds)
+      .order('start_time', { ascending: true });
+
+    if (itemsError || !allAgendaItems) {
+      console.error('Error fetching agenda items:', itemsError);
+      return [];
+    }
+
+    // Step 4: Get all assignments for these agenda items
+    const agendaItemIds = allAgendaItems.map(item => item.rehearsal_agenda_items_id);
+    
+    const { data: assignments, error: assignmentsError } = await supabase
+      .from('agenda_assignments')
+      .select(`
+        agenda_assignments_id,
+        agenda_item_id,
+        user_id,
+        status,
+        conflict_note,
+        notified_at
+      `)
+      .in('agenda_item_id', agendaItemIds);
+
+    if (assignmentsError) {
+      console.error('Error fetching assignments:', assignmentsError);
+    }
+
+    // Step 5: Filter agenda items based on user eligibility
+    const userAgendaItems = allAgendaItems.filter(item => {
+      const itemAssignments = assignments?.filter(a => a.agenda_item_id === item.rehearsal_agenda_items_id) || [];
+      const hasAssignments = itemAssignments.length > 0;
+      const isAssignedToUser = itemAssignments.some(a => a.user_id === userId);
+
+      // Find the rehearsal event for this item
+      const rehearsalEvent = rehearsalEvents.find(e => e.rehearsal_events_id === item.rehearsal_event_id);
+      if (!rehearsalEvent) return false;
+
+      const auditionId = rehearsalEvent.audition_id;
+      const isOwner = ownedAuditionIds.includes(auditionId);
+      const isCast = castAuditionIds.includes(auditionId);
+      const isTeam = teamAuditionIds.includes(auditionId);
+
+      // User sees this item if:
+      // 1. They are explicitly assigned, OR
+      // 2. No assignments exist AND they are (cast OR owner OR team)
+      return isAssignedToUser || (!hasAssignments && (isCast || isOwner || isTeam));
+    });
+
+    // Step 6: Combine with rehearsal event data for display
+    const agendaItemsWithEvents = userAgendaItems.map(item => {
+      const rehearsalEvent = rehearsalEvents.find(e => e.rehearsal_events_id === item.rehearsal_event_id);
+      return {
+        ...item,
+        rehearsal_event: rehearsalEvent
+      };
+    });
+
+    return agendaItemsWithEvents;
+  } catch (error) {
+    console.error('Error in getUserRehearsalAgendaItems:', error);
+    return [];
+  }
+}
