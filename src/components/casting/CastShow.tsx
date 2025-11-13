@@ -264,7 +264,7 @@ export default function CastShow({
 
     return {
       exists: true,
-      status: offer.cast_member?.status || 'Offered',
+      status: castMember.status || 'Offered',
       respondedAt: offer.responded_at,
     };
   };

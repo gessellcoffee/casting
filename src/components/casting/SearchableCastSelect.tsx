@@ -168,7 +168,7 @@ export default function SearchableCastSelect({
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative overflow-visible z-1000">
       <div className="relative">
         <input
           ref={inputRef}
