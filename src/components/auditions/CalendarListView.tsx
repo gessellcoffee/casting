@@ -202,19 +202,24 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
     });
   }, [currentDay, filteredSignups, filteredCallbacks, filteredPersonal, filteredProduction]);
 
-  // Group audition slots by show
-  const { groupedSlots, otherEvents } = useMemo(() => {
-    const slots = dayEvents.filter(e => e.type === 'production' && e.type === 'audition_slot');
-    const others = dayEvents.filter(e => !(e.type === 'production' && e.type === 'audition_slot'));
-    
+  // Group events by month for display
+  const groupedEvents = useMemo(() => {
     const grouped: Record<string, any[]> = {};
-    slots.forEach(slot => {
-      const showId = slot.show?.show_id || 'unknown';
-      if (!grouped[showId]) grouped[showId] = [];
-      grouped[showId].push(slot);
+    
+    dayEvents.forEach(event => {
+      const date = new Date(
+        event.type === 'audition' ? event.audition_slots.start_time : 
+        event.type === 'callback' ? event.callback_slots.start_time : 
+        event.type === 'production' ? (event.startTime || event.date) :
+        event.start
+      );
+      const monthKey = formatUSMonthYear(date);
+      
+      if (!grouped[monthKey]) grouped[monthKey] = [];
+      grouped[monthKey].push(event);
     });
     
-    return { groupedSlots: grouped, otherEvents: others };
+    return grouped;
   }, [dayEvents]);
 
   return (

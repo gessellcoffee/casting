@@ -6,6 +6,7 @@ import { getUser } from '@/lib/supabase';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { updateAudition } from '@/lib/supabase/auditions';
 import { deleteAuditionSlots, createAuditionSlots } from '@/lib/supabase/auditionSlots';
+import { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import StarryContainer from '@/components/StarryContainer';
 import AuditionDetailsForm from '@/components/casting/AuditionDetailsForm';
 import SlotScheduler from '@/components/casting/SlotScheduler';
@@ -43,6 +44,7 @@ export default function EditAuditionPage() {
     isPaid: false,
     payRange: '',
     payComments: '',
+    workflowStatus: 'auditioning' as WorkflowStatus,
   });
   const [slots, setSlots] = useState<any[]>([]);
 
@@ -115,6 +117,7 @@ export default function EditAuditionPage() {
       isPaid: data.is_paid || false,
       payRange: data.pay_range || '',
       payComments: data.pay_comments || '',
+      workflowStatus: (data.workflow_status || 'auditioning') as WorkflowStatus,
     };
     
     setAuditionDetails(parsedDetails);
@@ -141,6 +144,7 @@ export default function EditAuditionPage() {
         is_paid: auditionDetails.isPaid,
         pay_range: auditionDetails.payRange,
         pay_comments: auditionDetails.payComments,
+        workflowStatus: auditionDetails.workflowStatus,
       };
 
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);
