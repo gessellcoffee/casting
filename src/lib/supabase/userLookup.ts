@@ -33,6 +33,42 @@ export async function emailExists(email: string): Promise<boolean> {
 }
 
 /**
+ * Minimal profile info for search results
+ */
+export interface ProfileSearchResult {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  profile_photo_url: string | null;
+}
+
+/**
+ * Search for users by name or email
+ * Returns up to 10 matching profiles
+ */
+export async function searchUsers(query: string): Promise<ProfileSearchResult[]> {
+  if (!query || query.trim().length < 2) {
+    return [];
+  }
+
+  const searchTerm = query.toLowerCase().trim();
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, first_name, last_name, email, profile_photo_url')
+    .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+    .limit(10);
+
+  if (error) {
+    console.error('Error searching users:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {

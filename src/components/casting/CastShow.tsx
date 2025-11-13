@@ -119,22 +119,35 @@ export default function CastShow({
       // Get existing cast members
       const castMembers = await getAuditionCastMembers(audition.audition_id);
 
-      // Get unique actors from all signups
-      const uniqueActors = Array.from(
-        new Map(
-          signups.map((s: any) => [
-            s.user_id,
-            {
-              user_id: s.user_id,
-              full_name: s.profiles?.first_name && s.profiles.last_name
-                ? `${s.profiles.first_name} ${s.profiles.last_name}`
-                : s.profiles?.email || 'Unknown User',
-              email: s.profiles?.email || 'No email',
-              profile_photo_url: s.profiles?.profile_photo_url || null,
-            },
-          ])
-        ).values()
-      );
+      // Combine actors from signups and cast members
+      const actorsMap = new Map();
+      
+      // Add actors from signups
+      signups.forEach((s: any) => {
+        actorsMap.set(s.user_id, {
+          user_id: s.user_id,
+          full_name: s.profiles?.first_name && s.profiles.last_name
+            ? `${s.profiles.first_name} ${s.profiles.last_name}`
+            : s.profiles?.email || 'Unknown User',
+          email: s.profiles?.email || 'No email',
+          profile_photo_url: s.profiles?.profile_photo_url || null,
+        });
+      });
+      
+      // Add actors from cast members (includes those cast via email/search)
+      castMembers.forEach((cm: any) => {
+        if (!actorsMap.has(cm.user_id)) {
+          // Cast members already have profiles joined and full_name computed
+          actorsMap.set(cm.user_id, {
+            user_id: cm.user_id,
+            full_name: cm.full_name || cm.profiles?.email || 'Unknown User',
+            email: cm.profiles?.email || 'No email',
+            profile_photo_url: cm.profile_photo_url || cm.profiles?.profile_photo_url || null,
+          });
+        }
+      });
+      
+      const uniqueActors = Array.from(actorsMap.values());
       setAvailableActors(uniqueActors);
 
       // Group signups by role
@@ -280,11 +293,47 @@ export default function CastShow({
 
   // Open the send offer modal
   const openSendOfferModal = (userId: string, roleId: string, isUnderstudy: boolean) => {
-    const role = roles.find((r) => r.audition_role_id === roleId);
-    const actor = availableActors.find(a => a.user_id === userId);
+    console.log('🎭 openSendOfferModal called:', { userId, roleId, isUnderstudy });
+    console.log('Available actors:', availableActors);
+    console.log('Roles:', roles);
     
-    if (!role || !actor) return;
+    const role = roles.find((r) => r.audition_role_id === roleId);
+    if (!role) {
+      console.error('❌ Role not found:', roleId);
+      return;
+    }
+    console.log('✅ Role found:', role);
+    
+    // Try to find actor in availableActors first
+    let actor = availableActors.find(a => a.user_id === userId);
+    console.log('Actor in availableActors?', actor);
+    
+    // If not found, look in the cast members directly (for newly saved cast)
+    if (!actor) {
+      console.log('Looking in cast members...', role.castMembers, role.understudyCastMembers);
+      const castMember: any = role.castMembers.find((cm: any) => cm.user_id === userId) ||
+                              role.understudyCastMembers.find((cm: any) => cm.user_id === userId);
+      
+      console.log('Cast member found?', castMember);
+      
+      if (castMember) {
+        actor = {
+          user_id: castMember.user_id,
+          full_name: castMember.full_name || 'Unknown User',
+          email: castMember.profiles?.email || 'No email',
+          profile_photo_url: castMember.profile_photo_url || null,
+        };
+        console.log('✅ Actor created from cast member:', actor);
+      }
+    }
+    
+    if (!actor) {
+      console.error('❌ Actor not found:', userId);
+      showToast('Unable to find actor information. Please refresh the page.', 'error');
+      return;
+    }
 
+    console.log('✅ Setting offer modal data and opening modal');
     setOfferModalData({
       userId,
       auditionRoleId: roleId,

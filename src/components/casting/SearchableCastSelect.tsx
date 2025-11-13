@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { getUserByEmail, isValidEmail } from '@/lib/supabase/userLookup';
+import { getUserByEmail, isValidEmail, searchUsers } from '@/lib/supabase/userLookup';
 import { createCastingOfferByEmail } from '@/lib/supabase/castingOffers';
-import { supabase } from '@/lib/supabase/client';
 import { MdSearch, MdEmail } from 'react-icons/md';
 
 interface Actor {
@@ -52,7 +51,7 @@ export default function SearchableCastSelect({
 
   // Search database for users when query changes
   useEffect(() => {
-    const searchUsers = async () => {
+    const performSearch = async () => {
       if (searchQuery.trim().length < 2) {
         setSearchResults([]);
         return;
@@ -60,23 +59,11 @@ export default function SearchableCastSelect({
 
       setIsSearching(true);
       try {
-        const query = searchQuery.toLowerCase();
-        
-        // Search profiles by name or email
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email, profile_photo_url')
-          .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%`)
-          .limit(10);
-
-        if (error) {
-          console.error('Error searching users:', error);
-          setSearchResults([]);
-          return;
-        }
+        // Use the searchUsers function from userLookup
+        const profiles = await searchUsers(searchQuery);
 
         // Transform to Actor format
-        const actors: Actor[] = (data || []).map(profile => ({
+        const actors: Actor[] = profiles.map(profile => ({
           user_id: profile.id,
           full_name: profile.first_name && profile.last_name 
             ? `${profile.first_name} ${profile.last_name}`
@@ -94,7 +81,7 @@ export default function SearchableCastSelect({
       }
     };
 
-    const timeoutId = setTimeout(searchUsers, 300); // Debounce
+    const timeoutId = setTimeout(performSearch, 300); // Debounce
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
