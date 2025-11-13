@@ -829,7 +829,16 @@ export async function createCastingOfferByEmail(
             inviterUsername: senderProfile.email,
             inviterFullName: inviterFullName
           })
-        }).catch(err => console.error('Error sending invitation email:', err));
+        })
+        .then(async (response) => {
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Failed to send invitation email:', response.status, errorData);
+          } else {
+            console.log('Invitation email sent successfully to:', offerData.email);
+          }
+        })
+        .catch(err => console.error('Error sending invitation email:', err));
       }
 
       return {

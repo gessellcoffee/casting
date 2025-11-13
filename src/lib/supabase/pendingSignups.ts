@@ -217,7 +217,16 @@ export async function cancelPendingSignup(
           inviterUsername: inviterProfile.email,
           inviterFullName: inviterFullName
         })
-      }).catch(err => console.error('Error sending cancellation email:', err));
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Failed to send cancellation email:', response.status, errorData);
+        } else {
+          console.log('Cancellation email sent successfully to:', existing.email);
+        }
+      })
+      .catch(err => console.error('Error sending cancellation email:', err));
     }
 
     return { data, error: null };
