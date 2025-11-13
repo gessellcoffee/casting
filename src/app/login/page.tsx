@@ -179,12 +179,15 @@ export default function LoginPage() {
           </div>
 
           {/* Google Sign In */}
+
+          {/*
+          The google API is to do
           <button
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
             className="w-full px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
-          >
+          > */}
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 fill="currentColor"

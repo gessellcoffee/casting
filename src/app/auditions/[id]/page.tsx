@@ -184,6 +184,7 @@ export default function AuditionDetailPage() {
               <SlotsList 
                 slots={audition.slots || []} 
                 auditionId={audition.audition_id}
+                auditionTitle={audition.show?.title || 'Audition'}
                 user={user}
                 onSignupSuccess={loadAudition}
                 canManage={canManage}

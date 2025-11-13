@@ -10,16 +10,18 @@ import EmptyState from '@/components/ui/feedback/EmptyState';
 import { formatUSDateWithFullWeekday, formatUSTime } from '@/lib/utils/dateUtils';
 import Avatar from '@/components/shared/Avatar';
 import UserProfileModal from '@/components/casting/UserProfileModal';
+import AuditionSignupModal from './AuditionSignupModal';
 
 interface SlotsListProps {
   slots: any[];
   auditionId: string;
+  auditionTitle: string;
   user: any;
   onSignupSuccess: () => void;
   canManage?: boolean;
 }
 
-export default function SlotsList({ slots, auditionId, user, onSignupSuccess, canManage = false }: SlotsListProps) {
+export default function SlotsList({ slots, auditionId, auditionTitle, user, onSignupSuccess, canManage = false }: SlotsListProps) {
   const router = useRouter();
   const [signingUp, setSigningUp] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +34,8 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'filled'>('all');
   const [selectedDate, setSelectedDate] = useState<string>('all');
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
 
   // Check if user has already signed up for this audition and get all their signups
   useEffect(() => {
@@ -104,9 +108,11 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
     availableSlots = availableSlots.filter(slot => (slot.current_signups || 0) >= slot.max_signups);
   }
 
-  const handleSignup = async (slotId: string) => {
+  const handleSignup = async (slotId: string, slot?: any) => {
     if (!user) {
-      router.push('/login');
+      // Open signup modal instead of redirecting to login
+      setSelectedSlot(slot);
+      setShowSignupModal(true);
       return;
     }
 
@@ -373,7 +379,7 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
                 </div>
               ) : (
                 <button
-                  onClick={() => handleSignup(slot.slot_id)}
+                  onClick={() => handleSignup(slot.slot_id, slot)}
                   disabled={
                     signingUp === slot.slot_id || 
                     (slot.current_signups >= slot.max_signups) ||
@@ -408,6 +414,25 @@ export default function SlotsList({ slots, auditionId, user, onSignupSuccess, ca
           onClose={() => setSelectedUserId(null)}
           onActionComplete={() => {
             setSelectedUserId(null);
+            onSignupSuccess();
+          }}
+        />
+      )}
+
+      {/* Signup Modal for non-authenticated users */}
+      {showSignupModal && selectedSlot && (
+        <AuditionSignupModal
+          isOpen={showSignupModal}
+          onClose={() => {
+            setShowSignupModal(false);
+            setSelectedSlot(null);
+          }}
+          slotId={selectedSlot.slot_id}
+          auditionId={auditionId}
+          auditionTitle={auditionTitle}
+          slotTime={`${formatUSDateWithFullWeekday(selectedSlot.start_time)} at ${formatUSTime(selectedSlot.start_time)}`}
+          onSuccess={() => {
+            setSuccessMessage('Account created and signed up successfully! Please check your email to verify your account.');
             onSignupSuccess();
           }}
         />
