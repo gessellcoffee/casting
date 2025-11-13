@@ -193,7 +193,7 @@ export default function SearchableCastSelect({
       </div>
 
       {isOpen && (
-        <div className="absolute z-1000 w-full mt-2 neu-card-raised rounded-xl max-h-64 overflow-y-auto">
+        <div className="z-1000 w-full mt-2 neu-card-raised rounded-xl max-h-64 overflow-y-auto">
           {/* Show invite option if valid email with no results */}
           {isValidEmailNotInList && !isSearching && filteredActors.length === 0 && (
             <div className="px-4 py-3 bg-yellow-500/10">
