@@ -1132,11 +1132,6 @@ export default function CastShow({
               >
                 {isSaving ? 'Saving...' : 'Save Cast'}
               </button>
-              <Button
-                text="Send Offers"
-                onClick={() => setShowSendOffersModal(true)}
-                disabled={isSaving || sendingOffers}
-              />
             </div>
           </div>
         </div>
