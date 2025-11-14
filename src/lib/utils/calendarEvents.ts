@@ -1,4 +1,14 @@
 /**
+ * Parse YYYY-MM-DD string as local date to avoid timezone issues
+ * @param dateString - Date string in YYYY-MM-DD format
+ * @returns Date object in local timezone
+ */
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
  * Parse date data - handles both arrays and comma-separated strings
  */
 function parseDateData(dateData: string | string[] | null | undefined): Date[] {
@@ -6,12 +16,12 @@ function parseDateData(dateData: string | string[] | null | undefined): Date[] {
   
   // Handle array of date strings
   if (Array.isArray(dateData)) {
-    return dateData.map(d => new Date(d)).filter(date => !isNaN(date.getTime()));
+    return dateData.map(d => parseLocalDate(d)).filter(date => !isNaN(date.getTime()));
   }
   
   // Handle comma-separated string
   const dates = dateData.split(',').map(d => d.trim()).filter(Boolean);
-  return dates.map(d => new Date(d)).filter(date => !isNaN(date.getTime()));
+  return dates.map(d => parseLocalDate(d)).filter(date => !isNaN(date.getTime()));
 }
 
 /**
