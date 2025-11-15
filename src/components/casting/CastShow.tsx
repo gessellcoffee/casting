@@ -848,7 +848,8 @@ export default function CastShow({
             <p className="text-sm text-neu-text-primary/60 mb-4">
               Search by name or email. Enter any email to invite someone not yet on the platform.
             </p>
-            <div className="overflow-hidden border border-neu-border rounded-lg">
+            {/* Desktop: Table Layout */}
+            <div className="hidden lg:block overflow-hidden border border-neu-border rounded-lg">
               <table className="min-w-full divide-y divide-neu-border">
                 <thead className="bg-neu-surface/30">
                   <tr>
@@ -1137,6 +1138,290 @@ export default function CastShow({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile: Card Layout */}
+            <div className="lg:hidden space-y-4">
+              {roles.length > 0 ? (
+                roles.map((role) => {
+                  const selectedActor = roleSelections[role.audition_role_id] || '';
+                  const selectedUnderstudy = understudySelections[role.audition_role_id] || '';
+                  return (
+                    <div key={role.audition_role_id} className="border border-neu-border rounded-lg p-4 bg-neu-surface/20 space-y-4">
+                      {/* Role Info */}
+                      <div>
+                        <div className="font-medium text-lg text-neu-text-primary">{role.role_name}</div>
+                        {role.description && (
+                          <div className="text-sm text-neu-text-primary/60 mt-1">{role.description}</div>
+                        )}
+                        <div className="text-xs text-neu-text-primary/50 mt-1">
+                          {role.auditionees.length} auditionee{role.auditionees.length !== 1 ? 's' : ''}
+                        </div>
+                        <div className="mt-3">
+                          <label className="flex items-center gap-2 text-sm text-neu-text-primary cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={role.needs_understudy ?? false}
+                              onChange={() => handleToggleUnderstudy(role.audition_role_id, role.needs_understudy ?? false)}
+                              className="rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                            />
+                            <span>Needs Understudy</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Principal Cast */}
+                      <div className="border-t border-neu-border pt-4">
+                        <div className="text-xs font-semibold text-neu-text-primary/70 mb-2 uppercase">Principal</div>
+                        <SearchableCastSelect
+                          value={selectedActor}
+                          onChange={(userId) => handleRoleCastChange(role.audition_role_id, userId)}
+                          availableActors={availableActors}
+                          placeholder="Search by name or email..."
+                          disabled={false}
+                          auditionId={audition.audition_id}
+                          roleId={role.role_id || null}
+                          auditionRoleId={role.audition_role_id}
+                          isUnderstudy={false}
+                          currentUserId={user.id}
+                          onInviteSent={() => {
+                            showToast('Invitation sent successfully!', 'success');
+                            loadData();
+                          }}
+                        />
+                        {selectedActor && (() => {
+                          const offerStatus = getOfferStatus(selectedActor, role.audition_role_id, false);
+                          const actorData = availableActors.find(a => a.user_id === selectedActor);
+                          return (
+                            <div className="mt-3 space-y-2">
+                              <div className="flex gap-3 items-center">
+                                <Avatar
+                                  src={actorData?.profile_photo_url}
+                                  alt={actorData?.full_name || 'Actor'}
+                                  size="sm"
+                                  onClick={() => setSelectedUserId(selectedActor)}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedUserId(selectedActor)}
+                                  className="text-sm text-[#5a8ff5] hover:text-[#4a7bd9] hover:underline transition-colors"
+                                >
+                                  View Profile
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {offerStatus ? (
+                                  <>
+                                    <span className={`text-xs px-2 py-1 rounded-full ${
+                                      offerStatus.status === 'Accepted' ? 'bg-green-500/20 text-green-400' :
+                                      offerStatus.status === 'Declined' ? 'bg-red-500/20 text-red-400' :
+                                      'bg-yellow-500/20 text-yellow-400'
+                                    }`}>
+                                      {offerStatus.status === 'Accepted' ? '✓ Accepted' :
+                                       offerStatus.status === 'Declined' ? '✗ Declined' :
+                                       '⏳ Pending'}
+                                    </span>
+                                    {!offerStatus.respondedAt && (
+                                      <button
+                                        type="button"
+                                        onClick={() => openRevokeOfferModal(selectedActor, role.audition_role_id, false)}
+                                        disabled={sendingIndividualOffer === 'revoking'}
+                                        className="text-sm text-red-600 hover:text-red-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        {sendingIndividualOffer === 'revoking' ? 'Revoking...' : '🚫 Revoke Offer'}
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const exists = role.castMembers.some(cm => cm.user_id === selectedActor);
+                                      if (!exists) {
+                                        showToast('Please save the cast assignment first before sending an offer.', 'warning');
+                                        return;
+                                      }
+                                      openSendOfferModal(selectedActor, role.audition_role_id, false);
+                                    }}
+                                    disabled={sendingIndividualOffer === selectedActor}
+                                    className="text-sm text-green-600 hover:text-green-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title={role.castMembers.some(cm => cm.user_id === selectedActor) ? 'Send casting offer' : 'Save cast first'}
+                                  >
+                                    {sendingIndividualOffer === selectedActor ? 'Sending...' : '📧 Send Offer'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Pending Principal Casts */}
+                      {role.pendingCasts && role.pendingCasts.length > 0 && (
+                        <div className="space-y-2">
+                          {role.pendingCasts.map((pending: any) => (
+                            <div key={pending.pending_signup_id} className="flex flex-col gap-2 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <Mail className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-neu-text-primary break-all">
+                                    {pending.email}
+                                  </div>
+                                  <div className="text-xs text-purple-400 mt-1">
+                                    <div>⏳ Pending Signup</div>
+                                    <div className="text-neu-text-primary/70 mt-0.5">
+                                      Invited {new Date(pending.invitation_sent_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleCancelPendingInvitation(pending.pending_signup_id, pending.email)}
+                                disabled={cancellingPending === pending.pending_signup_id}
+                                className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 py-1"
+                                title="Cancel invitation"
+                              >
+                                <XCircle className="w-4 h-4" />
+                                {cancellingPending === pending.pending_signup_id ? 'Cancelling...' : 'Cancel'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Understudy Cast */}
+                      {role.needs_understudy && (
+                        <div className="border-t border-neu-border pt-4">
+                          <div className="text-xs font-semibold text-neu-text-primary/70 mb-2 uppercase">Understudy</div>
+                          <SearchableCastSelect
+                            value={selectedUnderstudy}
+                            onChange={(userId) => handleUnderstudyCastChange(role.audition_role_id, userId)}
+                            availableActors={availableActors}
+                            placeholder="Search by name or email..."
+                            disabled={false}
+                            auditionId={audition.audition_id}
+                            roleId={role.role_id || null}
+                            auditionRoleId={role.audition_role_id}
+                            isUnderstudy={true}
+                            currentUserId={user.id}
+                            onInviteSent={() => {
+                              showToast('Invitation sent successfully!', 'success');
+                              loadData();
+                            }}
+                          />
+                          {selectedUnderstudy && (() => {
+                            const offerStatus = getOfferStatus(selectedUnderstudy, role.audition_role_id, true);
+                            const understudyData = availableActors.find(a => a.user_id === selectedUnderstudy);
+                            return (
+                              <div className="mt-3 space-y-2">
+                                <div className="flex gap-3 items-center">
+                                  <Avatar
+                                    src={understudyData?.profile_photo_url}
+                                    alt={understudyData?.full_name || 'Actor'}
+                                    size="sm"
+                                    onClick={() => setSelectedUserId(selectedUnderstudy)}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedUserId(selectedUnderstudy)}
+                                    className="text-sm text-purple-400 hover:text-purple-300 hover:underline transition-colors"
+                                  >
+                                    View Profile
+                                  </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {offerStatus ? (
+                                    <>
+                                      <span className={`text-xs px-2 py-1 rounded-full ${
+                                        offerStatus.status === 'Accepted' ? 'bg-green-500/20 text-green-400' :
+                                        offerStatus.status === 'Declined' ? 'bg-red-500/20 text-red-400' :
+                                        'bg-yellow-500/20 text-yellow-400'
+                                      }`}>
+                                        {offerStatus.status === 'Accepted' ? '✓ Accepted' :
+                                         offerStatus.status === 'Declined' ? '✗ Declined' :
+                                         '⏳ Pending'}
+                                      </span>
+                                      {!offerStatus.respondedAt && (
+                                        <button
+                                          type="button"
+                                          onClick={() => openRevokeOfferModal(selectedUnderstudy, role.audition_role_id, true)}
+                                          disabled={sendingIndividualOffer === 'revoking'}
+                                          className="text-sm text-red-600 hover:text-red-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                          {sendingIndividualOffer === 'revoking' ? 'Revoking...' : '🚫 Revoke Offer'}
+                                        </button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const exists = role.understudyCastMembers.some(cm => cm.user_id === selectedUnderstudy);
+                                        if (!exists) {
+                                          showToast('Please save the cast assignment first before sending an offer.', 'warning');
+                                          return;
+                                        }
+                                        openSendOfferModal(selectedUnderstudy, role.audition_role_id, true);
+                                      }}
+                                      disabled={sendingIndividualOffer === selectedUnderstudy}
+                                      className="text-sm text-green-600 hover:text-green-700 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title={role.understudyCastMembers.some(cm => cm.user_id === selectedUnderstudy) ? 'Send casting offer' : 'Save cast first'}
+                                    >
+                                      {sendingIndividualOffer === selectedUnderstudy ? 'Sending...' : '📧 Send Offer'}
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Pending Understudy Casts */}
+                          {role.pendingUnderstudies && role.pendingUnderstudies.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {role.pendingUnderstudies.map((pending: any) => (
+                                <div key={pending.pending_signup_id} className="flex flex-col gap-2 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                                  <div className="flex items-start gap-2">
+                                    <Mail className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium text-neu-text-primary break-all">
+                                        {pending.email}
+                                      </div>
+                                      <div className="text-xs text-purple-400 mt-1">
+                                        <div>⏳ Pending Signup (Understudy)</div>
+                                        <div className="text-neu-text-primary/70 mt-0.5">
+                                          Invited {new Date(pending.invitation_sent_at).toLocaleDateString()}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCancelPendingInvitation(pending.pending_signup_id, pending.email)}
+                                    disabled={cancellingPending === pending.pending_signup_id}
+                                    className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 py-1"
+                                    title="Cancel invitation"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                    {cancellingPending === pending.pending_signup_id ? 'Cancelling...' : 'Cancel'}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="border border-neu-border rounded-lg p-6 text-center text-neu-text-primary/60">
+                  <div className="space-y-2">
+                    <p className="font-medium">No roles found for this show.</p>
+                    <p className="text-sm">Please add roles to the show before casting actors.</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
