@@ -8,6 +8,7 @@ import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
 import CallbackManagement from '@/components/callbacks/CallbackManagement';
 import CastingOffersPanel from '@/components/casting/CastingOffersPanel';
+import { Button } from '@headlessui/react';
 
 export default function CallbackManagementPage() {
   const params = useParams();
@@ -123,28 +124,28 @@ export default function CallbackManagementPage() {
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6">
-            <button
+            <Button
               onClick={() => setActiveTab('callbacks')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all border ${
+              className={`px-6 cursor-pointer py-3 rounded-xl font-semibold transition-all border ${
                 activeTab === 'callbacks'
-                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark),inset_-4px_-4px_8px_var(--neu-shadow-light)] border-neu-accent-primary text-neu-accent-primary'
-                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
+                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark)] border-neu-accent-primary text-neu-accent-primary'
+                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
               }`}
               style={{ backgroundColor: 'var(--neu-surface)' }}
             >
               📋 Callbacks
-            </button>
-            <button
+            </Button>
+            <Button 
               onClick={() => setActiveTab('offers')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all border ${
+              className={`px-6 cursor-pointer py-3 rounded-xl font-semibold transition-all border ${
                 activeTab === 'offers'
-                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark),inset_-4px_-4px_8px_var(--neu-shadow-light)] border-neu-accent-primary text-neu-accent-primary'
-                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
+                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark)] border-neu-accent-primary text-neu-accent-primary'
+                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
               }`}
               style={{ backgroundColor: 'var(--neu-surface)' }}
             >
               🎭 Casting Offers
-            </button>
+            </Button>
           </div>
 
           {/* Content */}

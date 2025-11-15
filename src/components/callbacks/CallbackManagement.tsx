@@ -168,7 +168,7 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
         </div>
 
         {/* Quick Info */}
-        <div className="neu-inset p-6">
+        <div className="neu-card-raised p-6">
           <h3 className="text-lg font-semibold text-neu-text-primary mb-3">Getting Started</h3>
           <ol className="space-y-2 text-sm text-neu-text-primary/70">
             <li className="flex items-start gap-2">
