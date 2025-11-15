@@ -169,19 +169,16 @@ export default function LoginPage() {
           </form>
 
           {/* Divider */}
-          {/* <div className="relative my-6">
+          <div className="relative my-6">
             <hr className="w-full border-neutral-200 mb-2" />
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-neu-surface text-neu-text-primary/60">
                 Or continue with
               </span>
             </div>
-          </div> */}
+          </div> 
 
           {/* Google Sign In */}
-
-          {/*
-          The google API is to
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -208,7 +205,8 @@ export default function LoginPage() {
             </svg>
             Continue with Google
           </button>
- */}
+
+          
           {/* Toggle Sign In/Sign Up */}
           <div className="mt-6 text-center">
             <button
