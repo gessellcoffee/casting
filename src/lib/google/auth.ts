@@ -17,7 +17,10 @@ export function getAuthUrl(state: string) {
   
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/calendar.readonly'],
+    scope: [
+      'https://www.googleapis.com/auth/calendar.readonly',
+      'https://www.googleapis.com/auth/calendar.events'
+    ],
     state: state, // Pass user ID or session ID for security
     prompt: 'consent', // Force consent screen to get refresh token
   });

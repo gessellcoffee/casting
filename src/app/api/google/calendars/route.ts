@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { supabaseServer } from '@/lib/supabase/serverClient';
 import { listCalendars } from '@/lib/google/calendar';
 import { refreshAccessToken } from '@/lib/google/auth';
 
@@ -12,11 +12,15 @@ export async function POST(request: NextRequest) {
     }
     
     // Get stored access token
-    const { data: tokenData } = await supabase
+    const { data: tokenData, error: tokenError } = await supabaseServer
       .from('google_calendar_tokens')
       .select('access_token, refresh_token, expiry_date')
       .eq('user_id', userId)
       .single();
+    
+    if (tokenError) {
+      console.error('Error fetching tokens:', tokenError);
+    }
     
     if (!tokenData) {
       return NextResponse.json(
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
         accessToken = newTokens.access_token!;
         
         // Update stored tokens
-        await supabase
+        await supabaseServer
           .from('google_calendar_tokens')
           .update({
             access_token: accessToken,

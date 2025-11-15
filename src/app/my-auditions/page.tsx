@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
 import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
-import GoogleCalendarImport from '@/components/calendar/GoogleCalendarImport';
+import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
 import { generateProductionEvents, generateAgendaItemEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { Check, X } from 'lucide-react';
 
 export default function MyAuditionsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [signups, setSignups] = useState<any[]>([]);
   const [callbacks, setCallbacks] = useState<any[]>([]);
@@ -19,10 +21,51 @@ export default function MyAuditionsPage() {
   const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
   const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     loadData();
+    checkConnectionStatus();
   }, []);
+
+  const checkConnectionStatus = () => {
+    const googleConnected = searchParams.get('google_connected');
+    const googleError = searchParams.get('google_error');
+
+    if (googleConnected === 'true') {
+      setConnectionStatus({
+        show: true,
+        type: 'success',
+        message: 'Successfully connected to Google Calendar!'
+      });
+      // Clear query params after 3 seconds
+      setTimeout(() => {
+        setConnectionStatus(null);
+        router.replace('/my-auditions');
+      }, 3000);
+    } else if (googleError) {
+      const errorMessages: Record<string, string> = {
+        cancelled: 'Google Calendar connection was cancelled.',
+        invalid: 'Invalid OAuth callback. Please try again.',
+        storage: 'Failed to save connection. Please try again.',
+        unknown: 'An error occurred. Please try again.'
+      };
+      setConnectionStatus({
+        show: true,
+        type: 'error',
+        message: errorMessages[googleError] || 'An error occurred.'
+      });
+      // Clear query params after 5 seconds
+      setTimeout(() => {
+        setConnectionStatus(null);
+        router.replace('/my-auditions');
+      }, 5000);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -112,6 +155,22 @@ export default function MyAuditionsPage() {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Connection Status Alert */}
+        {connectionStatus?.show && (
+          <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
+            connectionStatus.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+          }`}>
+            {connectionStatus.type === 'success' ? (
+              <Check className="w-5 h-5 flex-shrink-0" />
+            ) : (
+              <X className="w-5 h-5 flex-shrink-0" />
+            )}
+            <span>{connectionStatus.message}</span>
+          </div>
+        )}
+
         <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold text-neu-text-primary mb-2">
@@ -123,16 +182,14 @@ export default function MyAuditionsPage() {
           </div>
           
           <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3">
-            {/* <GoogleCalendarImport 
+            <GoogleCalendarSync 
               userId={user.id}
-              onImportComplete={loadData}
-            /> */}
+              onSyncComplete={loadData}
+            />
             <DownloadMyCalendarButton
               signups={signups}
               callbacks={callbacks}
               productionEvents={productionEvents}
-              variant="primary"
-              size="md"
             />
           </div>
         </div>

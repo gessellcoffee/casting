@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { supabaseServer } from '@/lib/supabase/serverClient';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Delete stored tokens
-    const { error } = await supabase
+    const { error } = await supabaseServer
       .from('google_calendar_tokens')
       .delete()
       .eq('user_id', userId);
