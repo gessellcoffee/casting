@@ -933,6 +933,43 @@ export type Database = {
           },
         ]
       }
+
+      google_calendar_sync: {
+        Row: {
+          id: string
+          user_id: string
+          event_type: string
+          google_calendar_id: string
+          calendar_name: string
+          last_synced_at: string | null
+          sync_enabled: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          event_type: string
+          google_calendar_id: string
+          calendar_name: string
+          last_synced_at?: string | null
+          sync_enabled?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          event_type?: string
+          google_calendar_id?: string
+          calendar_name?: string
+          last_synced_at?: string | null
+          sync_enabled?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       production_team_members: {
         Row: {
           audition_id: string

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/serverClient';
-import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '@/lib/google/calendar';
 import { refreshAccessToken } from '@/lib/google/auth';
 
 /**
@@ -16,33 +15,34 @@ export async function POST(request: NextRequest) {
     }
     
     // Get stored access token
-    const { data: tokenData } = await supabaseServer
+    const { data: tokenData, error: tokenError } = await supabaseServer
       .from('google_calendar_tokens')
       .select('access_token, refresh_token, expiry_date')
       .eq('user_id', userId)
       .single();
     
-    if (!tokenData) {
+    if (tokenError || !tokenData) {
       return NextResponse.json(
         { error: 'Not connected to Google Calendar' }, 
         { status: 401 }
       );
     }
     
-    let accessToken = tokenData.access_token;
+    let accessToken: string = tokenData.access_token;
     
     // Refresh token if needed
-    if (tokenData.expiry_date && tokenData.refresh_token) {
+    if (tokenData.expiry_date && tokenData.refresh_token !== null) {
       const now = Date.now();
       if (now >= tokenData.expiry_date) {
         const newTokens = await refreshAccessToken(tokenData.refresh_token);
         accessToken = newTokens.access_token!;
         
+        // Update token in database
         await supabaseServer
           .from('google_calendar_tokens')
           .update({
             access_token: accessToken,
-            expiry_date: newTokens.expiry_date,
+            expiry_date: newTokens.expiry_date ?? null,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -50,13 +50,13 @@ export async function POST(request: NextRequest) {
     }
     
     // Get sync settings - which calendars are enabled
-    const { data: syncSettings } = await supabaseServer
-      .from('google_calendar_sync' as any)
+    const { data: syncSettings, error: syncError } = await supabaseServer
+      .from('google_calendar_sync')
       .select('*')
       .eq('user_id', userId)
       .eq('sync_enabled', true);
     
-    if (!syncSettings || syncSettings.length === 0) {
+    if (syncError || !syncSettings || syncSettings.length === 0) {
       return NextResponse.json(
         { error: 'No sync calendars configured. Run setup first.' }, 
         { status: 400 }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     
     // Update last synced timestamp
     await supabaseServer
-      .from('google_calendar_sync' as any)
+      .from('google_calendar_sync')
       .update({ last_synced_at: new Date().toISOString() })
       .eq('user_id', userId);
     
