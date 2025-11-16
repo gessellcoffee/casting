@@ -5,7 +5,7 @@ import { createCalendarEvent } from '@/lib/google/calendar';
 
 /**
  * POST /api/google/sync/push
- * Syncs app events to Google Calendar with progress updates
+ * Syncs app events to Google Calendar
  */
 export async function POST(request: NextRequest) {
   try {
@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 /**
  * Sync events of a specific type to Google Calendar
  */
