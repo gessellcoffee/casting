@@ -18,6 +18,12 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
     lastSynced?: string;
     calendarsSetup: boolean;
   }>({ calendarsSetup: false });
+  const [syncProgress, setSyncProgress] = useState<{
+    current: number;
+    total: number;
+    currentType: string;
+    message: string;
+  } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [calendars, setCalendars] = useState<any[]>([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState('primary');
@@ -132,6 +138,8 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
 
   const handleSync = async () => {
     setIsSyncing(true);
+    setSyncProgress({ current: 0, total: 6, currentType: 'Starting...', message: 'Initializing sync...' });
+    
     try {
       const response = await fetch('/api/google/sync/push', {
         method: 'POST',
@@ -143,20 +151,77 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
         throw new Error('Failed to sync');
       }
       
-      const { synced, errors } = await response.json();
-      
-      setSyncStatus({ 
-        ...syncStatus, 
-        lastSynced: new Date().toISOString() 
-      });
-      
-      openModal(
-        'Sync Complete', 
-        `Successfully synced ${synced} events to Google Calendar${errors > 0 ? `. ${errors} events failed.` : '!'}`,
-        undefined,
-        'OK',
-        false
-      );
+      // Check if response is streaming
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('text/event-stream')) {
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        
+        if (reader) {
+          let buffer = '';
+          let finalResult = { synced: 0, errors: 0 };
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  
+                  if (data.type === 'progress') {
+                    setSyncProgress({
+                      current: data.current,
+                      total: data.total,
+                      currentType: data.eventType,
+                      message: data.message
+                    });
+                  } else if (data.type === 'complete') {
+                    finalResult = { synced: data.synced, errors: data.errors };
+                  }
+                } catch (e) {
+                  console.error('Error parsing SSE:', e);
+                }
+              }
+            }
+          }
+          
+          setSyncStatus({ 
+            ...syncStatus, 
+            lastSynced: new Date().toISOString() 
+          });
+          
+          openModal(
+            'Sync Complete', 
+            `Successfully synced ${finalResult.synced} events to Google Calendar${finalResult.errors > 0 ? `. ${finalResult.errors} events failed.` : '!'}`,
+            undefined,
+            'OK',
+            false
+          );
+        }
+      } else {
+        // Fallback to regular JSON response
+        const { synced, errors } = await response.json();
+        
+        setSyncStatus({ 
+          ...syncStatus, 
+          lastSynced: new Date().toISOString() 
+        });
+        
+        openModal(
+          'Sync Complete', 
+          `Successfully synced ${synced} events to Google Calendar${errors > 0 ? `. ${errors} events failed.` : '!'}`,
+          undefined,
+          'OK',
+          false
+        );
+      }
       
       if (onSyncComplete) {
         onSyncComplete();
@@ -166,6 +231,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
       openModal('Sync Failed', 'Failed to sync events. Please try again.', undefined, 'OK', false);
     } finally {
       setIsSyncing(false);
+      setSyncProgress(null);
     }
   };
 
@@ -238,63 +304,84 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
 
   return (
     <>
-      <div className="flex items-center gap-3 flex-wrap">
-        {!isConnected ? (
-          <Button
-            text="Connect Google Calendar"
-            onClick={handleConnect}
-            disabled={isSyncing}
-            className="flex items-center gap-2"
-          />
-        ) : !syncStatus.calendarsSetup ? (
-          <>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {!isConnected ? (
             <Button
-              text="Setup Sync"
-              onClick={handleSetupSync}
+              text="Connect Google Calendar"
+              onClick={handleConnect}
               disabled={isSyncing}
               className="flex items-center gap-2"
-            >
-              <Calendar className="w-4 h-4" />
-            </Button>
-            <button
-              onClick={handleDisconnect}
-              className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors"
-              title="Disconnect Google Calendar"
-            >
-              Disconnect
-            </button>
-          </>
-        ) : (
-          <>
-            <Button
-              text={isSyncing ? 'Syncing...' : 'Sync to Google'}
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="flex items-center gap-2"
-            >
-              <Upload className="w-4 h-4" />
-            </Button>
-            <Button
-              text="Import from Google"
-              onClick={handleStartImport}
-              disabled={isSyncing}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
-            {syncStatus.lastSynced && (
-              <span className="text-xs text-neu-text-primary/60">
-                Last synced: {new Date(syncStatus.lastSynced).toLocaleString()}
-              </span>
-            )}
-            <button
-              onClick={handleDisconnect}
-              className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors"
-              title="Disconnect Google Calendar"
-            >
-              Disconnect
-            </button>
-          </>
+            />
+          ) : !syncStatus.calendarsSetup ? (
+            <>
+              <Button
+                text="Setup Sync"
+                onClick={handleSetupSync}
+                disabled={isSyncing}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+              </Button>
+              <button
+                onClick={handleDisconnect}
+                className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors"
+                title="Disconnect Google Calendar"
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <>
+              <Button
+                text={isSyncing ? 'Syncing...' : 'Sync to Google'}
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+              <Button
+                text="Import from Google"
+                onClick={handleStartImport}
+                disabled={isSyncing}
+                className="flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+              {syncStatus.lastSynced && (
+                <span className="text-xs text-neu-text-primary/60">
+                  Last synced: {new Date(syncStatus.lastSynced).toLocaleString()}
+                </span>
+              )}
+              <button
+                onClick={handleDisconnect}
+                className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors"
+                title="Disconnect Google Calendar"
+              >
+                Disconnect
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Progress Bar */}
+        {syncProgress && (
+          <div className="w-full max-w-md">
+            <div className="flex items-center justify-between text-xs text-neu-text-primary/70 mb-1">
+              <span>{syncProgress.currentType}</span>
+              <span>{syncProgress.current} / {syncProgress.total}</span>
+            </div>
+            <div className="w-full h-2 bg-neu-surface rounded-full overflow-hidden neu-card-inset">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ease-out"
+                style={{ width: `${(syncProgress.current / syncProgress.total) * 100}%` }}
+              />
+            </div>
+            <div className="text-xs text-neu-text-primary/60 mt-1">
+              {syncProgress.message}
+            </div>
+          </div>
         )}
       </div>
 

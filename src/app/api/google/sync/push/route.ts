@@ -15,85 +15,132 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
     
-    // Get stored access token
-    const { data: tokenData, error: tokenError } = await supabaseServer
-      .from('google_calendar_tokens')
-      .select('access_token, refresh_token, expiry_date')
-      .eq('user_id', userId)
-      .single();
-    
-    if (tokenError || !tokenData) {
-      return NextResponse.json(
-        { error: 'Not connected to Google Calendar' }, 
-        { status: 401 }
-      );
-    }
-    
-    let accessToken: string = tokenData.access_token;
-    
-    // Refresh token if needed
-    if (tokenData.expiry_date && tokenData.refresh_token !== null) {
-      const now = Date.now();
-      if (now >= tokenData.expiry_date) {
-        const newTokens = await refreshAccessToken(tokenData.refresh_token);
-        accessToken = newTokens.access_token!;
+    // Create a streaming response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const sendProgress = (current: number, total: number, eventType: string, message: string) => {
+          const data = JSON.stringify({ 
+            type: 'progress', 
+            current, 
+            total, 
+            eventType, 
+            message 
+          });
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        };
         
-        // Update token in database
-        await supabaseServer
-          .from('google_calendar_tokens')
-          .update({
-            access_token: accessToken,
-            expiry_date: newTokens.expiry_date ?? null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
+        try {
+          // Get user's access token
+          const { data: tokenData, error: tokenError } = await supabaseServer
+            .from('google_calendar_tokens')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          
+          if (tokenError || !tokenData) {
+            const errorData = JSON.stringify({ type: 'error', message: 'Not connected to Google Calendar' });
+            controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
+            controller.close();
+            return;
+          }
+          
+          let accessToken = tokenData.access_token;
+          
+          // Check if token needs refresh
+          if (tokenData.expiry_date && new Date(tokenData.expiry_date) <= new Date()) {
+            const newTokens = await refreshAccessToken(tokenData.refresh_token || '');
+            accessToken = newTokens.access_token!;
+            
+            // Update token in database
+            await supabaseServer
+              .from('google_calendar_tokens')
+              .update({
+                access_token: accessToken,
+                expiry_date: newTokens.expiry_date ?? null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('user_id', userId);
+          }
+          
+          // Get sync settings - which calendars are enabled
+          const { data: syncSettings, error: syncError } = await supabaseServer
+            .from('google_calendar_sync' as any)
+            .select('*')
+            .eq('user_id', userId)
+            .eq('sync_enabled', true);
+          
+          if (syncError || !syncSettings || syncSettings.length === 0) {
+            const errorData = JSON.stringify({ type: 'error', message: 'No sync calendars configured. Run setup first.' });
+            controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
+            controller.close();
+            return;
+          }
+          
+          // Type assertion for sync settings
+          type SyncSetting = {
+            event_type: string;
+            google_calendar_id: string;
+            sync_enabled: boolean;
+            user_id: string;
+          };
+          
+          let syncedCount = 0;
+          let errorCount = 0;
+          const settings = syncSettings as unknown as SyncSetting[];
+          const total = settings.length;
+          
+          // Sync each event type
+          for (let i = 0; i < settings.length; i++) {
+            const syncSetting = settings[i];
+            const current = i + 1;
+            
+            sendProgress(current, total, syncSetting.event_type, `Syncing ${syncSetting.event_type}...`);
+            
+            try {
+              const result = await syncEventType(
+                userId,
+                syncSetting.event_type,
+                syncSetting.google_calendar_id,
+                accessToken
+              );
+              syncedCount += result.synced;
+              errorCount += result.errors;
+            } catch (error) {
+              console.error(`Error syncing ${syncSetting.event_type}:`, error);
+              errorCount++;
+            }
+          }
+          
+          // Update last synced timestamp
+          await supabaseServer
+            .from('google_calendar_sync' as any)
+            .update({ last_synced_at: new Date().toISOString() })
+            .eq('user_id', userId);
+          
+          // Send completion message
+          const completeData = JSON.stringify({ 
+            type: 'complete', 
+            synced: syncedCount, 
+            errors: errorCount 
+          });
+          controller.enqueue(encoder.encode(`data: ${completeData}\n\n`));
+          controller.close();
+        } catch (error: any) {
+          console.error('Error in sync stream:', error);
+          const errorData = JSON.stringify({ type: 'error', message: error?.message || 'Failed to sync' });
+          controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
+          controller.close();
+        }
       }
-    }
+    });
     
-    // Get sync settings - which calendars are enabled
-    const { data: syncSettings, error: syncError } = await supabaseServer
-      .from('google_calendar_sync' as any)
-      .select('*')
-      .eq('user_id', userId)
-      .eq('sync_enabled', true);
-    
-    if (syncError || !syncSettings || syncSettings.length === 0) {
-      return NextResponse.json(
-        { error: 'No sync calendars configured. Run setup first.' }, 
-        { status: 400 }
-      );
-    }
-    
-    let syncedCount = 0;
-    let errorCount = 0;
-    
-    // Sync each event type
-    for (const syncSetting of syncSettings) {
-      try {
-        const result = await syncEventType(
-          userId,
-          syncSetting.event_type,
-          syncSetting.google_calendar_id,
-          accessToken
-        );
-        syncedCount += result.synced;
-        errorCount += result.errors;
-      } catch (error) {
-        console.error(`Error syncing ${syncSetting.event_type}:`, error);
-        errorCount++;
-      }
-    }
-    
-    // Update last synced timestamp
-    await supabaseServer
-      .from('google_calendar_sync' as any)
-      .update({ last_synced_at: new Date().toISOString() })
-      .eq('user_id', userId);
-    
-    return NextResponse.json({ 
-      success: true,
-      synced: syncedCount,
-      errors: errorCount
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     });
   } catch (error: any) {
     console.error('Error pushing sync:', error);
@@ -194,7 +241,7 @@ async function syncAuditionSlots(userId: string, calendarId: string, accessToken
     .eq('event_type', 'audition_slot')
     .in('event_id', slotIds);
   
-  const existingIds = new Set(existingMappings?.map(m => m.event_id) || []);
+  const existingIds = new Set(existingMappings?.map((m: any) => m.event_id) || []);
   
   for (const slot of slots) {
     try {
@@ -279,9 +326,9 @@ async function syncAuditionSignups(userId: string, calendarId: string, accessTok
     .select('event_id')
     .eq('user_id', userId)
     .eq('event_type', 'audition_signup')
-    .in('event_id', signupIds);
+    .in('event_id', signupIds) as any;
   
-  const existingIds = new Set(existingMappings?.map(m => m.event_id) || []);
+  const existingIds = new Set((existingMappings || []).map((m: any) => m.event_id));
   
   for (const signup of signups) {
     try {
