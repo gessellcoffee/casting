@@ -13,18 +13,23 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
     const state = searchParams.get('state'); // This is the userId we passed
     const error = searchParams.get('error');
+    
+    // Get base URL from environment or construct from request
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                    process.env.NEXT_PUBLIC_APP_URL || 
+                    `${request.nextUrl.protocol}//${request.nextUrl.host}`;
 
     // Handle user cancellation
     if (error === 'access_denied') {
       return NextResponse.redirect(
-        new URL('/my-auditions?google_error=cancelled', request.url)
+        new URL('/my-auditions?google_error=cancelled', baseUrl)
       );
     }
 
     if (!code || !state) {
       console.error('Missing code or state in callback');
       return NextResponse.redirect(
-        new URL('/my-auditions?google_error=invalid', request.url)
+        new URL('/my-auditions?google_error=invalid', baseUrl)
       );
     }
 
@@ -51,18 +56,24 @@ export async function GET(request: NextRequest) {
     if (dbError) {
       console.error('Error storing tokens:', dbError);
       return NextResponse.redirect(
-        new URL('/my-auditions?google_error=storage', request.url)
+        new URL('/my-auditions?google_error=storage', baseUrl)
       );
     }
 
     // Success - redirect back to calendar page
     return NextResponse.redirect(
-      new URL('/my-auditions?google_connected=true', request.url)
+      new URL('/my-auditions?google_connected=true', baseUrl)
     );
   } catch (error) {
     console.error('Error in Google Calendar callback:', error);
+    
+    // Get base URL for error redirect
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                    process.env.NEXT_PUBLIC_APP_URL || 
+                    `${request.nextUrl.protocol}//${request.nextUrl.host}`;
+    
     return NextResponse.redirect(
-      new URL('/my-auditions?google_error=unknown', request.url)
+      new URL('/my-auditions?google_error=unknown', baseUrl)
     );
   }
 }

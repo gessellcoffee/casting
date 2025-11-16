@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/serverClient';
 import { refreshAccessToken } from '@/lib/google/auth';
+import { createCalendarEvent } from '@/lib/google/calendar';
 
 /**
  * POST /api/google/sync/push
