@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       
       // Store in database
       const { error: upsertError } = await supabaseServer
-        .from('google_calendar_sync')
+        .from('google_calendar_sync' as any)
         .upsert({
           user_id: userId,
           event_type: calType.type,
