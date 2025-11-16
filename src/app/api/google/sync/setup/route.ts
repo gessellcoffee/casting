@@ -50,7 +50,22 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if calendars already exist
-    const existingCalendars = await listCalendars(accessToken);
+    let existingCalendars;
+    try {
+      existingCalendars = await listCalendars(accessToken);
+    } catch (listError: any) {
+      console.error('Error listing calendars:', listError);
+      if (listError?.code === 403 || listError?.status === 403) {
+        return NextResponse.json(
+          { 
+            error: 'Insufficient permissions. Please disconnect and reconnect your Google Calendar to grant full calendar access.',
+            needsReconnect: true
+          }, 
+          { status: 403 }
+        );
+      }
+      throw listError;
+    }
     
     // Define calendar types to create
     const calendarTypes = [
@@ -85,7 +100,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Store in database
-      await supabaseServer
+      const { error: upsertError } = await supabaseServer
         .from('google_calendar_sync')
         .upsert({
           user_id: userId,
@@ -94,7 +109,14 @@ export async function POST(request: NextRequest) {
           calendar_name: calType.name,
           sync_enabled: true,
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,event_type'
         });
+      
+      if (upsertError) {
+        console.error(`Error upserting calendar ${calType.name}:`, upsertError);
+        throw upsertError;
+      }
       
       createdCalendars.push({
         type: calType.type,
@@ -109,8 +131,18 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error setting up sync calendars:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+      errors: error?.errors,
+      response: error?.response?.data
+    });
     return NextResponse.json(
-      { error: error?.message || 'Failed to setup sync' }, 
+      { 
+        error: error?.message || 'Failed to setup sync',
+        details: error?.errors || error?.response?.data || null
+      }, 
       { status: 500 }
     );
   }

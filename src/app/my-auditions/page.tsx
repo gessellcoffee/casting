@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
 import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
@@ -11,16 +11,10 @@ import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
 import { generateProductionEvents, generateAgendaItemEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { Check, X } from 'lucide-react';
 
-export default function MyAuditionsPage() {
+// Component that uses searchParams - must be wrapped in Suspense
+function ConnectionStatusHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [user, setUser] = useState<any>(null);
-  const [signups, setSignups] = useState<any[]>([]);
-  const [callbacks, setCallbacks] = useState<any[]>([]);
-  const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
-  const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
-  const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<{
     show: boolean;
     type: 'success' | 'error';
@@ -28,11 +22,6 @@ export default function MyAuditionsPage() {
   } | null>(null);
 
   useEffect(() => {
-    loadData();
-    checkConnectionStatus();
-  }, []);
-
-  const checkConnectionStatus = () => {
     const googleConnected = searchParams.get('google_connected');
     const googleError = searchParams.get('google_error');
 
@@ -65,7 +54,39 @@ export default function MyAuditionsPage() {
         router.replace('/my-auditions');
       }, 5000);
     }
-  };
+  }, [searchParams, router]);
+
+  if (!connectionStatus?.show) return null;
+
+  return (
+    <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
+      connectionStatus.type === 'success' 
+        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+    }`}>
+      {connectionStatus.type === 'success' ? (
+        <Check className="w-5 h-5 flex-shrink-0" />
+      ) : (
+        <X className="w-5 h-5 flex-shrink-0" />
+      )}
+      <span>{connectionStatus.message}</span>
+    </div>
+  );
+}
+
+function MyAuditionsContent() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [signups, setSignups] = useState<any[]>([]);
+  const [callbacks, setCallbacks] = useState<any[]>([]);
+  const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
+  const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
+  const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -156,20 +177,9 @@ export default function MyAuditionsPage() {
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Connection Status Alert */}
-        {connectionStatus?.show && (
-          <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
-            connectionStatus.type === 'success' 
-              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
-              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
-          }`}>
-            {connectionStatus.type === 'success' ? (
-              <Check className="w-5 h-5 flex-shrink-0" />
-            ) : (
-              <X className="w-5 h-5 flex-shrink-0" />
-            )}
-            <span>{connectionStatus.message}</span>
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <ConnectionStatusHandler />
+        </Suspense>
 
         <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
@@ -205,5 +215,17 @@ export default function MyAuditionsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function MyAuditionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen p-6">
+        <div className="text-neu-text-primary/70">Loading your auditions...</div>
+      </div>
+    }>
+      <MyAuditionsContent />
+    </Suspense>
   );
 }

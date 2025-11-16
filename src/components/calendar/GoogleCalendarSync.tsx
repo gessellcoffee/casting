@@ -98,11 +98,14 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
         body: JSON.stringify({ userId }),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Failed to setup sync');
+        console.error('Setup sync failed:', data);
+        throw new Error(data.error || 'Failed to setup sync');
       }
       
-      const { calendars } = await response.json();
+      const { calendars } = data;
       
       setSyncStatus({ ...syncStatus, calendarsSetup: true });
       openModal(
@@ -112,9 +115,16 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
         'OK',
         false
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up sync:', error);
-      openModal('Setup Failed', 'Failed to setup sync calendars. Please try again.', undefined, 'OK', false);
+      let errorMessage = error?.message || 'Failed to setup sync calendars. Please try again.';
+      
+      // Check if it's a permission error
+      if (errorMessage.includes('insufficient authentication scopes') || errorMessage.includes('Insufficient permissions')) {
+        errorMessage = 'Your Google Calendar connection needs updated permissions.\n\nPlease:\n1. Click "Disconnect" below\n2. Click "Connect Google Calendar" again\n3. Accept the new permissions\n4. Try "Setup Sync" again';
+      }
+      
+      openModal('Setup Failed', errorMessage, undefined, 'OK', false);
     } finally {
       setIsSyncing(false);
     }
