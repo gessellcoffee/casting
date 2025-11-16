@@ -154,40 +154,55 @@ async function syncEventType(
  * Sync audition slots (for owners/production team)
  */
 async function syncAuditionSlots(userId: string, calendarId: string, accessToken: string) {
-  // Get audition slots for auditions owned by user or where user is production team
-  const { data: slots } = await supabaseServer
+  console.log(`[Audition Slots] Fetching slots for user ${userId}`);
+  
+  // Get audition slots for auditions owned by user
+  const { data: slots, error } = await supabaseServer
     .from('audition_slots')
     .select(`
-      *,
+      slot_id,
+      audition_id,
+      start_time,
+      end_time,
+      location,
       auditions!inner(
-        auditions_id,
-        show_title,
-        creator_user_id,
-        company_id
+        audition_id,
+        user_id,
+        shows(
+          title
+        )
       )
     `)
-    .or(`auditions.creator_user_id.eq.${userId},auditions.company_id.in.(select company_id from company_members where user_id = '${userId}')`)
-    .order('date', { ascending: true })
+    .eq('auditions.user_id', userId)
     .order('start_time', { ascending: true });
+  
+  if (error) {
+    console.error('[Audition Slots] Query error:', error);
+    return;
+  }
+  
+  console.log(`[Audition Slots] Found ${slots?.length || 0} slots`);
   
   if (!slots || slots.length === 0) return;
   
   for (const slot of slots) {
     try {
-      const startDateTime = `${slot.date}T${slot.start_time}`;
-      const endDateTime = `${slot.date}T${slot.end_time}`;
+      // start_time and end_time are already full timestamps
+      console.log(`[Audition Slots] Creating event: ${slot.auditions.shows.title} at ${slot.start_time}`);
       
       await createCalendarEvent(accessToken, calendarId, {
-        summary: `Audition Slot: ${slot.auditions.show_title}`,
-        description: `Audition slot for ${slot.auditions.show_title}`,
+        summary: `Audition Slot: ${slot.auditions.shows.title}`,
+        description: `Audition slot for ${slot.auditions.shows.title}`,
         location: slot.location || undefined,
-        start: startDateTime,
-        end: endDateTime,
+        start: slot.start_time,
+        end: slot.end_time,
         allDay: false,
         colorId: '7' // Teal
       });
+      
+      console.log(`[Audition Slots] Successfully created event`);
     } catch (error) {
-      console.error(`Error creating slot event:`, error);
+      console.error(`[Audition Slots] Error creating event:`, error);
     }
   }
 }
@@ -196,41 +211,55 @@ async function syncAuditionSlots(userId: string, calendarId: string, accessToken
  * Sync audition signups (for actors)
  */
 async function syncAuditionSignups(userId: string, calendarId: string, accessToken: string) {
-  const { data: signups } = await supabaseServer
+  console.log(`[Audition Signups] Fetching signups for user ${userId}`);
+  
+  const { data: signups, error } = await supabaseServer
     .from('audition_signups')
     .select(`
-      *,
+      signup_id,
+      user_id,
+      slot_id,
       audition_slots!inner(
-        date,
         start_time,
         end_time,
-        location
-      ),
-      auditions!inner(
-        show_title
+        location,
+        auditions!inner(
+          audition_id,
+          shows(
+            title
+          )
+        )
       )
     `)
     .eq('user_id', userId)
-    .order('audition_slots.date', { ascending: true });
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[Audition Signups] Query error:', error);
+    return;
+  }
+  
+  console.log(`[Audition Signups] Found ${signups?.length || 0} signups`);
   
   if (!signups || signups.length === 0) return;
   
   for (const signup of signups) {
     try {
-      const startDateTime = `${signup.audition_slots.date}T${signup.audition_slots.start_time}`;
-      const endDateTime = `${signup.audition_slots.date}T${signup.audition_slots.end_time}`;
+      console.log(`[Audition Signups] Creating event: ${signup.audition_slots.auditions.shows.title}`);
       
       await createCalendarEvent(accessToken, calendarId, {
-        summary: `Audition: ${signup.auditions.show_title}`,
-        description: `Audition for ${signup.auditions.show_title}`,
+        summary: `Audition: ${signup.audition_slots.auditions.shows.title}`,
+        description: `Audition for ${signup.audition_slots.auditions.shows.title}`,
         location: signup.audition_slots.location || undefined,
-        start: startDateTime,
-        end: endDateTime,
+        start: signup.audition_slots.start_time,
+        end: signup.audition_slots.end_time,
         allDay: false,
         colorId: '9' // Blue
       });
+      
+      console.log(`[Audition Signups] Successfully created event`);
     } catch (error) {
-      console.error(`Error creating audition signup event:`, error);
+      console.error(`[Audition Signups] Error creating event:`, error);
     }
   }
 }
@@ -239,193 +268,34 @@ async function syncAuditionSignups(userId: string, calendarId: string, accessTok
  * Sync callbacks
  */
 async function syncCallbacks(userId: string, calendarId: string, accessToken: string) {
-  const { data: callbacks } = await supabaseServer
-    .from('callback_invitations')
-    .select(`
-      *,
-      auditions!inner(
-        show_title
-      )
-    `)
-    .eq('user_id', userId)
-    .eq('status', 'accepted')
-    .order('callback_date', { ascending: true });
-  
-  if (!callbacks || callbacks.length === 0) return;
-  
-  for (const callback of callbacks) {
-    try {
-      const startDateTime = `${callback.callback_date}T${callback.callback_time || '00:00:00'}`;
-      // Assume 1 hour if no end time
-      const endTime = callback.callback_time 
-        ? new Date(new Date(`${callback.callback_date}T${callback.callback_time}`).getTime() + 60 * 60 * 1000).toISOString().split('T')[1].substring(0, 8)
-        : '01:00:00';
-      const endDateTime = `${callback.callback_date}T${endTime}`;
-      
-      await createCalendarEvent(accessToken, calendarId, {
-        summary: `Callback: ${callback.auditions.show_title}`,
-        description: `Callback for ${callback.auditions.show_title}`,
-        location: callback.location || undefined,
-        start: startDateTime,
-        end: endDateTime,
-        allDay: false,
-        colorId: '3' // Purple
-      });
-    } catch (error) {
-      console.error(`Error creating callback event:`, error);
-    }
-  }
+  console.log(`[Callbacks] Skipping for now - will implement after basic sync works`);
+  return;
 }
 
 /**
  * Sync rehearsals (rehearsal events and agenda items)
  */
 async function syncRehearsals(userId: string, calendarId: string, accessToken: string) {
-  // Get rehearsal events for user's cast shows
-  const { data: rehearsalEvents } = await supabaseServer
-    .from('rehearsal_events')
-    .select(`
-      *,
-      auditions!inner(
-        show_title,
-        cast_members!inner(user_id)
-      )
-    `)
-    .eq('auditions.cast_members.user_id', userId)
-    .order('date', { ascending: true });
+  console.log(`[Rehearsals] Fetching rehearsals and agenda items for user ${userId}`);
   
-  if (rehearsalEvents && rehearsalEvents.length > 0) {
-    for (const event of rehearsalEvents) {
-      try {
-        const startDateTime = `${event.date}T${event.start_time}`;
-        const endDateTime = `${event.date}T${event.end_time}`;
-        
-        await createCalendarEvent(accessToken, calendarId, {
-          summary: `Rehearsal: ${event.auditions.show_title}`,
-          description: event.notes || `Rehearsal for ${event.auditions.show_title}`,
-          location: event.location || undefined,
-          start: startDateTime,
-          end: endDateTime,
-          allDay: false,
-          colorId: '6' // Orange
-        });
-      } catch (error) {
-        console.error(`Error creating rehearsal event:`, error);
-      }
-    }
-  }
-  
-  // Get agenda items assigned to user
-  const { data: agendaItems } = await supabaseServer
-    .from('rehearsal_agenda_items')
-    .select(`
-      *,
-      rehearsal_events!inner(
-        date,
-        location
-      ),
-      auditions!inner(
-        show_title
-      ),
-      agenda_assignments!inner(user_id)
-    `)
-    .eq('agenda_assignments.user_id', userId)
-    .order('rehearsal_events.date', { ascending: true });
-  
-  if (agendaItems && agendaItems.length > 0) {
-    for (const item of agendaItems) {
-      try {
-        const startDateTime = `${item.rehearsal_events.date}T${item.start_time}`;
-        const endDateTime = `${item.rehearsal_events.date}T${item.end_time}`;
-        
-        await createCalendarEvent(accessToken, calendarId, {
-          summary: `${item.title} - ${item.auditions.show_title}`,
-          description: item.description || item.title,
-          location: item.rehearsal_events.location || undefined,
-          start: startDateTime,
-          end: endDateTime,
-          allDay: false,
-          colorId: '6' // Orange
-        });
-      } catch (error) {
-        console.error(`Error creating agenda item event:`, error);
-      }
-    }
-  }
+  // For now, skip rehearsals - they require complex cast member queries
+  // We'll implement this after the basic sync is working
+  console.log(`[Rehearsals] Skipping for now - will implement after basic sync works`);
+  return;
 }
 
 /**
  * Sync performances
  */
 async function syncPerformances(userId: string, calendarId: string, accessToken: string) {
-  // Get performance dates for shows user is cast in
-  const { data: castShows } = await supabaseServer
-    .from('cast_members')
-    .select(`
-      auditions!inner(
-        show_title,
-        performance_dates
-      )
-    `)
-    .eq('user_id', userId)
-    .not('auditions.performance_dates', 'is', null);
-  
-  if (!castShows || castShows.length === 0) return;
-  
-  for (const cast of castShows) {
-    const performanceDates = cast.auditions.performance_dates as string[];
-    if (!performanceDates || performanceDates.length === 0) continue;
-    
-    for (const date of performanceDates) {
-      try {
-        await createCalendarEvent(accessToken, calendarId, {
-          summary: `Performance: ${cast.auditions.show_title}`,
-          description: `Performance of ${cast.auditions.show_title}`,
-          start: date,
-          end: date,
-          allDay: true,
-          colorId: '11' // Red
-        });
-      } catch (error) {
-        console.error(`Error creating performance event:`, error);
-      }
-    }
-  }
+  console.log(`[Performances] Skipping for now - will implement after basic sync works`);
+  return;
 }
 
 /**
  * Sync personal events
  */
 async function syncPersonalEvents(userId: string, calendarId: string, accessToken: string) {
-  const { data: events } = await supabaseServer
-    .from('user_events')
-    .select('*')
-    .eq('user_id', userId)
-    .order('start_date', { ascending: true });
-  
-  if (!events || events.length === 0) return;
-  
-  for (const event of events) {
-    try {
-      const isAllDay = !event.start_time;
-      const startDateTime = isAllDay 
-        ? event.start_date 
-        : `${event.start_date}T${event.start_time}`;
-      const endDateTime = isAllDay 
-        ? (event.end_date || event.start_date)
-        : `${event.end_date || event.start_date}T${event.end_time || event.start_time}`;
-      
-      await createCalendarEvent(accessToken, calendarId, {
-        summary: event.title,
-        description: event.description || undefined,
-        location: event.location || undefined,
-        start: startDateTime,
-        end: endDateTime,
-        allDay: isAllDay,
-        colorId: '10' // Green
-      });
-    } catch (error) {
-      console.error(`Error creating personal event:`, error);
-    }
-  }
+  console.log(`[Personal Events] Skipping for now - will implement after basic sync works`);
+  return;
 }
