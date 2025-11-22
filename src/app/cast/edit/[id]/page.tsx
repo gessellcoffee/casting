@@ -6,13 +6,21 @@ import { getUser } from '@/lib/supabase';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { updateAudition } from '@/lib/supabase/auditions';
 import { deleteAuditionSlots, createAuditionSlots } from '@/lib/supabase/auditionSlots';
+import { createAuditionRole, updateAuditionRole, deleteAuditionRole } from '@/lib/supabase/auditionRoles';
 import { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import StarryContainer from '@/components/StarryContainer';
 import AuditionDetailsForm from '@/components/casting/AuditionDetailsForm';
 import SlotScheduler from '@/components/casting/SlotScheduler';
+import RoleManager from '@/components/casting/RoleManager';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
-type EditStep = 'details' | 'slots';
+type EditStep = 'details' | 'roles' | 'slots';
+
+interface RoleOperation {
+  type: 'create' | 'update' | 'delete';
+  role?: any;
+  roleId?: string;
+}
 
 export default function EditAuditionPage() {
   const params = useParams();
@@ -22,6 +30,7 @@ export default function EditAuditionPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState<EditStep>('details');
+  const [roleOperations, setRoleOperations] = useState<RoleOperation[]>([]);
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -144,7 +153,7 @@ export default function EditAuditionPage() {
         is_paid: auditionDetails.isPaid,
         pay_range: auditionDetails.payRange,
         pay_comments: auditionDetails.payComments,
-        workflowStatus: auditionDetails.workflowStatus,
+        workflow_status: auditionDetails.workflowStatus,
       };
 
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);
@@ -154,7 +163,45 @@ export default function EditAuditionPage() {
         throw new Error('Failed to update audition details: ' + auditionError.message);
       }
 
-      // Step 2: Update slots - delete all existing slots and recreate them
+      // Step 2: Process audition role operations (create/update/delete)
+      if (roleOperations.length > 0) {
+        for (const operation of roleOperations) {
+          switch (operation.type) {
+            case 'create':
+              if (operation.role) {
+                const roleData = {
+                  ...operation.role,
+                  audition_id: params.id as string,
+                };
+                const { error: createError } = await createAuditionRole(roleData);
+                if (createError) {
+                  throw new Error('Failed to create audition role: ' + createError.message);
+                }
+              }
+              break;
+
+            case 'update':
+              if (operation.roleId && operation.role) {
+                const { error: updateError } = await updateAuditionRole(operation.roleId, operation.role);
+                if (updateError) {
+                  throw new Error('Failed to update audition role: ' + updateError.message);
+                }
+              }
+              break;
+
+            case 'delete':
+              if (operation.roleId) {
+                const { error: deleteError } = await deleteAuditionRole(operation.roleId);
+                if (deleteError) {
+                  throw new Error('Failed to delete audition role: ' + deleteError.message);
+                }
+              }
+              break;
+          }
+        }
+      }
+
+      // Step 3: Update slots - delete all existing slots and recreate them
       const { error: deleteError } = await deleteAuditionSlots(params.id as string);
 
       if (deleteError) {
@@ -162,7 +209,7 @@ export default function EditAuditionPage() {
         throw new Error('Failed to delete existing slots: ' + deleteError.message);
       }
 
-      // Step 3: Create new slots if any exist
+      // Step 4: Create new slots if any exist
       if (slotsToSave.length > 0) {
         const slotsData = slotsToSave.map((slot: any) => ({
           audition_id: params.id as string,
@@ -201,6 +248,7 @@ export default function EditAuditionPage() {
 
   const steps: { key: EditStep; label: string }[] = [
     { key: 'details', label: 'Details' },
+    { key: 'roles', label: 'Roles' },
     { key: 'slots', label: 'Slots' },
   ];
 
@@ -287,8 +335,21 @@ export default function EditAuditionPage() {
                     setSlots([]);
                   }
                 }}
-                onNext={() => setCurrentStep('slots')}
+                onNext={() => setCurrentStep('roles')}
                 onBack={() => router.push('/cast')}
+              />
+            )}
+
+            {currentStep === 'roles' && audition && (
+              <RoleManager
+                showId={audition.show_id || audition.show?.show_id}
+                auditionId={audition.audition_id}
+                roles={audition.roles || []}
+                onUpdate={(operations) => {
+                  setRoleOperations(operations);
+                }}
+                onNext={() => setCurrentStep('slots')}
+                onBack={() => setCurrentStep('details')}
               />
             )}
 
