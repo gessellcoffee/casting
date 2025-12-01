@@ -14,6 +14,7 @@ import SkillsSection from '@/components/SkillsSection';
 import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import AddressInput, { type PlaceDetails } from '@/components/ui/AddressInput';
+import MediaManager from '@/components/profile/MediaManager';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -440,6 +441,13 @@ export default function ProfilePage() {
                 {user?.id && (
                   <div className="neu-card-raised w-full">
                     <SkillsSection userId={user.id} isEditing={isEditing} />
+                  </div>
+                )}
+
+                {/* Media Library Section */}
+                {user?.id && (
+                  <div className="neu-card-raised w-full p-6">
+                    <MediaManager userId={user.id} isEditing={isEditing} />
                   </div>
                 )}
 
