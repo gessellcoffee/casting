@@ -155,6 +155,73 @@ export interface CompanyUpdate {
   image_gallery?: string[] | null;
 }
 
+// ============= CASTING OFFER TYPES =============
+
+export interface CastingOffer {
+  offer_id: string;
+  cast_member_id: string;
+  audition_id: string;
+  user_id: string;
+  role_id: string | null;
+  sent_by: string;
+  offer_message: string | null;
+  offer_notes: string | null;
+  sent_at: string;
+  responded_at: string | null;
+  email_sent: boolean;
+  email_sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CastingOfferInsert {
+  cast_member_id: string;
+  audition_id: string;
+  user_id: string;
+  role_id?: string | null;
+  sent_by: string;
+  offer_message?: string | null;
+  offer_notes?: string | null;
+  email_sent?: boolean;
+  email_sent_at?: string | null;
+}
+
+export interface CastingOfferUpdate {
+  offer_message?: string | null;
+  offer_notes?: string | null;
+  responded_at?: string | null;
+  email_sent?: boolean;
+  email_sent_at?: string | null;
+}
+
+export interface CastingOfferWithDetails extends CastingOffer {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    profile_photo_url: string | null;
+  };
+  roles?: {
+    role_id: string;
+    role_name: string;
+    description: string | null;
+  } | null;
+  auditions: {
+    audition_id: string;
+    shows: {
+      show_id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  };
+  cast_members: {
+    cast_member_id: string;
+    status: string;
+    is_understudy: boolean;
+  };
+}
+
 // ============= AUDITION TYPES =============
 
 export type EquityStatus = 'Equity' | 'Non-Equity' | 'Hybrid';
