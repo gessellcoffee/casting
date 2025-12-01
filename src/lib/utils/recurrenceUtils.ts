@@ -1,5 +1,5 @@
 import { RRule, Frequency } from 'rrule';
-import type { CalendarEvent } from '@/lib/supabase/types';
+import type { CalendarEvent } from './calendarUtils';
 
 /**
  * Expands a recurring event into individual instances within a date range
