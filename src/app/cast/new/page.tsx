@@ -45,6 +45,8 @@ interface CastingData {
     payComments: string;
     productionTeam?: ProductionTeamMember[];
     workflowStatus: 'auditioning' | 'casting' | 'offering_roles' | 'rehearsing' | 'performing' | 'completed';
+    virtualAuditionsEnabled: boolean;
+    virtualAuditionInstructions: string;
   };
   slots: any[];
 }
@@ -76,6 +78,8 @@ export default function NewCastingPage() {
       payComments: '',
       productionTeam: [],
       workflowStatus: 'auditioning',
+      virtualAuditionsEnabled: false,
+      virtualAuditionInstructions: '',
     },
     slots: [],
   });

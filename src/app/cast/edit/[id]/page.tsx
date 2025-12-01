@@ -54,6 +54,8 @@ export default function EditAuditionPage() {
     payRange: '',
     payComments: '',
     workflowStatus: 'auditioning' as WorkflowStatus,
+    virtualAuditionsEnabled: false,
+    virtualAuditionInstructions: '',
   });
   const [slots, setSlots] = useState<any[]>([]);
 
@@ -127,6 +129,8 @@ export default function EditAuditionPage() {
       payRange: data.pay_range || '',
       payComments: data.pay_comments || '',
       workflowStatus: (data.workflow_status || 'auditioning') as WorkflowStatus,
+      virtualAuditionsEnabled: data.virtual_auditions_enabled || false,
+      virtualAuditionInstructions: data.virtual_audition_instructions || '',
     };
     
     setAuditionDetails(parsedDetails);
@@ -154,6 +158,8 @@ export default function EditAuditionPage() {
         pay_range: auditionDetails.payRange,
         pay_comments: auditionDetails.payComments,
         workflow_status: auditionDetails.workflowStatus,
+        virtual_auditions_enabled: auditionDetails.virtualAuditionsEnabled,
+        virtual_audition_instructions: auditionDetails.virtualAuditionInstructions,
       };
 
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);

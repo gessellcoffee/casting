@@ -37,6 +37,8 @@ interface AuditionDetails {
   payComments: string;
   productionTeam?: ProductionTeamMember[];
   workflowStatus: WorkflowStatus;
+  virtualAuditionsEnabled: boolean;
+  virtualAuditionInstructions: string;
 }
 
 interface AuditionDetailsFormProps {
@@ -261,6 +263,44 @@ export default function AuditionDetailsForm({
             <p className="text-sm text-neu-text-primary/60 mt-1">
               Optional: Provide helpful information to guide actors preparing for the audition
             </p>
+          </div>
+
+          {/* Virtual Auditions Section */}
+          <div className="mt-4 p-4 rounded-lg bg-neu-accent-primary/5 border border-neu-accent-primary/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="virtualAuditionsEnabled"
+                checked={localDetails.virtualAuditionsEnabled}
+                onChange={(e) => updateField('virtualAuditionsEnabled', e.target.checked)}
+                className="w-4 h-4 text-neu-accent-primary bg-neu-surface border-neu-border rounded focus:ring-2 focus:ring-neu-accent-primary/50"
+              />
+              <label htmlFor="virtualAuditionsEnabled" className="text-sm font-medium text-neu-text-primary cursor-pointer">
+                Accept Virtual Auditions
+              </label>
+            </div>
+            
+            <p className="text-xs text-neu-text-secondary">
+              Allow actors to submit video auditions instead of attending in-person time slots
+            </p>
+
+            {localDetails.virtualAuditionsEnabled && (
+              <div>
+                <label className="block text-sm font-medium text-neu-text-primary mb-1">
+                  Virtual Audition Instructions
+                </label>
+                <textarea
+                  value={localDetails.virtualAuditionInstructions}
+                  onChange={(e) => updateField('virtualAuditionInstructions', e.target.value)}
+                  placeholder="Provide specific instructions for virtual submissions (e.g., what scenes to perform, video requirements, file format preferences)..."
+                  rows={3}
+                  className="neu-input w-full resize-y text-sm"
+                />
+                <p className="text-xs text-neu-text-secondary mt-1">
+                  These instructions will be displayed to actors when they submit virtual auditions
+                </p>
+              </div>
+            )}
           </div>
         </div>
         )}

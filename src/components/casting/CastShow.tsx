@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getAuditionRoles, updateAuditionRole } from '@/lib/supabase/auditionRoles';
-import type { AuditionRole, User, CastMember, Audition } from '@/lib/supabase/types';
 import FormSelect from '@/components/ui/forms/FormSelect';
 import { Alert } from '@/components/ui/feedback';
 import StarryContainer from '../StarryContainer';
 import { getAuditionSignups } from '@/lib/supabase/auditionSignups';
+import { getAllAuditionees } from '@/lib/supabase/virtualAuditions';
 import { createCastMember, getAuditionCastMembers, deleteCastMember } from '@/lib/supabase/castMembers';
 import { createBulkCastingOffers, createCastingOffer, getAuditionOffers, revokeCastingOffer } from '@/lib/supabase/castingOffers';
-import type { CastingOfferWithDetails } from '@/lib/supabase/types';
 import { getUserPendingSignups, cancelPendingSignup } from '@/lib/supabase/pendingSignups';
 import type { PendingSignupWithInviter } from '@/types/pendingSignup';
 import { X, Mail, XCircle } from 'lucide-react';
@@ -22,21 +21,28 @@ import ConfirmationModal from '../shared/ConfirmationModal';
 import { useToast } from '@/contexts/ToastContext';
 
 interface CastShowProps {
-  audition: Audition & {
+  audition: any & {
     show: {
       title: string;
       author: string | null;
       description: string | null;
     };
   };
-  user: User;
+  user: any;
   onSave: () => void;
   onError: (error: string) => void;
 }
 
-interface RoleWithCast extends AuditionRole {
-  castMembers: CastMember[];
-  understudyCastMembers: CastMember[];
+interface RoleWithCast {
+  audition_role_id: string;
+  role_id: string;
+  role_name: string;
+  description: string | null;
+  needs_understudy: boolean;
+  audition_id: string;
+  [key: string]: any;
+  castMembers: any[];
+  understudyCastMembers: any[];
   pendingCasts: PendingSignupWithInviter[];
   pendingUnderstudies: PendingSignupWithInviter[];
   auditionees: Array<{
@@ -81,7 +87,7 @@ export default function CastShow({
   const [showSendOffersModal, setShowSendOffersModal] = useState(false);
   const [sendingOffers, setSendingOffers] = useState(false);
   const [sendingIndividualOffer, setSendingIndividualOffer] = useState<string | null>(null);
-  const [castingOffers, setCastingOffers] = useState<CastingOfferWithDetails[]>([]);
+  const [castingOffers, setCastingOffers] = useState<any[]>([]);
   const [pendingSignups, setPendingSignups] = useState<PendingSignupWithInviter[]>([]);
   const [cancellingPending, setCancellingPending] = useState<string | null>(null);
   
@@ -119,7 +125,10 @@ export default function CastShow({
       // Get all audition-specific roles
       const auditionRoles = await getAuditionRoles(audition.audition_id);
 
-      // Get all signups for this audition
+      // Get all auditionees for this audition (both slot signups and virtual submissions)
+      const allAuditionees = await getAllAuditionees(audition.audition_id);
+
+      // Get slot signups (needed for role-specific grouping)
       const signups = await getAuditionSignups(audition.audition_id);
 
       // Get existing cast members
@@ -132,18 +141,17 @@ export default function CastShow({
       ) || [];
       setPendingSignups(auditionPendingSignups);
 
-      // Combine actors from signups and cast members
+      // Combine actors from auditionees and cast members
       const actorsMap = new Map();
       
-      // Add actors from signups
-      signups.forEach((s: any) => {
-        actorsMap.set(s.user_id, {
-          user_id: s.user_id,
-          full_name: s.profiles?.first_name && s.profiles.last_name
-            ? `${s.profiles.first_name} ${s.profiles.last_name}`
-            : s.profiles?.email || 'Unknown User',
-          email: s.profiles?.email || 'No email',
-          profile_photo_url: s.profiles?.profile_photo_url || null,
+      // Add actors from auditionees (both slot signups and virtual auditions)
+      allAuditionees.forEach((auditionee: any) => {
+        actorsMap.set(auditionee.user_id, {
+          user_id: auditionee.user_id,
+          full_name: auditionee.full_name || auditionee.email,
+          email: auditionee.email,
+          profile_photo_url: auditionee.profile_photo_url || null,
+          type: auditionee.type, // 'slot' or 'virtual'
         });
       });
       

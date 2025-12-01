@@ -64,7 +64,7 @@ export default function ProfilePage() {
               profile_photo_url: profileData.profile_photo_url || '',
               resume_url: profileData.resume_url || '',
               image_gallery: Array.isArray(profileData.image_gallery) 
-                ? profileData.image_gallery.filter((item): item is string => typeof item === 'string') 
+                ? profileData.image_gallery.filter((item: unknown): item is string => typeof item === 'string') 
                 : [],
               location: profileData.location || '',
               location_lat: profileData.location_lat || null,
@@ -184,7 +184,7 @@ export default function ProfilePage() {
         profile_photo_url: profile.profile_photo_url || '',
         resume_url: profile.resume_url || '',
         image_gallery: Array.isArray(profile.image_gallery)
-          ? profile.image_gallery.filter((item): item is string => typeof item === 'string')
+          ? profile.image_gallery.filter((item: unknown): item is string => typeof item === 'string')
           : [],
         location: profile.location || '',
         location_lat: profile.location_lat || null,

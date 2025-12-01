@@ -22,6 +22,17 @@ interface MediaManagerProps {
   isEditing: boolean;
 }
 
+// Maximum file size: 300MB
+const MAX_FILE_SIZE = 300 * 1024 * 1024;
+
+// Format bytes to human-readable size
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+};
+
 export default function MediaManager({ userId, isEditing }: MediaManagerProps) {
   const [folders, setFolders] = useState<MediaFolderWithFiles[]>([]);
   const [currentFolder, setCurrentFolder] = useState<MediaFolderWithFiles | null>(null);
@@ -34,6 +45,7 @@ export default function MediaManager({ userId, isEditing }: MediaManagerProps) {
   const [editFolderName, setEditFolderName] = useState('');
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
   const [showFileModal, setShowFileModal] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -115,9 +127,26 @@ export default function MediaManager({ userId, isEditing }: MediaManagerProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Clear previous errors
+    setUploadError(null);
+
     // Validate file type (videos only)
     if (!file.type.startsWith('video/')) {
-      alert('Please upload a video file');
+      setUploadError('Please upload a video file. Accepted formats: MP4, MOV, AVI, etc.');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
+    // Validate file size (300MB max)
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(
+        `File size (${formatFileSize(file.size)}) exceeds the maximum allowed size of ${formatFileSize(MAX_FILE_SIZE)}. Please compress your video or upload a smaller file.`
+      );
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       return;
     }
 
@@ -131,8 +160,17 @@ export default function MediaManager({ userId, isEditing }: MediaManagerProps) {
 
     if (data && !error) {
       await loadFolders();
+      setUploadError(null);
     } else {
-      alert('Failed to upload video');
+      // Provide detailed error message
+      const errorMessage = error?.message || 'Unknown error occurred';
+      if (errorMessage.includes('size') || errorMessage.includes('too large')) {
+        setUploadError(
+          `Upload failed: File size exceeds server limit. Maximum allowed: ${formatFileSize(MAX_FILE_SIZE)}.`
+        );
+      } else {
+        setUploadError(`Upload failed: ${errorMessage}. Please try again.`);
+      }
     }
 
     setUploading(false);
@@ -380,6 +418,26 @@ export default function MediaManager({ userId, isEditing }: MediaManagerProps) {
       </div>
 
       {renderBreadcrumbs()}
+
+      {/* Upload Error Message */}
+      {uploadError && (
+        <div className="neu-card-raised p-4 mb-4 bg-red-500/10 border-2 border-red-500/50">
+          <div className="flex items-start gap-3">
+            <div className="text-2xl">⚠️</div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-red-600 dark:text-red-400 mb-1">Upload Error</h4>
+              <p className="text-sm text-neu-text-primary/80">{uploadError}</p>
+            </div>
+            <button
+              onClick={() => setUploadError(null)}
+              className="neu-icon-btn-sm neu-icon-btn-danger"
+              title="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {showNewFolderInput && isEditing && (
         <div className="neu-card-raised p-4 mb-4">

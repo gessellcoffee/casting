@@ -17,6 +17,10 @@ import {
   deleteSignupNote,
   type SignupNoteWithAuthor 
 } from '@/lib/supabase/signupNotes';
+import { 
+  getAuditionVirtualSubmissions,
+  type VirtualAuditionWithDetails
+} from '@/lib/supabase/virtualAuditions';
 import { uploadAuditionMedia, deleteAuditionMedia } from '@/lib/supabase/storage';
 import { useToast } from '@/contexts/ToastContext';
 import Alert from '@/components/ui/feedback/Alert';
@@ -58,7 +62,10 @@ export default function LiveAuditionManager({
 }: LiveAuditionManagerProps) {
   const { showToast } = useToast();
   const [signups, setSignups] = useState<SignupWithDetails[]>([]);
+  const [virtualAuditions, setVirtualAuditions] = useState<VirtualAuditionWithDetails[]>([]);
   const [selectedSignup, setSelectedSignup] = useState<SignupWithDetails | null>(null);
+  const [selectedVirtualAudition, setSelectedVirtualAudition] = useState<VirtualAuditionWithDetails | null>(null);
+  const [viewMode, setViewMode] = useState<'slots' | 'virtual'>('slots');
   const [notes, setNotes] = useState<SignupNoteWithAuthor[]>([]);
   const [newNoteText, setNewNoteText] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -75,17 +82,24 @@ export default function LiveAuditionManager({
     new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
   );
 
-  // Load signups for all slots
+  // Load signups for all slots and virtual auditions
   useEffect(() => {
-    async function loadSignups() {
+    async function loadData() {
       setLoading(true);
+      
+      // Load slot signups
       const slotIds = slots.map(s => s.slot_id);
-      const data = await getSignupsWithDetailsForSlots(slotIds);
-      setSignups(data);
+      const signupsData = await getSignupsWithDetailsForSlots(slotIds);
+      setSignups(signupsData);
+      
+      // Load virtual auditions
+      const { data: virtualData } = await getAuditionVirtualSubmissions(auditionId);
+      setVirtualAuditions(virtualData || []);
+      
       setLoading(false);
     }
-    loadSignups();
-  }, [slots]);
+    loadData();
+  }, [slots, auditionId]);
 
   // Determine active slot based on current time
   useEffect(() => {
@@ -387,17 +401,95 @@ export default function LiveAuditionManager({
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="border-b border-neu-border bg-neu-surface flex">
+          <button
+            onClick={() => setViewMode('slots')}
+            className={`px-6 py-3 font-medium transition-all ${
+              viewMode === 'slots'
+                ? 'text-neu-accent-primary border-b-2 border-neu-accent-primary'
+                : 'text-neu-text-secondary hover:text-neu-text-primary'
+            }`}
+          >
+            Slot Signups ({signups.length})
+          </button>
+          <button
+            onClick={() => setViewMode('virtual')}
+            className={`px-6 py-3 font-medium transition-all ${
+              viewMode === 'virtual'
+                ? 'text-neu-accent-primary border-b-2 border-neu-accent-primary'
+                : 'text-neu-text-secondary hover:text-neu-text-primary'
+            }`}
+          >
+            Virtual Auditions ({virtualAuditions.length})
+          </button>
+        </div>
+
         {/* Content */}
         <div className="flex-1 overflow-hidden flex">
-          {/* Slots Sidebar */}
+          {/* Sidebar */}
           <div className="w-80 border-r border-neu-border overflow-y-auto">
             <div className="p-4">
               <h3 className="text-sm font-semibold text-neu-text-primary/70 uppercase mb-3">
-                Audition Slots
+                {viewMode === 'slots' ? 'Audition Slots' : 'Virtual Submissions'}
               </h3>
 
               {loading ? (
                 <div className="text-center py-8 text-neu-text-primary/50">Loading...</div>
+              ) : viewMode === 'virtual' ? (
+                // Virtual Auditions View
+                virtualAuditions.length === 0 ? (
+                  <div className="text-center py-8 text-neu-text-primary/50">
+                    No virtual auditions submitted
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {virtualAuditions.map((va) => {
+                      const userName = va.profiles.first_name && va.profiles.last_name
+                        ? `${va.profiles.first_name} ${va.profiles.last_name}`
+                        : va.profiles.email;
+                      const isSelected = selectedVirtualAudition?.virtual_audition_id === va.virtual_audition_id;
+
+                      return (
+                        <button
+                          key={va.virtual_audition_id}
+                          onClick={() => {
+                            setSelectedVirtualAudition(va);
+                            setSelectedSignup(null);
+                          }}
+                          className={`w-full p-3 rounded-lg text-left transition-all ${
+                            isSelected
+                              ? 'bg-neu-accent-primary/20 border-2 border-neu-accent-primary shadow-md'
+                              : 'neu-card-inset border border-neu-border hover:border-neu-accent-primary/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar
+                              src={va.profiles.profile_photo_url}
+                              alt={userName}
+                              size="sm"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-neu-text-primary truncate">{userName}</p>
+                              <div className="flex items-center gap-2 text-xs text-neu-text-secondary mt-1">
+                                <MdVideocam className="w-3 h-3" />
+                                <span>{va.media_files.length} video{va.media_files.length !== 1 ? 's' : ''}</span>
+                              </div>
+                              <p className="text-xs text-neu-text-secondary mt-1">
+                                {new Date(va.created_at).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: 'numeric',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )
               ) : sortedSlots.length === 0 ? (
                 <div className="text-center py-8 text-neu-text-primary/50">
                   No slots available
@@ -552,7 +644,86 @@ export default function LiveAuditionManager({
 
           {/* Details Panel */}
           <div className="flex-1 overflow-y-auto">
-            {selectedSignup ? (
+            {selectedVirtualAudition ? (
+              <div className="p-6 space-y-6">
+                {/* Actor Info */}
+                <div className="neu-card-raised p-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar
+                      src={selectedVirtualAudition.profiles.profile_photo_url}
+                      alt={`${selectedVirtualAudition.profiles.first_name} ${selectedVirtualAudition.profiles.last_name}`}
+                      size="lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-neu-text-primary">
+                        {selectedVirtualAudition.profiles.first_name && selectedVirtualAudition.profiles.last_name
+                          ? `${selectedVirtualAudition.profiles.first_name} ${selectedVirtualAudition.profiles.last_name}`
+                          : selectedVirtualAudition.profiles.email}
+                      </h3>
+                      <p className="text-sm text-neu-text-primary/60">{selectedVirtualAudition.profiles.email}</p>
+                      <p className="text-sm text-neu-text-primary/60 mt-1">
+                        Submitted: {new Date(selectedVirtualAudition.created_at).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submission Notes */}
+                {selectedVirtualAudition.submission_notes && (
+                  <div className="neu-card-raised p-4">
+                    <h4 className="font-semibold text-neu-text-primary flex items-center gap-2 mb-3">
+                      <MdSave className="w-5 h-5" />
+                      Submission Notes
+                    </h4>
+                    <p className="text-neu-text-secondary whitespace-pre-wrap">
+                      {selectedVirtualAudition.submission_notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Videos */}
+                <div className="neu-card-raised p-4">
+                  <h4 className="font-semibold text-neu-text-primary flex items-center gap-2 mb-3">
+                    <MdVideocam className="w-5 h-5" />
+                    Submitted Videos ({selectedVirtualAudition.media_files.length})
+                  </h4>
+                  {selectedVirtualAudition.media_files.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedVirtualAudition.media_files.map((file, index) => (
+                        <div key={file.media_file_id} className="neu-card-inset p-4 rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <MdVideocam className="w-5 h-5 text-neu-accent-primary" />
+                              <span className="font-medium text-neu-text-primary">Video {index + 1}</span>
+                            </div>
+                            <span className="text-xs text-neu-text-secondary">
+                              {(file.file_size / (1024 * 1024)).toFixed(1)} MB
+                            </span>
+                          </div>
+                          <p className="text-sm text-neu-text-secondary mb-3">{file.file_name}</p>
+                          <video
+                            controls
+                            className="w-full rounded-lg"
+                            style={{ maxHeight: '400px' }}
+                          >
+                            <source src={file.file_url} type={file.file_type} />
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-neu-text-secondary text-center py-4">No videos submitted</p>
+                  )}
+                </div>
+              </div>
+            ) : selectedSignup ? (
               <div className="p-6 space-y-6">
                 {/* Actor Info */}
                 <div className="neu-card-raised p-4">
@@ -769,8 +940,17 @@ export default function LiveAuditionManager({
             ) : (
               <div className="h-full flex items-center justify-center text-neu-text-primary/50">
                 <div className="text-center">
-                  <MdPerson className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>Select an auditionee to view and manage their information</p>
+                  {viewMode === 'virtual' ? (
+                    <>
+                      <MdVideocam className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>Select a virtual audition submission to view videos and details</p>
+                    </>
+                  ) : (
+                    <>
+                      <MdPerson className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>Select an auditionee to view and manage their information</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}

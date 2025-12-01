@@ -11,6 +11,7 @@ import RolesList from '@/components/auditions/RolesList';
 import SlotsList from '@/components/auditions/SlotsList';
 import AuditionInfo from '@/components/auditions/AuditionInfo';
 import ProductionTeamModal from '@/components/auditions/ProductionTeamModal';
+import VirtualAuditionSubmission from '@/components/auditions/VirtualAuditionSubmission';
 import Button from '@/components/Button';
 import { getAuditionRoles } from '@/lib/supabase/auditionRoles';
 import WorkflowTransition from '@/components/productions/WorkflowTransition';
@@ -69,6 +70,11 @@ export default function AuditionDetailPage() {
     }
     
     setAudition(data);
+    console.log('Audition data loaded:', {
+      virtual_auditions_enabled: data.virtual_auditions_enabled,
+      virtual_audition_instructions: data.virtual_audition_instructions,
+      workflow_status: data.workflow_status
+    });
     setLoading(false);
   };
 
@@ -185,15 +191,33 @@ export default function AuditionDetailPage() {
                 auditionId={audition.audition_id} 
               />
 
-              {/* Audition Slots */}
-              <SlotsList 
-                slots={audition.slots || []} 
-                auditionId={audition.audition_id}
-                auditionTitle={audition.show?.title || 'Audition'}
-                user={user}
-                onSignupSuccess={loadAudition}
-                canManage={canManage}
-              />
+              {/* Virtual Audition Submission (Only if enabled and user is logged in and not production team) */}
+              {(() => {
+                console.log('Virtual Audition Check:', {
+                  enabled: audition.virtual_auditions_enabled,
+                  user: !!user,
+                  canManage,
+                  shouldShow: audition.virtual_auditions_enabled && user && !canManage
+                });
+                return audition.virtual_auditions_enabled && user && !canManage ? (
+                  <VirtualAuditionSubmission
+                    auditionId={audition.audition_id}
+                    instructions={audition.virtual_audition_instructions}
+                  />
+                ) : null;
+              })()}
+
+              {/* Audition Slots (Only if workflow_status is auditioning) */}
+              {audition.workflow_status === 'auditioning' && (
+                <SlotsList 
+                  slots={audition.slots || []} 
+                  auditionId={audition.audition_id}
+                  auditionTitle={audition.show?.title || 'Audition'}
+                  user={user}
+                  onSignupSuccess={loadAudition}
+                  canManage={canManage}
+                />
+              )}
             </div>
 
             {/* Sidebar */}

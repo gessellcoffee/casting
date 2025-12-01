@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getAuditionSignups } from '@/lib/supabase/auditionSignups';
+import { getAllAuditionees } from '@/lib/supabase/virtualAuditions';
 import { getCallbackSlotsWithInvitations } from '@/lib/supabase/callbackSlots';
 import CallbackSlotCreator from './CallbackSlotCreator';
 import AuditioneeSelector from './AuditioneeSelector';
@@ -35,9 +36,9 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load all auditionees (signups)
-      const signups = await getAuditionSignups(audition.audition_id);
-      setAuditionees(signups);
+      // Load all auditionees (both slot signups and virtual submissions)
+      const allAuditionees = await getAllAuditionees(audition.audition_id);
+      setAuditionees(allAuditionees);
 
       // Load callback slots with invitations
       const slots = await getCallbackSlotsWithInvitations(audition.audition_id);
@@ -46,7 +47,7 @@ export default function CallbackManagement({ audition, user, onUpdate }: Callbac
       // Calculate stats
       const allInvitations = slots.flatMap(slot => slot.callback_invitations || []);
       setStats({
-        totalAuditionees: signups.length,
+        totalAuditionees: allAuditionees.length,
         totalSlots: slots.length,
         pendingInvitations: allInvitations.filter(inv => inv.status === 'pending').length,
         acceptedInvitations: allInvitations.filter(inv => inv.status === 'accepted').length,
