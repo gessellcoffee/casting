@@ -1350,6 +1350,48 @@ export type Database = {
           },
         ]
       }
+      signup_notes: {
+        Row: {
+          signup_note_id: string
+          signup_id: string
+          author_id: string
+          note_text: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          signup_note_id?: string
+          signup_id: string
+          author_id: string
+          note_text: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          signup_note_id?: string
+          signup_id?: string
+          author_id?: string
+          note_text?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signup_notes_signup_id_fkey"
+            columns: ["signup_id"]
+            isOneToOne: false
+            referencedRelation: "audition_signups"
+            referencedColumns: ["signup_id"]
+          },
+          {
+            foreignKeyName: "signup_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_resume: {
         Row: {
           company_approved: boolean | null

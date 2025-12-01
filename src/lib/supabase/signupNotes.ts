@@ -36,14 +36,14 @@ export async function getSignupNotes(signupId: string): Promise<SignupNoteWithAu
       )
     `)
     .eq('signup_id', signupId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true }) as { data: any; error: any };
 
   if (error) {
     console.error('Error fetching signup notes:', error);
     return [];
   }
 
-  return data as SignupNoteWithAuthor[] || [];
+  return (data as SignupNoteWithAuthor[]) || [];
 }
 
 /**
@@ -132,12 +132,12 @@ export async function getNotesForSignups(signupIds: string[]): Promise<SignupNot
       )
     `)
     .in('signup_id', signupIds)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true }) as { data: any; error: any };
 
   if (error) {
     console.error('Error fetching notes for signups:', error);
     return [];
   }
 
-  return data as SignupNoteWithAuthor[] || [];
+  return (data as SignupNoteWithAuthor[]) || [];
 }

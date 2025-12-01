@@ -23,17 +23,21 @@ export default function LiveAuditionPage() {
 
   useEffect(() => {
     async function loadData() {
+      console.log('🎬 Live Audition Manager - Starting load...');
       setLoading(true);
       setError(null);
 
       try {
         // Get user
+        console.log('Fetching user...');
         const currentUser = await getUser();
         if (!currentUser) {
+          console.error('No user found');
           setError('You must be logged in to access this page');
           setLoading(false);
           return;
         }
+        console.log('User loaded:', currentUser.id);
         setUser(currentUser);
 
         // Get audition with show details
@@ -43,28 +47,36 @@ export default function LiveAuditionPage() {
           setLoading(false);
           return;
         }
+        console.log('Audition loaded:', auditionData.audition_id);
         setAudition(auditionData);
 
         // Get slots
+        console.log('Fetching slots...');
         const slotsData = await getAuditionSlots(auditionId);
+        console.log('Slots loaded:', slotsData.length);
         setSlots(slotsData);
 
         // Check if user can manage (owner or production team)
+        console.log('Checking permissions...');
         const isOwner = auditionData.user_id === currentUser.id;
         const teamMembers = await getProductionTeamMembers(auditionId);
         const isTeamMember = teamMembers.some((member: any) => member.user_id === currentUser.id);
 
+        console.log('Is owner:', isOwner, 'Is team member:', isTeamMember);
+
         if (!isOwner && !isTeamMember) {
+          console.error('Permission denied');
           setError('You do not have permission to access this page');
           setLoading(false);
           return;
         }
 
+        console.log('✅ All data loaded successfully');
         setCanManage(true);
         setLoading(false);
       } catch (err) {
-        console.error('Error loading live audition page:', err);
-        setError('Failed to load audition data');
+        console.error('❌ Error loading live audition page:', err);
+        setError(`Failed to load audition data: ${err instanceof Error ? err.message : 'Unknown error'}`);
         setLoading(false);
       }
     }

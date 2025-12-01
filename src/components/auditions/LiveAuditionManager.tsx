@@ -134,8 +134,14 @@ export default function LiveAuditionManager({
       setEditingNoteId(null);
       setEditNoteText('');
 
-      const signupNotes = await getNotesForSignups([selectedSignup.signup_id]);
-      setNotes(signupNotes);
+      try {
+        const signupNotes = await getNotesForSignups([selectedSignup.signup_id]);
+        setNotes(signupNotes);
+      } catch (error) {
+        console.error('Error loading notes:', error);
+        // Table might not exist yet - gracefully handle
+        setNotes([]);
+      }
     }
 
     loadNotes();
