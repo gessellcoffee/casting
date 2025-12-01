@@ -134,26 +134,38 @@ export type Database = {
       audition_signups: {
         Row: {
           created_at: string
+          last_updated_by: string | null
+          media_files: Json | null
+          notes: string | null
           role_id: string | null
           signup_id: string
           slot_id: string
           status: Database["public"]["Enums"]["signup_status_enum"] | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          last_updated_by?: string | null
+          media_files?: Json | null
+          notes?: string | null
           role_id?: string | null
           signup_id?: string
           slot_id: string
           status?: Database["public"]["Enums"]["signup_status_enum"] | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
+          last_updated_by?: string | null
+          media_files?: Json | null
+          notes?: string | null
           role_id?: string | null
           signup_id?: string
           slot_id?: string
           status?: Database["public"]["Enums"]["signup_status_enum"] | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -174,6 +186,13 @@ export type Database = {
           {
             foreignKeyName: "audition_signups_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audition_signups_last_updated_by_fkey"
+            columns: ["last_updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

@@ -152,6 +152,11 @@ export default function AuditionDetailPage() {
               {/* Action Buttons */}
               <div className="flex gap-4 flex-wrap">
                 <Button
+                  text="🎬 Live Audition Manager"
+                  onClick={() => router.push(`/auditions/${audition.audition_id}/live`)}
+                  variant="primary"
+                />
+                <Button
                   text="Manage Callbacks"
                   onClick={() => router.push(`/auditions/${audition.audition_id}/callbacks`)}
                   variant="secondary"

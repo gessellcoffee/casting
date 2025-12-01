@@ -1,7 +1,7 @@
 import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from './client';
 import { getAuthenticatedUser } from './auth';
-import type { AuditionSignup, AuditionSignupInsert, AuditionSignupUpdate, AuditionSignupWithDetails, UserSignupsWithDetails } from './types';
+import type { AuditionSignup, AuditionSignupInsert, AuditionSignupUpdate, AuditionSignupWithDetails, UserSignupsWithDetails, Json } from './types';
 
 /**
  * Get an audition signup by ID
@@ -29,7 +29,7 @@ export async function getAuditionSignupWithDetails(signupId: string): Promise<Au
     .from('audition_signups')
     .select(`
       *,
-      profiles (
+      profiles!user_id (
         id,
         first_name,
         last_name,
@@ -879,7 +879,7 @@ export async function getSignupsForSlots(slotIds: string[]): Promise<Array<{
       signup_id,
       user_id,
       slot_id,
-      profiles:user_id (
+      profiles!user_id (
         id,
         first_name,
         last_name,
@@ -1037,4 +1037,197 @@ export async function getUserRehearsalAgendaItems(userId: string): Promise<any[]
     console.error('Error in getUserRehearsalAgendaItems:', error);
     return [];
   }
+}
+
+/**
+ * Media file interface for audition signups
+ */
+export interface MediaFile {
+  url: string;
+  path: string;
+  type: 'image' | 'video';
+  filename: string;
+  uploaded_at: string;
+}
+
+/**
+ * Update notes for an audition signup
+ */
+export async function updateSignupNotes(
+  signupId: string,
+  notes: string,
+  updatedBy: string
+): Promise<{ data: any; error: any }> {
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .update({
+      notes,
+      last_updated_by: updatedBy,
+    })
+    .eq('signup_id', signupId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating signup notes:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
+/**
+ * Add media file to an audition signup
+ */
+export async function addSignupMedia(
+  signupId: string,
+  mediaFile: MediaFile,
+  updatedBy: string
+): Promise<{ data: any; error: any }> {
+  // First, get the current media files
+  const { data: signup, error: fetchError } = await supabase
+    .from('audition_signups')
+    .select('media_files')
+    .eq('signup_id', signupId)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching signup:', fetchError);
+    return { data: null, error: fetchError };
+  }
+
+  // Add new media file to array
+  const currentMedia = (signup.media_files as unknown as MediaFile[]) || [];
+  const updatedMedia = [...currentMedia, mediaFile];
+
+  // Update the signup
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .update({
+      media_files: updatedMedia as unknown as Json,
+      last_updated_by: updatedBy,
+    })
+    .eq('signup_id', signupId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding media to signup:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
+/**
+ * Remove media file from an audition signup
+ */
+export async function removeSignupMedia(
+  signupId: string,
+  mediaPath: string,
+  updatedBy: string
+): Promise<{ data: any; error: any }> {
+  // First, get the current media files
+  const { data: signup, error: fetchError } = await supabase
+    .from('audition_signups')
+    .select('media_files')
+    .eq('signup_id', signupId)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching signup:', fetchError);
+    return { data: null, error: fetchError };
+  }
+
+  // Remove media file from array
+  const currentMedia = (signup.media_files as unknown as MediaFile[]) || [];
+  const updatedMedia = currentMedia.filter(file => file.path !== mediaPath);
+
+  // Update the signup
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .update({
+      media_files: updatedMedia as unknown as Json,
+      last_updated_by: updatedBy,
+    })
+    .eq('signup_id', signupId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error removing media from signup:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
+/**
+ * Get signup with full details including notes and media
+ */
+export async function getSignupWithDetails(signupId: string): Promise<any> {
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .select(`
+      *,
+      profiles!user_id (
+        id,
+        first_name,
+        last_name,
+        email,
+        profile_photo_url
+      ),
+      audition_slots (
+        slot_id,
+        start_time,
+        end_time,
+        location,
+        audition_id
+      )
+    `)
+    .eq('signup_id', signupId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching signup details:', error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Get all signups for slots with notes and media
+ * Used by live audition manager
+ */
+export async function getSignupsWithDetailsForSlots(slotIds: string[]): Promise<any[]> {
+  if (slotIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('audition_signups')
+    .select(`
+      *,
+      profiles!user_id (
+        id,
+        first_name,
+        last_name,
+        email,
+        profile_photo_url
+      ),
+      audition_slots (
+        slot_id,
+        start_time,
+        end_time,
+        location
+      )
+    `)
+    .in('slot_id', slotIds)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching signups with details:', error);
+    return [];
+  }
+
+  return data || [];
 }
