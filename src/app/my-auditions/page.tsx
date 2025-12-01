@@ -80,6 +80,7 @@ function MyAuditionsContent() {
   const [signups, setSignups] = useState<any[]>([]);
   const [callbacks, setCallbacks] = useState<any[]>([]);
   const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
+  const [filteredProductionEvents, setFilteredProductionEvents] = useState<ProductionDateEvent[]>([]);
   const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
   const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -199,7 +200,7 @@ function MyAuditionsContent() {
             <DownloadMyCalendarButton
               signups={signups}
               callbacks={callbacks}
-              productionEvents={productionEvents}
+              productionEvents={filteredProductionEvents.length > 0 ? filteredProductionEvents : productionEvents}
             />
           </div>
         </div>
@@ -212,6 +213,7 @@ function MyAuditionsContent() {
           onRefresh={loadData}
           hasOwnedAuditions={hasOwnedAuditions}
           hasProductionTeamAuditions={hasProductionTeamAuditions}
+          onFilteredEventsChange={setFilteredProductionEvents}
         />
       </div>
     </div>

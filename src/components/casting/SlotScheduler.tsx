@@ -643,7 +643,7 @@ export default function SlotScheduler({
       
       <div className="neu-container-light space-y-4">
         <h3 className="text-lg font-medium text-neu-text-primary">Default Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1  ">
           <div>
             <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Time Increment
@@ -667,7 +667,7 @@ export default function SlotScheduler({
             placeholder="e.g., Studio A"
           />
           <div>
-            <label className="block text-sm font-medium text-neu-text-primary mb-2">
+            <label className=" text-sm font-medium text-neu-text-primary mb-2 w-1">
               Max Signups
             </label>
             <input
@@ -675,7 +675,7 @@ export default function SlotScheduler({
               value={defaultMaxSignups}
               onChange={(e) => setDefaultMaxSignups(parseInt(e.target.value) || 1)}
               min="1"
-              className="neu-input"
+              className="neu-input w-16"
             />
           </div>
           <div>

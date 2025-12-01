@@ -14,24 +14,29 @@ interface ButtonProps {
 }
 
 export default function Button({ 
-  text, 
+  text,
+  children,
   href, 
   onClick, 
   disabled = false, 
   type = 'button',
   className = '',
-  variant = 'primary'
+  variant = 'primary',
+  title
 }: ButtonProps) {
   // Build neumorphic button classes
   const baseClasses = `n-button-${variant}`;
   const combinedClasses = `${baseClasses} ${className}`.trim();
+  
+  // Use children if provided, otherwise use text
+  const content = children || text;
 
   // If href is provided, render as Link wrapped in button for neumorphic styling
   if (href && !onClick) {
     return (
       <Link href={href}>
-        <button className={combinedClasses} disabled={disabled}>
-          {text}
+        <button className={combinedClasses} disabled={disabled} title={title}>
+          {content}
         </button>
       </Link>
     );
@@ -44,8 +49,9 @@ export default function Button({
       onClick={onClick}
       disabled={disabled}
       className={combinedClasses}
+      title={title}
     >
-      {text}
+      {content}
     </button>
   );
 }

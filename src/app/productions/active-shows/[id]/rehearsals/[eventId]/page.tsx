@@ -15,6 +15,7 @@ import AddressInput from '@/components/ui/AddressInput';
 import { MdArrowBack, MdAdd, MdLocationOn, MdAccessTime, MdCalendarToday, MdEdit, MdSave, MdClose } from 'react-icons/md';
 import { formatUSDate } from '@/lib/utils/dateUtils';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
+import DownloadCallSheetButton from '@/components/productions/DownloadCallSheetButton';
 
 // Helper function to format time string (HH:MM:SS) to 12-hour format
 function formatTimeString(timeString: string): string {
@@ -334,13 +335,35 @@ export default function RehearsalEventDetailPage() {
                       </h1>
                     </div>
                     {canManage && (
-                      <button
-                        onClick={() => setIsEditingEvent(true)}
-                        className="neu-icon-btn"
-                        title="Edit Event"
-                      >
-                        <MdEdit className="w-5 h-5" />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <DownloadCallSheetButton
+                          rehearsalEvent={{
+                            date: event.date,
+                            start_time: event.start_time,
+                            end_time: event.end_time,
+                            location: event.location,
+                            notes: event.notes,
+                          }}
+                          showDetails={{
+                            title: event.auditions?.shows?.title || 'Production',
+                            author: event.auditions?.shows?.author,
+                          }}
+                          agendaItems={agendaItems.map((item: any) => ({
+                            title: item.title,
+                            description: item.description,
+                            start_time: item.start_time,
+                            end_time: item.end_time,
+                            assignments: item.assignments || [],
+                          }))}
+                        />
+                        <button
+                          onClick={() => setIsEditingEvent(true)}
+                          className="neu-icon-btn"
+                          title="Edit Event"
+                        >
+                          <MdEdit className="w-5 h-5" />
+                        </button>
+                      </div>
                     )}
                   </div>
 

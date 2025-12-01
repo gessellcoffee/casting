@@ -86,41 +86,9 @@ export function generateProductionEvents(
 
     if (!audition || !audition.shows) return;
 
-    const showTitle = audition.shows.title || 'Unknown Show';
-
-    // Add individual rehearsal date events for each date in the array
-    if (audition.rehearsal_dates) {
-      const dates = parseDateData(audition.rehearsal_dates);
-      dates.forEach(date => {
-        events.push({
-          type: 'rehearsal',
-          title: `${showTitle} - Rehearsal`,
-          show: audition.shows,
-          date,
-          location: audition.rehearsal_location,
-          auditionId: audition.audition_id,
-          role,
-          userRole
-        });
-      });
-    }
-
-    // Add individual performance date events for each date in the array
-    if (audition.performance_dates) {
-      const dates = parseDateData(audition.performance_dates);
-      dates.forEach(date => {
-        events.push({
-          type: 'performance',
-          title: `${showTitle} - Performance`,
-          show: audition.shows,
-          date,
-          location: audition.performance_location,
-          auditionId: audition.audition_id,
-          role,
-          userRole
-        });
-      });
-    }
+    // NOTE: rehearsal_dates and performance_dates are just date ranges for reference
+    // Actual scheduled events come from rehearsal_events, agenda_items, and performance_events tables
+    // We don't create calendar events from these date arrays anymore
   });
 
   // Add audition slots for owners/production team
@@ -239,4 +207,14 @@ export function generateAgendaItemEvents(agendaItems: any[]): ProductionDateEven
   });
 
   return events;
+}
+
+/**
+ * Filter production events by specific audition ID
+ */
+export function filterEventsByAuditionId(
+  events: ProductionDateEvent[],
+  auditionId: string
+): ProductionDateEvent[] {
+  return events.filter(event => event.auditionId === auditionId);
 }

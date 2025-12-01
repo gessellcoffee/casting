@@ -18,6 +18,7 @@ interface AuditionCalendarProps {
   onRefresh?: () => void;
   hasOwnedAuditions?: boolean;
   hasProductionTeamAuditions?: boolean;
+  onFilteredEventsChange?: (events: ProductionDateEvent[]) => void;
 }
 
 export default function AuditionCalendar({ 
@@ -27,7 +28,8 @@ export default function AuditionCalendar({
   userId, 
   onRefresh,
   hasOwnedAuditions = false,
-  hasProductionTeamAuditions = false
+  hasProductionTeamAuditions = false,
+  onFilteredEventsChange
 }: AuditionCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -80,17 +82,23 @@ export default function AuditionCalendar({
     [callbacks, eventFilters.callbacks]
   );
   
-  const filteredProductionEvents = useMemo(() => 
-    productionEvents.filter(evt => {
+  const filteredProductionEvents = useMemo(() => {
+    const filtered = productionEvents.filter(evt => {
       if (evt.type === 'rehearsal' && !eventFilters.rehearsalDates) return false;
       if (evt.type === 'performance' && !eventFilters.performanceDates) return false;
       if (evt.type === 'audition_slot' && !eventFilters.auditionSlots) return false;
       if (evt.type === 'rehearsal_event' && !eventFilters.rehearsalEvents) return false;
       if (evt.type === 'agenda_item' && !eventFilters.rehearsalEvents) return false; // Use same filter as rehearsal_event
       return true;
-    }),
-    [productionEvents, eventFilters]
-  );
+    });
+    
+    // Notify parent of filtered events change
+    if (onFilteredEventsChange) {
+      onFilteredEventsChange(filtered);
+    }
+    
+    return filtered;
+  }, [productionEvents, eventFilters, onFilteredEventsChange]);
 
   // Navigate to previous period
   const handlePrevious = () => {

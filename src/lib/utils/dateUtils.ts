@@ -138,11 +138,27 @@ export function formatUSDateWithFullWeekday(date: Date | string): string {
 
 /**
  * Format time in US format (e.g., "2:30 PM")
- * @param date - The date/time to format (Date object or date string)
+ * @param date - The date/time to format (Date object, date string, or time string HH:MM:SS)
  * @returns The formatted time string
  */
 export function formatUSTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  let d: Date;
+  
+  if (typeof date === 'string') {
+    // Check if it's a time-only string (HH:MM or HH:MM:SS)
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(date)) {
+      // Create a date object with today's date and the specified time
+      const [hours, minutes] = date.split(':').map(Number);
+      d = new Date();
+      d.setHours(hours, minutes, 0, 0);
+    } else {
+      // It's a full date string
+      d = new Date(date);
+    }
+  } else {
+    d = date;
+  }
+  
   return d.toLocaleTimeString(US_LOCALE, {
     hour: 'numeric',
     minute: '2-digit',

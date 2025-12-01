@@ -1715,6 +1715,10 @@ export type RehearsalEvent = Database['public']['Tables']['rehearsal_events']['R
 export type RehearsalEventInsert = Database['public']['Tables']['rehearsal_events']['Insert'];
 export type RehearsalEventUpdate = Database['public']['Tables']['rehearsal_events']['Update'];
 
+export type PerformanceEvent = Database['public']['Tables']['performance_events']['Row'];
+export type PerformanceEventInsert = Database['public']['Tables']['performance_events']['Insert'];
+export type PerformanceEventUpdate = Database['public']['Tables']['performance_events']['Update'];
+
 export type RehearsalAgendaItem = Database['public']['Tables']['rehearsal_agenda_items']['Row'];
 export type RehearsalAgendaItemInsert = Database['public']['Tables']['rehearsal_agenda_items']['Insert'];
 export type RehearsalAgendaItemUpdate = Database['public']['Tables']['rehearsal_agenda_items']['Update'];
