@@ -119,6 +119,42 @@ export interface MediaFolderWithFiles extends MediaFolder {
   subfolders: MediaFolderWithFiles[];
 }
 
+// ============= COMPANY TYPES =============
+
+export interface Company {
+  company_id: string;
+  creator_user_id: string;
+  name: string;
+  description: string | null;
+  address: string | null;
+  vision: string | null;
+  mission: string | null;
+  values: string | null;
+  image_gallery: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyInsert {
+  name: string;
+  description?: string | null;
+  address?: string | null;
+  vision?: string | null;
+  mission?: string | null;
+  values?: string | null;
+  image_gallery?: string[] | null;
+}
+
+export interface CompanyUpdate {
+  name?: string;
+  description?: string | null;
+  address?: string | null;
+  vision?: string | null;
+  mission?: string | null;
+  values?: string | null;
+  image_gallery?: string[] | null;
+}
+
 // ============= AUDITION TYPES =============
 
 export type EquityStatus = 'Equity' | 'Non-Equity' | 'Hybrid';
