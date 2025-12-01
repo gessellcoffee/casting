@@ -15,8 +15,9 @@ export function expandRecurringEvent(
   }
 
   const { recurrenceRule } = event;
-  const eventStart = new Date(event.start);
-  const eventEnd = new Date(event.end);
+  // Use ISO string if available, otherwise use Date object
+  const eventStart = event.start && typeof event.start === 'string' ? new Date(event.start) : event.startDate;
+  const eventEnd = event.end && typeof event.end === 'string' ? new Date(event.end) : event.endDate;
   const duration = eventEnd.getTime() - eventStart.getTime();
 
   try {
@@ -84,7 +85,9 @@ export function expandRecurringEvent(
 
       return {
         ...event,
-        id: `${event.id}_${instanceStart.getTime()}`, // Unique ID for each instance
+        id: `${event.id || 'event'}_${instanceStart.getTime()}`, // Unique ID for each instance
+        startDate: instanceStart,
+        endDate: instanceEnd,
         start: instanceStart.toISOString(),
         end: instanceEnd.toISOString(),
         // Add metadata to identify this as an instance
@@ -116,8 +119,8 @@ export function expandRecurringEvents(
 
   // Sort by start time
   return expandedEvents.sort((a, b) => {
-    const aTime = new Date(a.start).getTime();
-    const bTime = new Date(b.start).getTime();
-    return aTime - bTime;
+    const aDate = a.start && typeof a.start === 'string' ? new Date(a.start) : a.startDate;
+    const bDate = b.start && typeof b.start === 'string' ? new Date(b.start) : b.startDate;
+    return aDate.getTime() - bDate.getTime();
   });
 }

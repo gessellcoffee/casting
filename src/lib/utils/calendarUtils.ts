@@ -3,13 +3,31 @@
  * Follows iCalendar RFC 5545 specification
  */
 
+export interface RecurrenceRule {
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  interval?: number;
+  until?: string;
+  count?: number;
+  byDay?: string[];
+  byMonthDay?: number[];
+  byMonth?: number[];
+}
+
 export interface CalendarEvent {
+  id?: string;
   title: string;
   description?: string;
   location?: string;
   startDate: Date;
   endDate: Date;
+  start?: string; // ISO string for compatibility
+  end?: string; // ISO string for compatibility
   allDay?: boolean;
+  isRecurring?: boolean;
+  recurrenceRule?: RecurrenceRule;
+  _isInstance?: boolean;
+  _originalEventId?: string;
+  _instanceDate?: string;
 }
 
 /**
