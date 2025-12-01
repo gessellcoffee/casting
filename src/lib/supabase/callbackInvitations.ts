@@ -572,7 +572,7 @@ export async function getUserAcceptedCallbacks(userId: string): Promise<any[]> {
     `)
     .eq('user_id', userId)
     .eq('status', 'accepted')
-    .order('callback_slots(start_time)', { ascending: true });
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching user accepted callbacks:', error);

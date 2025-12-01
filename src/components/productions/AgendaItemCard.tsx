@@ -42,6 +42,7 @@ interface AgendaItemCardProps {
   onAddAssignment?: () => void;
   onAssignAll?: () => void;
   onRemoveAssignment?: (assignmentId: string) => void;
+  onAvatarClick?: (userId: string) => void;
 }
 
 export default function AgendaItemCard({
@@ -52,6 +53,7 @@ export default function AgendaItemCard({
   onAddAssignment,
   onAssignAll,
   onRemoveAssignment,
+  onAvatarClick,
 }: AgendaItemCardProps) {
   const [showAssignments, setShowAssignments] = useState(true);
 
@@ -114,6 +116,7 @@ export default function AgendaItemCard({
                         src={assignment.profiles.profile_photo_url}
                         alt={`${assignment.profiles.first_name} ${assignment.profiles.last_name}`}
                         size="sm"
+                        onClick={onAvatarClick ? () => onAvatarClick(assignment.user_id) : undefined}
                       />
                       <span className="text-sm text-neu-text-primary">
                         {assignment.profiles.first_name} {assignment.profiles.last_name}

@@ -10,13 +10,13 @@ export async function GET(request: NextRequest) {
   
   if (error) {
     return NextResponse.redirect(
-      new URL('/my-auditions?error=access_denied', request.url)
+      new URL('/my-calendar?error=access_denied', request.url)
     );
   }
   
   if (!code || !state) {
     return NextResponse.redirect(
-      new URL('/my-auditions?error=invalid_request', request.url)
+      new URL('/my-calendar?error=invalid_request', request.url)
     );
   }
   
@@ -45,12 +45,12 @@ export async function GET(request: NextRequest) {
     }
     
     return NextResponse.redirect(
-      new URL('/my-auditions?google_connected=true', request.url)
+      new URL('/my-calendar?google_connected=true', request.url)
     );
   } catch (error) {
     console.error('Error exchanging code:', error);
     return NextResponse.redirect(
-      new URL('/my-auditions?error=auth_failed', request.url)
+      new URL('/my-calendar?error=auth_failed', request.url)
     );
   }
 }

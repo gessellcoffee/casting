@@ -221,7 +221,7 @@ export default function AuditionsPage() {
                 </p>
               </div>
               <Link
-                href="/my-auditions"
+                href="/my-calendar"
                 className="n-button-primary flex items-center justify-center gap-2 whitespace-nowrap sm:flex-shrink-0"
               >
                 <MdCalendarToday className="w-5 h-5" />

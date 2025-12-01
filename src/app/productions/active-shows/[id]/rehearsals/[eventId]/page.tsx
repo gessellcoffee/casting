@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { getRehearsalEvent, updateRehearsalEvent } from '@/lib/supabase/rehearsalEvents';
-import { getAgendaItems, deleteAgendaItem, removeAssignment, getCastMembers, assignMultipleCastMembers } from '@/lib/supabase/agendaItems';
+import { getAgendaItems, deleteAgendaItem, removeAssignment, getCastMembers, assignMultipleCastMembers, getConflictSummary } from '@/lib/supabase/agendaItems';
 import { canManageRehearsalEvents } from '@/lib/supabase/rehearsalEvents';
 import StarryContainer from '@/components/StarryContainer';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -12,10 +12,12 @@ import AgendaItemCard from '@/components/productions/AgendaItemCard';
 import AgendaItemForm from '@/components/productions/AgendaItemForm';
 import AssignCastMemberModal from '@/components/productions/AssignCastMemberModal';
 import AddressInput from '@/components/ui/AddressInput';
-import { MdArrowBack, MdAdd, MdLocationOn, MdAccessTime, MdCalendarToday, MdEdit, MdSave, MdClose } from 'react-icons/md';
+import { MdArrowBack, MdAdd, MdLocationOn, MdAccessTime, MdCalendarToday, MdEdit, MdSave, MdClose, MdWarning } from 'react-icons/md';
 import { formatUSDate } from '@/lib/utils/dateUtils';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import DownloadCallSheetButton from '@/components/productions/DownloadCallSheetButton';
+import ConflictsModal from '@/components/productions/ConflictsModal';
+import UserProfileModal from '@/components/casting/UserProfileModal';
 
 // Helper function to format time string (HH:MM:SS) to 12-hour format
 function formatTimeString(timeString: string): string {
@@ -55,6 +57,10 @@ export default function RehearsalEventDetailPage() {
     confirmButtonText: 'Confirm',
     showCancel: true
   });
+  const [showConflictsModal, setShowConflictsModal] = useState(false);
+  const [conflictData, setConflictData] = useState<any[]>([]);
+  const [conflictCount, setConflictCount] = useState(0);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -102,6 +108,14 @@ export default function RehearsalEventDetailPage() {
     // Load agenda items
     const { data: itemsData } = await getAgendaItems(params.eventId as string);
     setAgendaItems(itemsData || []);
+
+    // Load conflict summary
+    const { data: conflictsData } = await getConflictSummary(params.eventId as string);
+    if (conflictsData) {
+      setConflictData(conflictsData);
+      const totalConflicts = conflictsData.reduce((sum, item) => sum + item.conflicts.length, 0);
+      setConflictCount(totalConflicts);
+    }
 
     // Check permissions
     if (eventData && eventData.audition_id) {
@@ -336,6 +350,19 @@ export default function RehearsalEventDetailPage() {
                     </div>
                     {canManage && (
                       <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setShowConflictsModal(true)}
+                          className="neu-button-secondary flex items-center gap-2 relative"
+                          title="View Conflicts"
+                        >
+                          <MdWarning className="w-5 h-5" />
+                          View Conflicts
+                          {conflictCount > 0 && (
+                            <span className="ml-1 px-2 py-0.5 rounded-full bg-yellow-500 text-white text-xs font-semibold">
+                              {conflictCount}
+                            </span>
+                          )}
+                        </button>
                         <DownloadCallSheetButton
                           rehearsalEvent={{
                             date: event.date,
@@ -428,6 +455,7 @@ export default function RehearsalEventDetailPage() {
                     onAddAssignment={() => setAssigningToItem(item.rehearsal_agenda_items_id)}
                     onRemoveAssignment={handleRemoveAssignment}
                     onAssignAll={() => handleAssignAll(item.rehearsal_agenda_items_id)}
+                    onAvatarClick={(userId) => setSelectedUserId(userId)}
                   />
                 ))}
               </div>
@@ -469,6 +497,31 @@ export default function RehearsalEventDetailPage() {
                   loadData();
                 }}
                 onCancel={() => setAssigningToItem(null)}
+              />
+            )}
+
+            {/* Conflicts Modal */}
+            <ConflictsModal
+              isOpen={showConflictsModal}
+              onClose={() => setShowConflictsModal(false)}
+              agendaItems={conflictData}
+              formatTimeString={formatTimeString}
+              onAvatarClick={(userId) => {
+                setShowConflictsModal(false);
+                setSelectedUserId(userId);
+              }}
+            />
+
+            {/* User Profile Modal */}
+            {selectedUserId && event && (
+              <UserProfileModal
+                userId={selectedUserId}
+                auditionId={event.audition_id}
+                onClose={() => setSelectedUserId(null)}
+                onActionComplete={() => {
+                  setSelectedUserId(null);
+                  loadData();
+                }}
               />
             )}
           </div>

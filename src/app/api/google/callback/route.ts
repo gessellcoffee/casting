@@ -22,14 +22,14 @@ export async function GET(request: NextRequest) {
     // Handle user cancellation
     if (error === 'access_denied') {
       return NextResponse.redirect(
-        new URL('/my-auditions?google_error=cancelled', baseUrl)
+        new URL('/my-calendar?google_error=cancelled', baseUrl)
       );
     }
 
     if (!code || !state) {
       console.error('Missing code or state in callback');
       return NextResponse.redirect(
-        new URL('/my-auditions?google_error=invalid', baseUrl)
+        new URL('/my-calendar?google_error=invalid', baseUrl)
       );
     }
 
@@ -56,13 +56,13 @@ export async function GET(request: NextRequest) {
     if (dbError) {
       console.error('Error storing tokens:', dbError);
       return NextResponse.redirect(
-        new URL('/my-auditions?google_error=storage', baseUrl)
+        new URL('/my-calendar?google_error=storage', baseUrl)
       );
     }
 
     // Success - redirect back to calendar page
     return NextResponse.redirect(
-      new URL('/my-auditions?google_connected=true', baseUrl)
+      new URL('/my-calendar?google_connected=true', baseUrl)
     );
   } catch (error) {
     console.error('Error in Google Calendar callback:', error);
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
                     `${request.nextUrl.protocol}//${request.nextUrl.host}`;
     
     return NextResponse.redirect(
-      new URL('/my-auditions?google_error=unknown', baseUrl)
+      new URL('/my-calendar?google_error=unknown', baseUrl)
     );
   }
 }

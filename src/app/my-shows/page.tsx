@@ -120,19 +120,19 @@ export default function MyShowsPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="p-4 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+            <div className="neu-stat-card">
               <div className="text-2xl font-bold text-neu-text-primary">{allShows.length}</div>
               <div className="text-sm text-neu-text-secondary">Total Shows</div>
             </div>
-            <div className="p-4 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+            <div className="neu-stat-card">
               <div className="text-2xl font-bold text-yellow-400">{offeredCount}</div>
               <div className="text-sm text-neu-text-secondary">Pending</div>
             </div>
-            <div className="p-4 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+            <div className="neu-stat-card">
               <div className="text-2xl font-bold text-green-400">{acceptedCount}</div>
               <div className="text-sm text-neu-text-secondary">Accepted</div>
             </div>
-            <div className="p-4 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+            <div className="neu-stat-card">
               <div className="text-2xl font-bold text-red-400">{declinedCount}</div>
               <div className="text-sm text-neu-text-secondary">Declined</div>
             </div>
@@ -148,14 +148,14 @@ export default function MyShowsPage() {
               <Filter size={18} />
               <span className="font-medium">Filters</span>
               {hasActiveFilters && (
-                <span className="ml-2 px-2 py-0.5 rounded-full bg-neu-accent-primary text-white text-xs">
+                <span className="ml-2 neu-badge neu-badge-primary neu-badge-pill text-xs">
                   Active
                 </span>
               )}
             </Button>
 
             {showFilters && (
-              <div className="mt-4 p-6 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+              <div className="mt-4 neu-container">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-neu-text-primary">Filter Shows</h3>
                   {hasActiveFilters && (
@@ -181,12 +181,11 @@ export default function MyShowsPage() {
                         <button
                           key={status}
                           onClick={() => setStatusFilter(status)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          className={`n-button-primary ${
                             statusFilter === status
-                              ? 'shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] border-neu-accent-primary text-neu-accent-primary'
-                              : 'shadow-[2px_2px_4px_var(--neu-shadow-dark),-2px_-2px_4px_var(--neu-shadow-light)] text-neu-text-primary hover:border-neu-accent-primary/50'
-                          } border`}
-                          style={{ backgroundColor: 'var(--neu-surface)' }}
+                              ? 'neu-shadow-pressed border-neu-accent-primary text-neu-accent-primary'
+                              : ''
+                          }`}
                         >
                           {status === 'all' ? 'All' : status}
                         </button>
@@ -204,12 +203,11 @@ export default function MyShowsPage() {
                         <button
                           key={status}
                           onClick={() => setWorkflowFilter(status)}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          className={`n-button-primary neu-button-sm ${
                             workflowFilter === status
-                              ? 'shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] border-neu-accent-primary text-neu-accent-primary'
-                              : 'shadow-[2px_2px_4px_var(--neu-shadow-dark),-2px_-2px_4px_var(--neu-shadow-light)] text-neu-text-primary hover:border-neu-accent-primary/50'
-                          } border`}
-                          style={{ backgroundColor: 'var(--neu-surface)' }}
+                              ? 'neu-shadow-pressed border-neu-accent-primary text-neu-accent-primary'
+                              : ''
+                          }`}
                         >
                           {status === 'all' ? 'All' : status.replace(/_/g, ' ')}
                         </button>
@@ -228,7 +226,7 @@ export default function MyShowsPage() {
           {/* Shows List */}
           <div className="space-y-4">
             {filteredShows.length === 0 ? (
-              <div className="p-12 text-center rounded-xl border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+              <div className="neu-card-raised p-12 text-center">
                 <p className="text-neu-text-secondary text-lg mb-2">
                   {hasActiveFilters ? 'No shows match your filters' : 'No shows yet'}
                 </p>

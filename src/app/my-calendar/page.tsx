@@ -34,7 +34,7 @@ function ConnectionStatusHandler() {
       // Clear query params after 3 seconds
       setTimeout(() => {
         setConnectionStatus(null);
-        router.replace('/my-auditions');
+        router.replace('/my-calendar');
       }, 3000);
     } else if (googleError) {
       const errorMessages: Record<string, string> = {
@@ -51,7 +51,7 @@ function ConnectionStatusHandler() {
       // Clear query params after 5 seconds
       setTimeout(() => {
         setConnectionStatus(null);
-        router.replace('/my-auditions');
+        router.replace('/my-calendar');
       }, 5000);
     }
   }, [searchParams, router]);
@@ -74,7 +74,7 @@ function ConnectionStatusHandler() {
   );
 }
 
-function MyAuditionsContent() {
+function MyCalendarContent() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [signups, setSignups] = useState<any[]>([]);
@@ -166,7 +166,7 @@ function MyAuditionsContent() {
 
   if (loading) {
     return (
-      <div className="text-neu-text-primary/70">Loading your auditions...</div>
+      <div className="text-neu-text-primary/70">Loading your calendar...</div>
     );
   }
 
@@ -185,10 +185,10 @@ function MyAuditionsContent() {
         <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold text-neu-text-primary mb-2">
-              My Audition Calendar
+              My Calendar
             </h1>
             <p className="text-neu-text-primary/70">
-              View, update, and manage your audition signups
+              View, update, and manage your auditions, rehearsals, and performances
             </p>
           </div>
           
@@ -220,14 +220,14 @@ function MyAuditionsContent() {
   );
 }
 
-export default function MyAuditionsPage() {
+export default function MyCalendarPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen p-6">
-        <div className="text-neu-text-primary/70">Loading your auditions...</div>
+        <div className="text-neu-text-primary/70">Loading your calendar...</div>
       </div>
     }>
-      <MyAuditionsContent />
+      <MyCalendarContent />
     </Suspense>
   );
 }

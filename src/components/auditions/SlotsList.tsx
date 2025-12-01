@@ -282,7 +282,7 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
         <Alert variant="success" onClose={() => setSuccessMessage(null)} className="mb-4">
           <div className="font-medium mb-2">{successMessage}</div>
           <Link
-            href="/my-auditions"
+            href="/my-calendar"
             className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors"
           >
             <MdCalendarToday className="w-4 h-4" />

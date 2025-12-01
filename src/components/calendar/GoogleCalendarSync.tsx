@@ -312,6 +312,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
               onClick={handleConnect}
               disabled={isSyncing}
               className="flex items-center gap-2"
+              title="Connect your Google Calendar to sync events"
             />
           ) : !syncStatus.calendarsSetup ? (
             <>
@@ -320,6 +321,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
                 onClick={handleSetupSync}
                 disabled={isSyncing}
                 className="flex items-center gap-2"
+                title="Create sync calendars in Google Calendar"
               >
                 <Calendar className="w-4 h-4" />
               </Button>
@@ -338,6 +340,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
                 onClick={handleSync}
                 disabled={isSyncing}
                 className="flex items-center gap-2"
+                title="Push your events to Google Calendar"
               >
                 <Upload className="w-4 h-4" />
               </Button>
@@ -346,6 +349,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
                 onClick={handleStartImport}
                 disabled={isSyncing}
                 className="flex items-center gap-2"
+                title="Import events from your Google Calendar"
               >
                 <Download className="w-4 h-4" />
               </Button>
@@ -397,6 +401,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
                 onClick={() => setShowImportModal(false)}
                 className="text-neu-text-primary/60 hover:text-neu-text-primary transition-colors"
                 disabled={importing}
+                title="Close"
               >
                 <X className="w-6 h-6" />
               </button>

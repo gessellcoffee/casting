@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase, getUser } from "@/lib/supabase";
+import Logo from "./Logo";
 
 export default function Footer() {
 
@@ -23,7 +24,7 @@ export default function Footer() {
     <footer className="neumorphic-footer">
       <div className="footer-content">
         <div className="footer-brand">
-          <div className="logo">Belong Here Theater</div>
+          <Logo size={48} showText={true} />
           <p className="footer-tagline">Change the way you cast and audition</p>
         </div>
         
