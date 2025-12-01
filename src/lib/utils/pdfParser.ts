@@ -14,7 +14,7 @@ export async function extractTextFromPDF(file: File): Promise<string> {
 
     // Dynamic import - pdf-parse exports as both default and named
     const pdfParseModule = await import('pdf-parse');
-    // @ts-ignore - pdf-parse has inconsistent type definitions between CJS and ESM
+    // @ts-expect-error - pdf-parse has inconsistent type definitions between CJS and ESM
     const pdfParse = pdfParseModule.default || pdfParseModule;
     
     // Parse PDF

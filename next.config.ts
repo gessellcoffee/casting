@@ -5,15 +5,11 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["localhost", "127.0.0.1", "::1"],
   },
-    eslint: {
-        // Warning: This allows production builds to successfully complete even if
-        // your project has ESLint errors.
-        ignoreDuringBuilds: true,
-      },
-};
-
-// next.config.js
-module.exports = {
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
@@ -22,6 +18,5 @@ module.exports = {
     ignoreBuildErrors: true,
   },
 };
-
 
 export default nextConfig;

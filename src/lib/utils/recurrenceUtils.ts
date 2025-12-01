@@ -78,7 +78,7 @@ export function expandRecurringEvent(
     const occurrences = rule.between(startDate, endDate, true);
 
     // Map occurrences to event instances
-    return occurrences.map((occurrenceDate, index) => {
+    return occurrences.map((occurrenceDate) => {
       const instanceStart = new Date(occurrenceDate);
       const instanceEnd = new Date(instanceStart.getTime() + duration);
 
