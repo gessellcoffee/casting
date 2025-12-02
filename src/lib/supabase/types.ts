@@ -484,7 +484,6 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export interface AuditionSignup {
   signup_id: string;
-  audition_id: string;
   slot_id: string | null;
   user_id: string;
   notes: string | null;
@@ -494,8 +493,7 @@ export interface AuditionSignup {
 }
 
 export interface AuditionSignupInsert {
-  audition_id: string;
-  slot_id?: string | null;
+  slot_id: string;
   user_id: string;
   notes?: string | null;
   status?: string | null;

@@ -121,7 +121,6 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
     setSuccessMessage(null);
 
     const { error: signupError } = await createAuditionSignup({
-      audition_id: auditionId,
       slot_id: slotId,
       user_id: user.id,
     });
