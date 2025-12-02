@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "clean": "rimraf .next",
-    "clean:dev": "npm run clean && npm run dev"
+    "clean:dev": "npm run clean && npm run dev",
+    "type-check":"tsc --noEmit"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

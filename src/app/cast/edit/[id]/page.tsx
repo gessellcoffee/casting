@@ -217,13 +217,18 @@ export default function EditAuditionPage() {
 
       // Step 4: Create new slots if any exist
       if (slotsToSave.length > 0) {
-        const slotsData = slotsToSave.map((slot: any) => ({
-          audition_id: params.id as string,
-          start_time: slot.start_time,
-          end_time: slot.end_time,
-          location: slot.location || null,
-          max_signups: slot.max_signups,
-        }));
+        const slotsData = slotsToSave.map((slot: any) => {
+          // Extract date from start_time (ISO string)
+          const date = new Date(slot.start_time).toISOString().split('T')[0];
+          
+          return {
+            audition_id: params.id as string,
+            date: date,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            max_signups: slot.max_signups,
+          };
+        });
 
         const { data: createdSlots, error: slotsError } = await createAuditionSlots(slotsData);
 

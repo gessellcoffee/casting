@@ -338,6 +338,7 @@ export async function sendCallbackInvitations(
     });
 
     await createNotification({
+      user_id: invitation.user_id,
       recipient_id: invitation.user_id,
       sender_id: user.id,
       type: 'casting_decision',
@@ -446,6 +447,7 @@ export async function respondToCallbackInvitation(
 
   // Notify the audition creator
   await createNotification({
+    user_id: audition.user_id,
     recipient_id: audition.user_id,
     sender_id: user.id,
     type: 'casting_decision',
@@ -693,6 +695,7 @@ export async function sendCallbackInvitationByEmail(
         });
 
         await createNotification({
+          user_id: user.id,
           recipient_id: user.id,
           sender_id: invitationData.invitedBy,
           type: 'casting_decision',

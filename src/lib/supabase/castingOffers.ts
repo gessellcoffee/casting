@@ -145,6 +145,7 @@ export async function createCastingOffer(
 
     // Create notification
     const notificationData = {
+      user_id: offerData.userId,
       recipient_id: offerData.userId,
       sender_id: offerData.sentBy,
       type: 'casting_offer' as const,
@@ -500,6 +501,7 @@ export async function acceptCastingOffer(
 
     // Create notification for casting director
     await createNotification({
+      user_id: offer.sent_by,
       recipient_id: offer.sent_by,
       sender_id: userId,
       type: 'casting_decision',
@@ -564,6 +566,7 @@ export async function declineCastingOffer(
 
     // Create notification for casting director
     await createNotification({
+      user_id: offer.sent_by,
       recipient_id: offer.sent_by,
       sender_id: userId,
       type: 'casting_decision',
@@ -681,6 +684,7 @@ export async function revokeCastingOffer(
 
     // Create notification for the actor
     await createNotification({
+      user_id: offer.user_id,
       recipient_id: offer.user_id,
       sender_id: revokedBy,
       type: 'general',

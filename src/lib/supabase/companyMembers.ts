@@ -71,7 +71,7 @@ export async function getUserCompanyMemberships(userId: string): Promise<Company
 export async function addCompanyMember(
   companyId: string,
   userId: string,
-  role: CompanyMemberRole = 'member'
+  role: CompanyMemberRole = 'Member'
 ): Promise<{ data: CompanyMember | null; error: any }> {
   // Verify the authenticated user
   const { user, error: authError } = await getAuthenticatedUser();

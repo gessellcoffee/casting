@@ -8,6 +8,10 @@ export interface UserPreferences {
   };
 }
 
+export interface TooltipPreferences {
+  dismissed?: string[];
+}
+
 export interface Profile {
   id: string;
   email: string;
@@ -22,6 +26,7 @@ export interface Profile {
   location_lat: number | null;
   location_lng: number | null;
   preferences: UserPreferences | null;
+  skills: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +44,7 @@ export interface ProfileUpdate {
   location_lat?: number | null;
   location_lng?: number | null;
   preferences?: UserPreferences;
+  skills?: string[];
 }
 
 export interface ProfileInsert {
@@ -273,5 +279,797 @@ export interface VirtualAuditionWithDetails extends VirtualAudition {
     last_name: string | null;
     profile_photo_url: string | null;
     email: string;
+  };
+}
+
+// ============= SHOW TYPES =============
+
+export interface Show {
+  show_id: string;
+  creator_user_id: string;
+  title: string;
+  author: string | null;
+  description: string | null;
+  genre: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShowInsert {
+  creator_user_id?: string;
+  title: string;
+  author?: string | null;
+  description?: string | null;
+  genre?: string | null;
+}
+
+export interface ShowUpdate {
+  title?: string;
+  author?: string | null;
+  description?: string | null;
+  genre?: string | null;
+}
+
+// ============= ROLE TYPES =============
+
+export interface Role {
+  role_id: string;
+  show_id: string;
+  role_name: string;
+  description: string | null;
+  vocal_range: string | null;
+  needs_understudy: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoleInsert {
+  show_id: string;
+  role_name: string;
+  description?: string | null;
+  vocal_range?: string | null;
+  needs_understudy?: boolean;
+  role_type: string;
+  gende?r: string;
+}
+
+export interface RoleUpdate {
+  role_name?: string;
+  description?: string | null;
+  vocal_range?: string | null;
+  needs_understudy?: boolean;
+  role_type: string;
+  gender?: string;
+}
+
+// ============= AUDITION ROLE TYPES =============
+
+export interface AuditionRole {
+  audition_role_id: string;
+  audition_id: string;
+  role_id: string | null;
+  role_name: string;
+  description: string | null;
+  vocal_range: string | null;
+  needs_understudy: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditionRoleInsert {
+  audition_id: string;
+  role_id?: string | null;
+  role_name: string;
+  description?: string | null;
+  vocal_range?: string | null;
+  needs_understudy?: boolean;
+  role_type: string;
+}
+
+export interface AuditionRoleUpdate {
+  role_name?: string;
+  description?: string | null;
+  vocal_range?: string | null;
+  needs_understudy?: boolean;
+  role_type: string;
+}
+
+// ============= AUDITION TYPES (EXTENDED) =============
+
+export interface Audition {
+  audition_id: string;
+  user_id: string;
+  show_id: string;
+  company_id: string | null;
+  audition_dates: string[] | null;
+  location: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  equity_status: EquityStatus | null;
+  pay_rate: string | null;
+  pay_type: string | null;
+  additional_pay_info: string | null;
+  workflow_status: string;
+  submission_deadline: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditionInsert {
+  user_id?: string;
+  show_id: string;
+  company_id?: string | null;
+  audition_dates?: string[] | null;
+  location?: string | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+  equity_status?: EquityStatus | null;
+  pay_rate?: string | null;
+  pay_type?: string | null;
+  additional_pay_info?: string | null;
+  workflow_status?: string;
+  submission_deadline?: string | null;
+}
+
+export interface AuditionUpdate {
+  show_id?: string;
+  company_id?: string | null;
+  audition_dates?: string[] | null;
+  location?: string | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+  equity_status?: EquityStatus | null;
+  pay_rate?: string | null;
+  pay_type?: string | null;
+  additional_pay_info?: string | null;
+  workflow_status?: string;
+  submission_deadline?: string | null;
+  show_filled_slots?: boolean;
+}
+
+// ============= AUDITION SLOT TYPES =============
+
+export interface AuditionSlot {
+  slot_id: string;
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  max_signups: number;
+  signup_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditionSlotInsert {
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  max_signups?: number;
+  signup_count?: number;
+}
+
+export interface AuditionSlotUpdate {
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  max_signups?: number;
+  signup_count?: number;
+}
+
+// ============= AUDITION SIGNUP TYPES =============
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export interface AuditionSignup {
+  signup_id: string;
+  audition_id: string;
+  slot_id: string | null;
+  user_id: string;
+  notes: string | null;
+  status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditionSignupInsert {
+  audition_id: string;
+  slot_id?: string | null;
+  user_id: string;
+  notes?: string | null;
+  status?: string | null;
+}
+
+export interface AuditionSignupUpdate {
+  slot_id?: string | null;
+  notes?: string | null;
+  status?: string | null;
+}
+
+export interface AuditionSignupWithDetails extends AuditionSignup {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    profile_photo_url: string | null;
+  };
+  auditions: {
+    audition_id: string;
+    show_id: string;
+    shows: {
+      show_id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  };
+}
+
+export interface UserSignupsWithDetails {
+  signup_id: string;
+  audition_id: string;
+  slot_id: string | null;
+  user_id: string;
+  notes: string | null;
+  status: string | null;
+  created_at: string;
+  updated_at: string;
+  auditions: {
+    audition_id: string;
+    show_id: string;
+    location: string | null;
+    audition_dates: string[] | null;
+    shows: {
+      title: string;
+      author: string | null;
+    } | null;
+  };
+  audition_slots: {
+    slot_id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+  } | null;
+}
+
+// ============= CALLBACK SLOT TYPES =============
+
+export interface CallbackSlot {
+  callback_slot_id: string;
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string | null;
+  notes: string | null;
+  max_signups: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CallbackSlotInsert {
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location?: string | null;
+  notes?: string | null;
+  max_signups?: number | null;
+}
+
+export interface CallbackSlotUpdate {
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string | null;
+  notes?: string | null;
+  max_signups?: number | null;
+}
+
+// ============= CALLBACK INVITATION TYPES =============
+
+export type CallbackInvitationStatus = 'pending' | 'accepted' | 'declined' | 'conflict';
+
+export interface CallbackInvitation {
+  callback_invitation_id: string;
+  invitation_id: string;
+  signup_id: string;
+  callback_slot_id: string;
+  user_id: string;
+  audition_id: string;
+  status: string;
+  conflict_note: string | null;
+  actor_comment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CallbackInvitationInsert {
+  signup_id: string;
+  callback_slot_id: string;
+  user_id: string;
+  audition_id: string;
+  status?: string;
+  conflict_note?: string | null;
+  actor_comment?: string | null;
+}
+
+export interface CallbackInvitationUpdate {
+  status?: string;
+  conflict_note?: string | null;
+  actor_comment?: string | null;
+  responded_at?: string | null;
+}
+
+// ============= CAST MEMBER TYPES =============
+
+export interface CastMember {
+  cast_member_id: string;
+  audition_id: string;
+  user_id: string;
+  role_id: string | null;
+  audition_role_id: string | null;
+  is_understudy: boolean;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CastMemberInsert {
+  audition_id: string;
+  user_id: string;
+  role_id?: string | null;
+  audition_role_id?: string | null;
+  is_understudy?: boolean;
+  status?: string;
+  notes?: string | null;
+}
+
+export interface CastMemberUpdate {
+  role_id?: string | null;
+  audition_role_id?: string | null;
+  is_understudy?: boolean;
+  status?: string;
+  notes?: string | null;
+}
+
+// ============= COMPANY MEMBER TYPES =============
+
+export type CompanyMemberRole = 'Owner' | 'Admin' | 'Member' | 'Viewer';
+
+export interface CompanyMember {
+  company_member_id: string;
+  company_id: string;
+  user_id: string;
+  role: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyMemberInsert {
+  company_id: string;
+  user_id: string;
+  role?: string;
+  status?: string;
+}
+
+export interface CompanyMemberUpdate {
+  role?: string;
+  status?: string;
+}
+
+export interface CompanyMemberWithProfile extends CompanyMember {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    profile_photo_url: string | null;
+  };
+}
+
+// ============= COMPANY APPROVAL TYPES =============
+
+export interface CompanyApproval {
+  approval_id: string;
+  company_id: string;
+  user_id: string;
+  status: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyApprovalInsert {
+  company_id: string;
+  user_id: string;
+  status?: string;
+}
+
+export interface CompanyApprovalUpdate {
+  status?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+}
+
+// Aliases for compatibility
+export type CompanyApprovalRequest = CompanyApproval;
+export type CompanyApprovalRequestInsert = CompanyApprovalInsert;
+export type CompanyApprovalRequestUpdate = CompanyApprovalUpdate;
+
+// ============= PRODUCTION TEAM MEMBER TYPES =============
+
+export interface ProductionTeamMember {
+  production_team_member_id: string;
+  audition_id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductionTeamMemberInsert {
+  audition_id: string;
+  user_id: string;
+  role: string;
+}
+
+export interface ProductionTeamMemberUpdate {
+  role?: string;
+}
+
+export interface ProductionTeamMemberWithProfile extends ProductionTeamMember {
+  profiles: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    profile_photo_url: string | null;
+  };
+}
+
+// ============= NOTIFICATION TYPES =============
+
+export interface Notification {
+  notification_id: string;
+  user_id: string;
+  recipient_id: string;
+  sender_id: string | null;
+  type: string;
+  title: string;
+  message: string;
+  link_url: string | null;
+  action_url: string | null;
+  reference_id: string | null;
+  reference_type: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+export interface NotificationInsert {
+  user_id: string;
+  recipient_id: string;
+  sender_id?: string | null;
+  type: string;
+  title: string;
+  message: string;
+  link_url?: string | null;
+  action_url?: string | null;
+  reference_id?: string | null;
+  reference_type?: string | null;
+  is_actionable?: boolean;
+  is_read?: boolean;
+  read?: boolean;
+}
+
+export interface NotificationUpdate {
+  read?: boolean;
+}
+
+// ============= REHEARSAL EVENT TYPES =============
+
+export interface RehearsalEvent {
+  rehearsal_events_id: string;
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RehearsalEventInsert {
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location?: string | null;
+  notes?: string | null;
+}
+
+export interface RehearsalEventUpdate {
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string | null;
+  notes?: string | null;
+}
+
+// ============= PERFORMANCE EVENT TYPES =============
+
+export interface PerformanceEvent {
+  performance_event_id: string;
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PerformanceEventInsert {
+  audition_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location?: string | null;
+  notes?: string | null;
+}
+
+export interface PerformanceEventUpdate {
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string | null;
+  notes?: string | null;
+}
+
+// ============= CALENDAR EVENT TYPES =============
+
+export interface CalendarEvent {
+  event_id: string;
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+  location: string | null;
+  isRecurring?: boolean;
+  recurrenceRule?: {
+    frequency: string;
+    interval: number;
+    byDay: string[];
+    byMonthDay: number[];
+    byMonth: number[];
+    until: string | null;
+    count: number | null;
+  } | null;
+  _isInstance?: boolean;
+  _originalEventId?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CalendarEventInsert {
+  user_id: string;
+  title: string;
+  description?: string | null;
+  date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  location?: string | null;
+}
+
+export interface CalendarEventUpdate {
+  title?: string;
+  description?: string | null;
+  date?: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  location?: string | null;
+}
+
+export interface EventFormData {
+  title: string;
+  description?: string | null;
+  date: string;
+  start?: string | null;
+  start_time?: string | null;
+  end?: string | null;
+  end_time?: string | null;
+  location?: string | null;
+  allDay?: boolean;
+  color?: string | null;
+  isRecurring?: boolean;
+  recurrence?: {
+    enabled: boolean;
+    frequency: string;
+    customFrequencyType?: string;
+    interval: number;
+    byDay: string[];
+    byMonthDay: number[];
+    byMonth: number[];
+    endType: 'never' | 'on' | 'after';
+    endDate?: string;
+    occurrences?: number;
+  };
+}
+
+// ============= USER RESUME TYPES =============
+
+export type ResumeSource = 'manual' | 'imported' | 'company_approved';
+
+export interface UserResume {
+  user_resume_id: string;
+  resume_entry_id: string;
+  user_id: string;
+  resume_data: any;
+  show_name?: string | null;
+  role?: string | null;
+  company_name?: string | null;
+  company_id?: string | null;
+  date_of_production?: string | null;
+  source?: ResumeSource | null;
+  company_approved?: boolean | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserResumeInsert {
+  user_id: string;
+  resume_data: any;
+  company_id?: string | null;
+  company_name?: string | null;
+  show_name?: string | null;
+  role?: string | null;
+  date_of_production?: string | null;
+  source?: ResumeSource | null;
+  company_approved?: boolean | null;
+}
+
+export interface UserResumeUpdate {
+  resume_data?: any;
+  company_id?: string | null;
+  company_name?: string | null;
+  source?: ResumeSource | null;
+  company_approved?: boolean | null;
+}
+
+// ============= DATABASE TYPE =============
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: Profile;
+        Insert: ProfileInsert;
+        Update: ProfileUpdate;
+      };
+      shows: {
+        Row: Show;
+        Insert: ShowInsert;
+        Update: ShowUpdate;
+      };
+      roles: {
+        Row: Role;
+        Insert: RoleInsert;
+        Update: RoleUpdate;
+      };
+      auditions: {
+        Row: Audition;
+        Insert: AuditionInsert;
+        Update: AuditionUpdate;
+      };
+      audition_roles: {
+        Row: AuditionRole;
+        Insert: AuditionRoleInsert;
+        Update: AuditionRoleUpdate;
+      };
+      audition_slots: {
+        Row: AuditionSlot;
+        Insert: AuditionSlotInsert;
+        Update: AuditionSlotUpdate;
+      };
+      audition_signups: {
+        Row: AuditionSignup;
+        Insert: AuditionSignupInsert;
+        Update: AuditionSignupUpdate;
+      };
+      callback_slots: {
+        Row: CallbackSlot;
+        Insert: CallbackSlotInsert;
+        Update: CallbackSlotUpdate;
+      };
+      callback_invitations: {
+        Row: CallbackInvitation;
+        Insert: CallbackInvitationInsert;
+        Update: CallbackInvitationUpdate;
+      };
+      cast_members: {
+        Row: CastMember;
+        Insert: CastMemberInsert;
+        Update: CastMemberUpdate;
+      };
+      companies: {
+        Row: Company;
+        Insert: CompanyInsert;
+        Update: CompanyUpdate;
+      };
+      company_members: {
+        Row: CompanyMember;
+        Insert: CompanyMemberInsert;
+        Update: CompanyMemberUpdate;
+      };
+      company_approvals: {
+        Row: CompanyApproval;
+        Insert: CompanyApprovalInsert;
+        Update: CompanyApprovalUpdate;
+      };
+      production_team_members: {
+        Row: ProductionTeamMember;
+        Insert: ProductionTeamMemberInsert;
+        Update: ProductionTeamMemberUpdate;
+      };
+      notifications: {
+        Row: Notification;
+        Insert: NotificationInsert;
+        Update: NotificationUpdate;
+      };
+      casting_offers: {
+        Row: CastingOffer;
+        Insert: CastingOfferInsert;
+        Update: CastingOfferUpdate;
+      };
+      rehearsal_events: {
+        Row: RehearsalEvent;
+        Insert: RehearsalEventInsert;
+        Update: RehearsalEventUpdate;
+      };
+      performance_events: {
+        Row: PerformanceEvent;
+        Insert: PerformanceEventInsert;
+        Update: PerformanceEventUpdate;
+      };
+      events: {
+        Row: CalendarEvent;
+        Insert: CalendarEventInsert;
+        Update: CalendarEventUpdate;
+      };
+      user_resume: {
+        Row: UserResume;
+        Insert: UserResumeInsert;
+        Update: UserResumeUpdate;
+      };
+      virtual_auditions: {
+        Row: VirtualAudition;
+        Insert: VirtualAuditionInsert;
+        Update: VirtualAuditionUpdate;
+      };
+      virtual_audition_media: {
+        Row: VirtualAuditionMedia;
+        Insert: VirtualAuditionMediaInsert;
+        Update: {};
+      };
+      media_folders: {
+        Row: MediaFolder;
+        Insert: MediaFolderInsert;
+        Update: MediaFolderUpdate;
+      };
+      media_files: {
+        Row: MediaFile;
+        Insert: MediaFileInsert;
+        Update: MediaFileUpdate;
+      };
+    };
   };
 }

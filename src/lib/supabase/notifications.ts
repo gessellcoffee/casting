@@ -351,6 +351,7 @@ export async function createCompanyApprovalNotification(
   const message = `${requesterName} wants to associate ${showName ? `"${showName}"` : 'a production'}${role ? ` (${role})` : ''} with ${companyName}`;
 
   return createNotification({
+    user_id: companyOwnerId,
     recipient_id: companyOwnerId,
     sender_id: requesterId,
     type: 'company_approval',

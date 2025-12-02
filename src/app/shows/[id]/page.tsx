@@ -114,7 +114,7 @@ export default function ShowDetailPage() {
       show_id: showId,
       role_name: '',
       description: null,
-      role_type: null,
+      role_type: '',
       gender: null,
       needs_understudy: false,
     });

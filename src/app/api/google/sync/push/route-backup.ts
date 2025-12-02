@@ -215,13 +215,14 @@ async function syncAuditionSlots(userId: string, calendarId: string, accessToken
       auditions!inner(
         audition_id,
         user_id,
-        shows(
-          title
+        show(
+          title,
+          description
         )
       )
     `)
     .eq('auditions.user_id', userId)
-    .order('start_time', { ascending: true });
+    .order('start_time', { ascending: true }) as any;
   
   if (error) {
     console.error('[Audition Slots] Query error:', error);
@@ -233,7 +234,7 @@ async function syncAuditionSlots(userId: string, calendarId: string, accessToken
   if (!slots || slots.length === 0) return;
   
   // Get existing mappings to avoid duplicates
-  const slotIds = slots.map(s => s.slot_id);
+  const slotIds = slots.map((s: any) => s.slot_id);
   const { data: existingMappings } = await supabaseServer
     .from('google_event_mappings' as any)
     .select('event_id')
@@ -247,15 +248,15 @@ async function syncAuditionSlots(userId: string, calendarId: string, accessToken
     try {
       // Skip if already synced
       if (existingIds.has(slot.slot_id)) {
-        console.log(`[Audition Slots] Skipping already synced: ${slot.auditions.shows.title}`);
+        console.log(`[Audition Slots] Skipping already synced: ${slot.auditions.show.title}`);
         continue;
       }
       
-      console.log(`[Audition Slots] Creating event: ${slot.auditions.shows.title} at ${slot.start_time}`);
+      console.log(`[Audition Slots] Creating event: ${slot.auditions.show.title} at ${slot.start_time}`);
       
       const googleEvent = await createCalendarEvent(accessToken, calendarId, {
-        summary: `Audition Slot: ${slot.auditions.shows.title}`,
-        description: `Audition slot for ${slot.auditions.shows.title}`,
+        summary: `Audition Slot: ${slot.auditions.show.title}`,
+        description: `Audition slot for ${slot.auditions.show.title} - ${slot.auditions.show.description}`,
         location: slot.location || undefined,
         start: slot.start_time,
         end: slot.end_time,
@@ -299,9 +300,9 @@ async function syncAuditionSignups(userId: string, calendarId: string, accessTok
         start_time,
         end_time,
         location,
-        auditions!inner(
+        audition!inner(
           audition_id,
-          shows(
+          show(
             title
           )
         )
@@ -334,18 +335,25 @@ async function syncAuditionSignups(userId: string, calendarId: string, accessTok
     try {
       // Skip if already synced
       if (existingIds.has(signup.signup_id)) {
-        console.log(`[Audition Signups] Skipping already synced: ${signup.audition_slots.auditions.shows.title}`);
+        const slot = Array.isArray(signup.audition_slots) ? signup.audition_slots[0] : signup.audition_slots;
+        const audition = Array.isArray(slot?.audition) ? slot.audition[0] : slot?.audition;
+        const show = Array.isArray(audition?.show) ? audition.show[0] : audition?.show;
+        console.log(`[Audition Signups] Skipping already synced: ${show?.title}`);
         continue;
       }
       
-      console.log(`[Audition Signups] Creating event: ${signup.audition_slots.auditions.shows.title}`);
+      const slot = Array.isArray(signup.audition_slots) ? signup.audition_slots[0] : signup.audition_slots;
+      const audition = Array.isArray(slot?.audition) ? slot.audition[0] : slot?.audition;
+      const show = Array.isArray(audition?.show) ? audition.show[0] : audition?.show;
+      
+      console.log(`[Audition Signups] Creating event: ${show?.title}`);
       
       const googleEvent = await createCalendarEvent(accessToken, calendarId, {
-        summary: `Audition: ${signup.audition_slots.auditions.shows.title}`,
-        description: `Audition for ${signup.audition_slots.auditions.shows.title}`,
-        location: signup.audition_slots.location || undefined,
-        start: signup.audition_slots.start_time,
-        end: signup.audition_slots.end_time,
+        summary: `Audition: ${show?.title}`,
+        description: `Audition for ${show?.title}`,
+        location: slot?.location || undefined,
+        start: slot?.start_time,
+        end: slot?.end_time,
         allDay: false,
         colorId: '9' // Blue
       });
@@ -410,13 +418,17 @@ async function syncRehearsals(userId: string, calendarId: string, accessToken: s
   if (!castShows || castShows.length === 0) return;
   
   for (const cast of castShows) {
-    const rehearsalDates = (cast.auditions.rehearsal_dates || []) as any as string[];
+    // Handle potential array types from Supabase
+    const audition = Array.isArray(cast.auditions) ? cast.auditions[0] : cast.auditions;
+    const show = Array.isArray(audition?.shows) ? audition.shows[0] : audition?.shows;
+    
+    const rehearsalDates = (audition?.rehearsal_dates || []) as any as string[];
     if (!rehearsalDates || rehearsalDates.length === 0) continue;
     
     for (const date of rehearsalDates) {
       try {
         // Create a unique ID for this date+audition combo
-        const eventId = `${cast.auditions.audition_id}_${date}`;
+        const eventId = `${audition?.audition_id}_${date}`;
         
         // Check if already synced
         const { data: existing } = await supabaseServer
@@ -428,15 +440,15 @@ async function syncRehearsals(userId: string, calendarId: string, accessToken: s
           .single();
         
         if (existing) {
-          console.log(`[Rehearsals] Skipping already synced: ${cast.auditions.shows.title} on ${date}`);
+          console.log(`[Rehearsals] Skipping already synced: ${show?.title} on ${date}`);
           continue;
         }
         
-        console.log(`[Rehearsals] Creating event: ${cast.auditions.shows.title} on ${date}`);
+        console.log(`[Rehearsals] Creating event: ${show?.title} on ${date}`);
         
         const googleEvent = await createCalendarEvent(accessToken, calendarId, {
-          summary: `Rehearsal: ${cast.auditions.shows.title}`,
-          description: `Rehearsal for ${cast.auditions.shows.title}`,
+          summary: `Rehearsal: ${show?.title}`,
+          description: `Rehearsal for ${show?.title}`,
           start: date,
           end: date,
           allDay: true,
@@ -496,13 +508,17 @@ async function syncPerformances(userId: string, calendarId: string, accessToken:
   if (!castShows || castShows.length === 0) return;
   
   for (const cast of castShows) {
-    const performanceDates = (cast.auditions.performance_dates || []) as any as string[];
+    // Handle potential array types from Supabase
+    const audition = Array.isArray(cast.auditions) ? cast.auditions[0] : cast.auditions;
+    const show = Array.isArray(audition?.shows) ? audition.shows[0] : audition?.shows;
+    
+    const performanceDates = (audition?.performance_dates || []) as any as string[];
     if (!performanceDates || performanceDates.length === 0) continue;
     
     for (const date of performanceDates) {
       try {
         // Create a unique ID for this date+audition combo
-        const eventId = `${cast.auditions.audition_id}_${date}`;
+        const eventId = `${audition?.audition_id}_${date}`;
         
         // Check if already synced
         const { data: existing } = await supabaseServer
@@ -514,15 +530,15 @@ async function syncPerformances(userId: string, calendarId: string, accessToken:
           .single();
         
         if (existing) {
-          console.log(`[Performances] Skipping already synced: ${cast.auditions.shows.title} on ${date}`);
+          console.log(`[Performances] Skipping already synced: ${show?.title} on ${date}`);
           continue;
         }
         
-        console.log(`[Performances] Creating event: ${cast.auditions.shows.title} on ${date}`);
+        console.log(`[Performances] Creating event: ${show?.title} on ${date}`);
         
         const googleEvent = await createCalendarEvent(accessToken, calendarId, {
-          summary: `Performance: ${cast.auditions.shows.title}`,
-          description: `Performance of ${cast.auditions.shows.title}`,
+          summary: `Performance: ${show?.title}`,
+          description: `Performance of ${show?.title}`,
           start: date,
           end: date,
           allDay: true,

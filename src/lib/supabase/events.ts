@@ -20,16 +20,16 @@ function mapRow(row: any): CalendarEvent {
 
   return {
     id: row.id,
-    userId: row.user_id,
+    event_id: row.id,
+    user_id: row.user_id,
     title: row.title,
     description: row.description ?? null,
-    start: row.start_time,
-    end: row.end_time,
-    allDay: row.all_day ?? false,
+    date: row.date,
+    start_time: row.start_time,
+    end_time: row.end_time,
     location: row.location ?? null,
-    color: row.color ?? null,
-    isRecurring: !!row.recurrence_rule_id,
-    recurrenceRule: recurrenceRule,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 }
 
@@ -85,25 +85,26 @@ export async function createEvent(form: EventFormData, userId: string): Promise<
     let recurrenceRuleId: string | null = null;
 
     // If recurring, create the recurrence rule first
-    if (form.isRecurring && form.recurrence.frequency !== 'NONE') {
+    if (form.isRecurring && form.recurrence && form.recurrence.frequency !== 'NONE') {
+      const recurrence = form.recurrence;
       // Use customFrequencyType when frequency is CUSTOM, otherwise use frequency
-      const actualFrequency = form.recurrence.frequency === 'CUSTOM' 
-        ? form.recurrence.customFrequencyType || 'WEEKLY'
-        : form.recurrence.frequency;
+      const actualFrequency = recurrence.frequency === 'CUSTOM' 
+        ? recurrence.customFrequencyType || 'WEEKLY'
+        : recurrence.frequency;
       
       const recurrencePayload: any = {
         frequency: actualFrequency,
-        interval: form.recurrence.interval,
-        by_day: form.recurrence.byDay.length > 0 ? form.recurrence.byDay : null,
-        by_month_day: form.recurrence.byMonthDay.length > 0 ? form.recurrence.byMonthDay : null,
-        by_month: form.recurrence.byMonth.length > 0 ? form.recurrence.byMonth : null,
+        interval: recurrence.interval,
+        by_day: recurrence.byDay.length > 0 ? recurrence.byDay : null,
+        by_month_day: recurrence.byMonthDay.length > 0 ? recurrence.byMonthDay : null,
+        by_month: recurrence.byMonth.length > 0 ? recurrence.byMonth : null,
       };
 
       // Add end conditions
-      if (form.recurrence.endType === 'on' && form.recurrence.endDate) {
-        recurrencePayload.until = new Date(form.recurrence.endDate).toISOString();
-      } else if (form.recurrence.endType === 'after' && form.recurrence.occurrences) {
-        recurrencePayload.count = form.recurrence.occurrences;
+      if (recurrence.endType === 'on' && recurrence.endDate) {
+        recurrencePayload.until = new Date(recurrence.endDate).toISOString();
+      } else if (recurrence.endType === 'after' && recurrence.occurrences) {
+        recurrencePayload.count = recurrence.occurrences;
       }
 
       const { data: ruleData, error: ruleError } = await (supabase as any)
@@ -168,25 +169,26 @@ export async function updateEvent(eventId: string, form: EventFormData, userId: 
     let recurrenceRuleId: string | null = null;
 
     // Handle recurrence rule updates
-    if (form.isRecurring && form.recurrence.frequency !== 'NONE') {
+    if (form.isRecurring && form.recurrence && form.recurrence.frequency !== 'NONE') {
+      const recurrence = form.recurrence;
       // Use customFrequencyType when frequency is CUSTOM, otherwise use frequency
-      const actualFrequency = form.recurrence.frequency === 'CUSTOM' 
-        ? form.recurrence.customFrequencyType || 'WEEKLY'
-        : form.recurrence.frequency;
+      const actualFrequency = recurrence.frequency === 'CUSTOM' 
+        ? recurrence.customFrequencyType || 'WEEKLY'
+        : recurrence.frequency;
       
       const recurrencePayload: any = {
         frequency: actualFrequency,
-        interval: form.recurrence.interval,
-        by_day: form.recurrence.byDay.length > 0 ? form.recurrence.byDay : null,
-        by_month_day: form.recurrence.byMonthDay.length > 0 ? form.recurrence.byMonthDay : null,
-        by_month: form.recurrence.byMonth.length > 0 ? form.recurrence.byMonth : null,
+        interval: recurrence.interval,
+        by_day: recurrence.byDay.length > 0 ? recurrence.byDay : null,
+        by_month_day: recurrence.byMonthDay.length > 0 ? recurrence.byMonthDay : null,
+        by_month: recurrence.byMonth.length > 0 ? recurrence.byMonth : null,
       };
 
       // Add end conditions
-      if (form.recurrence.endType === 'on' && form.recurrence.endDate) {
-        recurrencePayload.until = new Date(form.recurrence.endDate).toISOString();
-      } else if (form.recurrence.endType === 'after' && form.recurrence.occurrences) {
-        recurrencePayload.count = form.recurrence.occurrences;
+      if (recurrence.endType === 'on' && recurrence.endDate) {
+        recurrencePayload.until = new Date(recurrence.endDate).toISOString();
+      } else if (recurrence.endType === 'after' && recurrence.occurrences) {
+        recurrencePayload.count = recurrence.occurrences;
       }
 
       if (currentEvent.recurrence_rule_id) {

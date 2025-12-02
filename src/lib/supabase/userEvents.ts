@@ -67,16 +67,16 @@ export async function getUserAvailability(
 
     return {
       id: row.id,
-      userId: row.user_id,
+      event_id: row.id,
+      user_id: row.user_id,
       title: 'Busy', // Hide the actual event name
       description: null, // Hide description
-      start: row.start_time,
-      end: row.end_time,
-      allDay: row.all_day ?? false,
+      date: row.date,
+      start_time: row.start_time,
+      end_time: row.end_time,
       location: null, // Hide location
-      color: '#94b0f6', // Use a neutral color
-      isRecurring: !!row.recurrence_rule_id,
-      recurrenceRule: recurrenceRule,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
     };
   };
 
