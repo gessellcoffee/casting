@@ -312,12 +312,17 @@ export interface ShowUpdate {
 
 // ============= ROLE TYPES =============
 
+export type RoleType = 'Principal' | 'Ensemble' | 'Understudy' | 'Crew' | 'Other';
+export type RoleGender = 'masculine' | 'feminine' | 'ungendered';
+
 export interface Role {
   role_id: string;
   show_id: string;
   role_name: string;
   description: string | null;
   vocal_range: string | null;
+  role_type: string | null;
+  gender: string | null;
   needs_understudy: boolean;
   created_at: string;
   updated_at: string;
@@ -329,8 +334,8 @@ export interface RoleInsert {
   description?: string | null;
   vocal_range?: string | null;
   needs_understudy?: boolean;
-  role_type: string;
-  gende?r: string;
+  role_type?: string | null;
+  gender?: string | null;
 }
 
 export interface RoleUpdate {
@@ -338,8 +343,8 @@ export interface RoleUpdate {
   description?: string | null;
   vocal_range?: string | null;
   needs_understudy?: boolean;
-  role_type: string;
-  gender?: string;
+  role_type?: string | null;
+  gender?: string | null;
 }
 
 // ============= AUDITION ROLE TYPES =============
@@ -351,6 +356,8 @@ export interface AuditionRole {
   role_name: string;
   description: string | null;
   vocal_range: string | null;
+  role_type: string | null;
+  gender: string | null;
   needs_understudy: boolean;
   created_at: string;
   updated_at: string;
@@ -363,7 +370,8 @@ export interface AuditionRoleInsert {
   description?: string | null;
   vocal_range?: string | null;
   needs_understudy?: boolean;
-  role_type: string;
+  role_type?: string | null;
+  gender?: string | null;
 }
 
 export interface AuditionRoleUpdate {
@@ -371,7 +379,8 @@ export interface AuditionRoleUpdate {
   description?: string | null;
   vocal_range?: string | null;
   needs_understudy?: boolean;
-  role_type: string;
+  role_type?: string | null;
+  gender?: string | null;
 }
 
 // ============= AUDITION TYPES (EXTENDED) =============
