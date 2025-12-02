@@ -354,7 +354,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
                     {events.slice(0, 20).map((event, index) => (
                       <div
                         key={index}
-                        className="p-3 rounded bg-white"
+                        className="p-3 rounded neu-bg-solid border border-neu-border"
                       >
                         <div className="font-medium text-neu-text-primary">{event.title}</div>
                         <div className="text-sm text-neu-text-primary/70">

@@ -864,12 +864,20 @@ select.neu-input {
 
 /* ===== CALLBACK COMPONENT REUSABLE CLASSES ===== */
 
+/* Solid Background - Fully opaque background for modals and overlays */
+.neu-bg-solid {
+  background: #ffffff;
+}
+
+[data-theme="dark"] .neu-bg-solid {
+  background: #151b35;
+}
+
 /* Raised Card - White card with outset shadow (like profile page cards) */
 .neu-card-raised {
   padding: 1rem;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
   box-shadow: 
     5px 5px 10px var(--neu-shadow-dark);
   border: 1px solid var(--neu-border);
@@ -883,7 +891,7 @@ select.neu-input {
 }
 
 [data-theme="dark"] .neu-card-raised {
-  background: rgba(21, 27, 53, 0.8);
+  background: #151b35;
   border: 1px solid rgba(124, 58, 237, 0.3);
   box-shadow: 
     5px 5px 15px rgba(0, 0, 0, 0.5),
