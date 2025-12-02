@@ -29,7 +29,7 @@ export async function getAuditionSignupWithDetails(signupId: string): Promise<Au
     .from('audition_signups')
     .select(`
       *,
-      profiles!user_id (
+      profiles!audition_signups_user_id_fkey (
         id,
         first_name,
         last_name,
@@ -197,7 +197,7 @@ export async function getAuditionSignups(auditionId: string): Promise<AuditionSi
         end_time,
         location
       ),
-      profiles (
+      profiles!audition_signups_user_id_fkey (
         id,
         first_name,
         last_name,
@@ -539,7 +539,7 @@ export async function getSignupsByStatus(
         end_time,
         location
       ),
-      profiles (
+      profiles!audition_signups_user_id_fkey (
         id,
         first_name,
         last_name,
@@ -879,7 +879,7 @@ export async function getSignupsForSlots(slotIds: string[]): Promise<Array<{
       signup_id,
       user_id,
       slot_id,
-      profiles!user_id (
+      profiles!audition_signups_user_id_fkey (
         id,
         first_name,
         last_name,
@@ -1170,7 +1170,7 @@ export async function getSignupWithDetails(signupId: string): Promise<any> {
     .from('audition_signups')
     .select(`
       *,
-      profiles!user_id (
+      profiles!audition_signups_user_id_fkey (
         id,
         first_name,
         last_name,

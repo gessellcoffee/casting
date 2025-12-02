@@ -332,7 +332,7 @@ export async function getAllAuditionees(auditionId: string): Promise<any[]> {
         user_id,
         slot_id,
         created_at,
-        profiles (
+        profiles!audition_signups_user_id_fkey (
           id,
           first_name,
           last_name,
