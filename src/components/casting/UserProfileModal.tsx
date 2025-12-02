@@ -202,29 +202,31 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
             >
               <Dialog.Panel className="rounded-3xl shadow-[20px_20px_60px_var(--neu-shadow-dark),-20px_-20px_60px_var(--neu-shadow-light)] max-w-5xl w-full max-h-[90vh] overflow-hidden border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
         {/* Header */}
-        <div className="sticky top-0 h-[80px] p-6 border-b border-neu-border shadow-[inset_0_-2px_4px_var(--neu-shadow-dark)]" style={{ backgroundColor: 'var(--neu-surface)' }}>
-          <div className="flex h-full items-center justify-between gap-4">
+        <div className="sticky top-0 p-6 border-b border-neu-border shadow-[inset_0_-2px_4px_var(--neu-shadow-dark)]" style={{ backgroundColor: 'var(--neu-surface)' }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-neu-text-primary mb-1">User Profile</h2>
-              <p className="text-neu-text-secondary">{fullName}</p>
+              <p className="text-neu-text-secondary neu-text-mobile-truncate">{fullName}</p>
             </div>
             
             {/* Action Buttons */}
-            {auditionId && (
-              <Button
-                text="Callback"
-                onClick={() => setShowCallbackModal(true)}
-                variant="primary"
-              />
-            )}
-            
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
-              style={{ backgroundColor: 'var(--neu-surface)' }}
-            >
-              <MdClose className="w-5 h-5" />
-            </button>
+            <div className="neu-modal-header-actions">
+              {auditionId && (
+                <Button
+                  text="Callback"
+                  onClick={() => setShowCallbackModal(true)}
+                  variant="primary"
+                />
+              )}
+              
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
+                style={{ backgroundColor: 'var(--neu-surface)' }}
+              >
+                <MdClose className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 

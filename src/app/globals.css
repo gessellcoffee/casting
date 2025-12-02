@@ -1946,3 +1946,114 @@ select.neu-input {
 [data-theme="dark"] .neu-info-box {
   background: rgba(124, 58, 237, 0.1);
 }
+
+/* ===== MOBILE-RESPONSIVE BUTTON CONTAINERS ===== */
+
+/* Button group that stacks vertically on mobile, inline on desktop */
+.neu-button-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .neu-button-group {
+    flex-direction: row;
+  }
+}
+
+/* Button group with reversed order on mobile (primary button on top) */
+.neu-button-group-reverse {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column-reverse;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .neu-button-group-reverse {
+    flex-direction: row;
+  }
+}
+
+/* Button group where buttons take equal width */
+.neu-button-group-equal {
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+  width: 100%;
+}
+
+.neu-button-group-equal > * {
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .neu-button-group-equal {
+    flex-direction: row;
+  }
+}
+
+/* Action container that stacks on mobile, wraps on tablet, inline on desktop */
+.neu-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .neu-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    width: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .neu-actions {
+    flex-wrap: nowrap;
+  }
+}
+
+/* Modal header actions - stacks on mobile, inline on desktop */
+.neu-modal-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .neu-modal-header-actions {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    margin-top: 0;
+  }
+}
+
+/* Content wrapper that centers and limits width on mobile */
+.neu-mobile-safe {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Text that truncates on mobile instead of wrapping */
+.neu-text-mobile-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .neu-text-mobile-truncate {
+    white-space: normal;
+  }
+}

@@ -311,19 +311,17 @@ export default function RoleCastingModal({
 
         {/* Footer */}
         <div className="sticky bottom-0 p-6 border-t border-neu-border shadow-[inset_0_2px_4px_var(--neu-shadow-dark)]" style={{ backgroundColor: 'var(--neu-surface)' }}>
-          <div className="flex gap-3">
+          <div className="neu-button-group-equal">
             <Button
               text="Cancel"
               onClick={onClose}
               variant="secondary"
-              className="flex-1"
             />
             <Button
               text={casting ? 'Casting...' : 'Cast User'}
               onClick={handleCast}
               disabled={(castingType !== 'ensemble' && !selectedRoleId) || casting}
               variant="primary"
-              className="flex-1"
             />
           </div>
         </div>

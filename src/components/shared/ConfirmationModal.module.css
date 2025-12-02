@@ -28,4 +28,13 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  flex-direction: column;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .buttons {
+    flex-direction: row;
+    width: auto;
+  }
 }

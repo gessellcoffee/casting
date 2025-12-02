@@ -311,20 +311,18 @@ export default function CastByEmailModal({
 
                 {/* Footer */}
                 <div className="sticky bottom-0 p-6 border-t border-neu-border shadow-[inset_0_2px_4px_var(--neu-shadow-dark)]" style={{ backgroundColor: 'var(--neu-surface)' }}>
-                  <div className="flex gap-3">
+                  <div className="neu-button-group-equal">
                     <Button
                       text="Cancel"
                       onClick={onClose}
                       disabled={sending}
                       variant="secondary"
-                      className="flex-1"
                     />
                     <Button
                       text={sending ? 'Sending...' : 'Send Offer'}
                       onClick={handleSendOffer}
                       disabled={sending || !email.trim() || (castingType !== 'ensemble' && !selectedRoleId)}
                       variant="primary"
-                      className="flex-1"
                     />
                   </div>
                 </div>

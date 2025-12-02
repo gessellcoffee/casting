@@ -188,19 +188,19 @@ export default function AuditionSignupModal({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="neu-button-group-equal pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] transition-all duration-300 font-medium disabled:opacity-50"
+              className="px-4 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] transition-all duration-300 font-medium disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#6b8dd6] to-[#8b5cf6] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+              className="px-4 py-3 rounded-xl bg-gradient-to-r from-[#6b8dd6] to-[#8b5cf6] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
             >
               {isLoading ? 'Creating Account...' : 'Create Account & Sign Up'}
             </button>

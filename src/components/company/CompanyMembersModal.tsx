@@ -284,29 +284,31 @@ export default function CompanyMembersModal({
                             key={member.company_member_id}
                             className="flex items-center justify-between p-4 rounded-xl bg-neu-surface/50 border border-neu-border"
                           >
-                            <div className="flex items-center gap-3 flex-1">
-                              {member.profiles?.profile_photo_url ? (
-                                <img
-                                  src={member.profiles.profile_photo_url}
-                                  alt={member.profiles.email}
-                                  className="w-12 h-12 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 rounded-full bg-neu-accent-primary/20 flex items-center justify-center">
-                                  <span className="text-neu-accent-primary font-medium text-lg">
-                                    {member.profiles?.email.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                <p className="text-neu-text-primary font-medium">
-                                  {member.profiles?.email}
-                                </p>
-                                {(member.profiles?.first_name || member.profiles?.last_name) && (
-                                  <p className="text-neu-text-primary/60 text-sm">
-                                    {member.profiles.first_name} {member.profiles.last_name}
-                                  </p>
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                              <div className="flex items-center gap-3 flex-1">
+                                {member.profiles?.profile_photo_url ? (
+                                  <img
+                                    src={member.profiles.profile_photo_url}
+                                    alt={member.profiles.email}
+                                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-full bg-neu-accent-primary/20 flex items-center justify-center flex-shrink-0">
+                                    <span className="text-neu-accent-primary font-medium text-lg">
+                                      {member.profiles?.email.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
                                 )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-neu-text-primary font-medium truncate">
+                                    {member.profiles?.email}
+                                  </p>
+                                  {(member.profiles?.first_name || member.profiles?.last_name) && (
+                                    <p className="text-neu-text-primary/60 text-sm truncate">
+                                      {member.profiles.first_name} {member.profiles.last_name}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                               <div className="flex items-center gap-3">
                                 <select
@@ -316,7 +318,7 @@ export default function CompanyMembersModal({
                                     e.target.value as CompanyMemberRole,
                                     member.profiles?.email || 'User'
                                   )}
-                                  className={`px-3 py-1 rounded-xl border text-sm font-medium ${getRoleBadgeColor(member.role as CompanyMemberRole)}`}
+                                  className={`flex-1 sm:flex-none px-3 py-1 rounded-xl border text-sm font-medium ${getRoleBadgeColor(member.role as CompanyMemberRole)}`}
                                 >
                                   <option value="Owner">Owner</option>
                                   <option value="Admin">Admin</option>
@@ -329,7 +331,7 @@ export default function CompanyMembersModal({
                                       member.company_member_id,
                                       member.profiles?.email || 'User'
                                     )}
-                                    className="text-red-400 hover:text-red-300 transition-colors"
+                                    className="text-red-400 hover:text-red-300 transition-colors flex-shrink-0"
                                     title="Remove member"
                                   >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
