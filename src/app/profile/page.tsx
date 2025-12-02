@@ -361,14 +361,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Email (Read-only) */}
-                <div className="neu-card-raised w-full">
-                  <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
-                    Email
-                  </label>
-                  <p className="text-neu-text-primary">{user.email}</p>
-                </div>
-
                 {/* Location */}
                 <div className="neu-card-raised w-full overflow-visible z-500">
                   {isEditing ? (
