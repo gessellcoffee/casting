@@ -22,6 +22,7 @@ export interface Profile {
   profile_photo_url: string | null;
   resume_url: string | null;
   image_gallery: string[] | null;
+  video_gallery: string[] | null;
   location: string | null;
   location_lat: number | null;
   location_lng: number | null;
@@ -40,6 +41,7 @@ export interface ProfileUpdate {
   profile_photo_url?: string;
   resume_url?: string;
   image_gallery?: string[];
+  video_gallery?: string[];
   location?: string;
   location_lat?: number | null;
   location_lng?: number | null;
@@ -57,6 +59,7 @@ export interface ProfileInsert {
   profile_photo_url?: string;
   resume_url?: string;
   image_gallery?: string[];
+  video_gallery?: string[];
   location?: string;
   location_lat?: number | null;
   location_lng?: number | null;
@@ -547,7 +550,6 @@ export interface UserSignupsWithDetails {
 export interface CallbackSlot {
   callback_slot_id: string;
   audition_id: string;
-  date: string;
   start_time: string;
   end_time: string;
   location: string | null;
@@ -559,7 +561,6 @@ export interface CallbackSlot {
 
 export interface CallbackSlotInsert {
   audition_id: string;
-  date: string;
   start_time: string;
   end_time: string;
   location?: string | null;
@@ -568,7 +569,6 @@ export interface CallbackSlotInsert {
 }
 
 export interface CallbackSlotUpdate {
-  date?: string;
   start_time?: string;
   end_time?: string;
   location?: string | null;
@@ -581,37 +581,40 @@ export interface CallbackSlotUpdate {
 export type CallbackInvitationStatus = 'pending' | 'accepted' | 'declined' | 'conflict';
 
 export interface CallbackInvitation {
-  callback_invitation_id: string;
   invitation_id: string;
-  signup_id: string;
   callback_slot_id: string;
+  signup_id: string;
   user_id: string;
   audition_id: string;
-  status: string;
-  conflict_note: string | null;
+  status: 'pending' | 'accepted' | 'rejected';
   actor_comment: string | null;
+  casting_notes: string | null;
+  invited_at: string;
+  responded_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface CallbackInvitationInsert {
-  signup_id: string;
   callback_slot_id: string;
+  signup_id: string;
   user_id: string;
   audition_id: string;
-  status?: string;
-  conflict_note?: string | null;
+  status?: 'pending' | 'accepted' | 'rejected';
   actor_comment?: string | null;
+  casting_notes?: string | null;
 }
 
 export interface CallbackInvitationUpdate {
-  status?: string;
-  conflict_note?: string | null;
+  status?: 'pending' | 'accepted' | 'rejected';
   actor_comment?: string | null;
+  casting_notes?: string | null;
   responded_at?: string | null;
 }
 
 // ============= CAST MEMBER TYPES =============
+
+export type CastStatus = 'Offered' | 'Accepted' | 'Declined' | 'Cast';
 
 export interface CastMember {
   cast_member_id: string;
@@ -715,20 +718,30 @@ export type CompanyApprovalRequestUpdate = CompanyApprovalUpdate;
 export interface ProductionTeamMember {
   production_team_member_id: string;
   audition_id: string;
-  user_id: string;
-  role: string;
+  user_id: string | null;
+  role_title: string;
+  invited_email: string | null;
+  status: 'pending' | 'active' | 'declined';
+  invited_by: string | null;
+  invited_at: string;
+  joined_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface ProductionTeamMemberInsert {
   audition_id: string;
-  user_id: string;
-  role: string;
+  user_id?: string | null;
+  role_title: string;
+  invited_email?: string | null;
+  status?: 'pending' | 'active' | 'declined';
+  invited_by?: string | null;
 }
 
 export interface ProductionTeamMemberUpdate {
-  role?: string;
+  role_title?: string;
+  status?: 'pending' | 'active' | 'declined';
+  joined_at?: string | null;
 }
 
 export interface ProductionTeamMemberWithProfile extends ProductionTeamMember {
@@ -738,7 +751,7 @@ export interface ProductionTeamMemberWithProfile extends ProductionTeamMember {
     last_name: string | null;
     email: string;
     profile_photo_url: string | null;
-  };
+  } | null;
 }
 
 // ============= NOTIFICATION TYPES =============
@@ -760,7 +773,6 @@ export interface Notification {
 }
 
 export interface NotificationInsert {
-  user_id: string;
   recipient_id: string;
   sender_id?: string | null;
   type: string;
@@ -770,8 +782,6 @@ export interface NotificationInsert {
   action_url?: string | null;
   reference_id?: string | null;
   reference_type?: string | null;
-  is_actionable?: boolean;
-  is_read?: boolean;
   read?: boolean;
 }
 
@@ -844,15 +854,25 @@ export interface PerformanceEventUpdate {
 // ============= CALENDAR EVENT TYPES =============
 
 export interface CalendarEvent {
-  event_id: string;
   id: string;
   user_id: string;
   title: string;
   description: string | null;
-  date: string;
-  start_time: string | null;
-  end_time: string | null;
+  start_time: string;
+  end_time: string;
+  all_day: boolean;
   location: string | null;
+  color: string | null;
+  recurrence_rule_id: string | null;
+  is_recurring: boolean;
+  created_at: string;
+  updated_at: string;
+  // Legacy/computed fields for compatibility
+  event_id?: string;
+  date?: string;
+  start?: string;
+  end?: string;
+  allDay?: boolean;
   isRecurring?: boolean;
   recurrenceRule?: {
     frequency: string;
@@ -865,27 +885,29 @@ export interface CalendarEvent {
   } | null;
   _isInstance?: boolean;
   _originalEventId?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface CalendarEventInsert {
   user_id: string;
   title: string;
   description?: string | null;
-  date: string;
-  start_time?: string | null;
-  end_time?: string | null;
+  start_time: string;
+  end_time: string;
+  all_day?: boolean;
   location?: string | null;
+  color?: string | null;
+  recurrence_rule_id?: string | null;
 }
 
 export interface CalendarEventUpdate {
   title?: string;
   description?: string | null;
-  date?: string;
-  start_time?: string | null;
-  end_time?: string | null;
+  start_time?: string;
+  end_time?: string;
+  all_day?: boolean;
   location?: string | null;
+  color?: string | null;
+  recurrence_rule_id?: string | null;
 }
 
 export interface EventFormData {
@@ -900,7 +922,7 @@ export interface EventFormData {
   allDay?: boolean;
   color?: string | null;
   isRecurring?: boolean;
-  recurrence?: {
+  recurrence: {
     enabled: boolean;
     frequency: string;
     customFrequencyType?: string;

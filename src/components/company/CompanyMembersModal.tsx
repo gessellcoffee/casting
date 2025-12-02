@@ -131,15 +131,13 @@ export default function CompanyMembersModal({
     const baseStyle = 'shadow-[inset_2px_2px_4px_var(--neu-shadow-light),inset_-2px_-2px_4px_var(--neu-shadow-dark)] text-neu-text-primary';
     
     switch (role) {
-      case 'owner':
+      case 'Owner':
         return `${baseStyle} border-2 border-purple-400/60`;
-      case 'moderator':
-        return `${baseStyle} border-2 border-orange-400/60`;
-      case 'admin':
+      case 'Admin':
         return `${baseStyle} border-2 border-blue-400/60`;
-      case 'member':
+      case 'Member':
         return `${baseStyle} border-2 border-green-400/60`;
-      case 'viewer':
+      case 'Viewer':
         return `${baseStyle} border-2 border-gray-400/60`;
       default:
         return `${baseStyle} border-2 border-gray-400/60`;
@@ -283,7 +281,7 @@ export default function CompanyMembersModal({
                       <div className="space-y-2">
                         {members.map((member) => (
                           <div
-                            key={member.member_id}
+                            key={member.company_member_id}
                             className="flex items-center justify-between p-4 rounded-xl bg-neu-surface/50 border border-neu-border"
                           >
                             <div className="flex items-center gap-3 flex-1">
@@ -314,22 +312,21 @@ export default function CompanyMembersModal({
                                 <select
                                   value={member.role}
                                   onChange={(e) => handleUpdateRole(
-                                    member.member_id, 
+                                    member.company_member_id, 
                                     e.target.value as CompanyMemberRole,
                                     member.profiles?.email || 'User'
                                   )}
                                   className={`px-3 py-1 rounded-xl border text-sm font-medium ${getRoleBadgeColor(member.role)}`}
                                 >
-                                  <option value="owner">Owner</option>
-                                  <option value="moderator">Moderator</option>
-                                  <option value="admin">Admin</option>
-                                  <option value="member">Member</option>
-                                  <option value="viewer">Viewer</option>
+                                  <option value="Owner">Owner</option>
+                                  <option value="Admin">Admin</option>
+                                  <option value="Member">Member</option>
+                                  <option value="Viewer">Viewer</option>
                                 </select>
                                 {member.user_id !== currentUserId && (
                                   <button
                                     onClick={() => handleRemoveMember(
-                                      member.member_id,
+                                      member.company_member_id,
                                       member.profiles?.email || 'User'
                                     )}
                                     className="text-red-400 hover:text-red-300 transition-colors"

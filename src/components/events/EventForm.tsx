@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { X } from 'lucide-react';
-import { EventFormData, EventFrequency, CalendarEvent } from '@/lib/supabase/types';
+import { EventFormData, CalendarEvent } from '@/lib/supabase/types';
 import { createEvent, updateEvent } from '@/lib/supabase/events';
 import DateArrayInput from '../ui/DateArrayInput';
 import AddressInput from '../ui/AddressInput';
@@ -63,6 +63,7 @@ export default function EventForm({
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
     description: '',
+    date: selectedDate ? selectedDate.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
     start: selectedDate ? selectedDate.toISOString().slice(0, 16) : '',
     end: selectedDate ? new Date(selectedDate.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16) : '',
     allDay: false,
@@ -70,6 +71,7 @@ export default function EventForm({
     color: '#3b82f6',
     isRecurring: false,
     recurrence: {
+      enabled: true,
       frequency: 'WEEKLY',
       customFrequencyType: 'WEEKLY',
       interval: 1,
@@ -93,6 +95,7 @@ export default function EventForm({
       setFormData({
         title: initialEvent.title,
         description: initialEvent.description || '',
+        date: initialEvent.date || new Date().toISOString().slice(0, 10),
         start: initialEvent.start,
         end: initialEvent.end,
         allDay: initialEvent.allDay || false,
@@ -100,6 +103,7 @@ export default function EventForm({
         color: initialEvent.color || '#3b82f6',
         isRecurring: initialEvent.isRecurring || false,
         recurrence: {
+          enabled: true,
           frequency: isCustom ? 'CUSTOM' : actualFrequency,
           customFrequencyType: actualFrequency,
           interval: initialEvent.recurrenceRule?.interval || 1,
@@ -214,7 +218,7 @@ export default function EventForm({
           <FormSelect
             className="neu-input w-full"
             value={formData.recurrence.frequency}
-            onChange={(e) => handleRecurrenceChange('frequency', e.target.value as EventFrequency)}
+            onChange={(e) => handleRecurrenceChange('frequency', e.target.value)}
           >
             {frequencyOptions.map((option) => (
               <option key={option.value} value={option.value}>

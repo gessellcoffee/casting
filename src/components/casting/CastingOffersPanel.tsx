@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getAuditionOffers, getOfferStats } from '@/lib/supabase/castingOffers';
 import { supabase } from '@/lib/supabase/client';
-import type { CastingOfferWithDetails } from '@/lib/supabase/types';
+import { CastingOfferWithDetails, CastStatus } from '@/lib/supabase/types';
 import SendOfferModal from './SendOfferModal';
 import OfferStatusBadge from './OfferStatusBadge';
 import { formatUSDate } from '@/lib/utils/dateUtils';
@@ -218,14 +218,14 @@ export default function CastingOffersPanel({ auditionId, currentUserId }: Castin
                     <div className="flex items-center gap-3">
                       {offer ? (
                         <>
-                          <OfferStatusBadge status={offer.cast_member?.status || null} />
-                          {offer.cast_member.roles && (
+                          <OfferStatusBadge status={(offer.cast_members?.status as CastStatus) || null} />
+                          {offer.roles && (
                             <span className="text-sm text-neu-text-secondary">
-                              {offer.cast_member?.is_understudy ? 'Understudy - ' : ''}
-                              {offer.cast_member.roles.role_name}
+                              {offer.cast_members?.is_understudy ? 'Understudy - ' : ''}
+                              {offer.roles.role_name}
                             </span>
                           )}
-                          {!offer.cast_member.roles && (
+                          {!offer.roles && (
                             <span className="text-sm text-neu-text-secondary">Ensemble</span>
                           )}
                           <span className="text-xs text-neu-text-secondary">

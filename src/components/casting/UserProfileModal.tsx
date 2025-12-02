@@ -128,8 +128,8 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       
       // Find events that overlap with this day
       const dayEvents = events.filter((event) => {
-        const eventStart = new Date(event.start);
-        const eventEnd = new Date(event.end);
+        const eventStart = new Date(event.start_time);
+        const eventEnd = new Date(event.end_time);
         
         // Event overlaps with day if: eventStart <= dayEnd AND eventEnd >= dayStart
         const overlaps = eventStart <= dayEnd && eventEnd >= dayStart;
@@ -167,7 +167,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       .map(day => ({
         date: day.date!,
         events: day.events.sort((a, b) => 
-          new Date(a.start).getTime() - new Date(b.start).getTime()
+          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
         )
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -710,9 +710,9 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                           </div>
                           <div className="space-y-1.5">
                             {day.events.map((event, eventIndex) => {
-                              const startTime = new Date(event.start);
-                              const endTime = new Date(event.end);
-                              const isAllDay = event.allDay;
+                              const startTime = event.start_time ? new Date(event.start_time) : null;
+                              const endTime = event.end_time ? new Date(event.end_time) : null;
+                              const isAllDay = event.all_day;
 
                               return (
                                 <div
@@ -723,7 +723,9 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                                   <span className="text-neu-text-secondary">
                                     {isAllDay 
                                       ? 'All Day' 
-                                      : `${formatTime(startTime)} - ${formatTime(endTime)}`
+                                      : startTime && endTime
+                                      ? `${formatTime(startTime)} - ${formatTime(endTime)}`
+                                      : 'Time not specified'
                                     }
                                   </span>
                                 </div>

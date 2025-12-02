@@ -27,7 +27,7 @@ export async function getProductionTeamMembers(
         first_name,
         last_name,
         email,
-        profile_photo_url
+        profile_photo_url,
       )
     `)
     .eq('audition_id', auditionId)

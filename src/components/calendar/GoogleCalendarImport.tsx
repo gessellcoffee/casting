@@ -184,6 +184,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
               color: event.color || '#4285f4',
               isRecurring: event.isRecurring,
               recurrence: {
+                enabled: true,
                 frequency: 'WEEKLY',
                 customFrequencyType: 'WEEKLY',
                 interval: 1,
