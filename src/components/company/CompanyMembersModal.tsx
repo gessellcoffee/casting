@@ -316,7 +316,7 @@ export default function CompanyMembersModal({
                                     e.target.value as CompanyMemberRole,
                                     member.profiles?.email || 'User'
                                   )}
-                                  className={`px-3 py-1 rounded-xl border text-sm font-medium ${getRoleBadgeColor(member.role)}`}
+                                  className={`px-3 py-1 rounded-xl border text-sm font-medium ${getRoleBadgeColor(member.role as CompanyMemberRole)}`}
                                 >
                                   <option value="Owner">Owner</option>
                                   <option value="Admin">Admin</option>

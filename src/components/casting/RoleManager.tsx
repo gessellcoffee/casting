@@ -79,16 +79,16 @@ export default function RoleManager({
             needs_understudy: role.needs_understudy ?? false, // Convert null to false
           };
         });
-        setLocalRoles(existingAsFormData);
+        setLocalRoles(existingAsFormData as any);
       } else if (roles.length > 0) {
         // No existing audition roles, use roles from parent (if any)
-        setLocalRoles(roles);
+        setLocalRoles(roles as any);
       }
     } else {
       // For new auditions, load show roles as templates WITHOUT IDs
       if (roles.length > 0) {
         // Use roles from parent if provided
-        setLocalRoles(roles);
+        setLocalRoles(roles as any);
       } else {
         // Load show roles as templates
         const showRolesData = await getShowRoles(showId);
@@ -102,7 +102,7 @@ export default function RoleManager({
             gender: role.gender,
             needs_understudy: role.needs_understudy ?? false, // Convert null to false
           }));
-          setLocalRoles(templatesAsFormData);
+          setLocalRoles(templatesAsFormData as any);
         }
       }
     }

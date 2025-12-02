@@ -338,7 +338,6 @@ export async function sendCallbackInvitations(
     });
 
     await createNotification({
-      user_id: invitation.user_id,
       recipient_id: invitation.user_id,
       sender_id: user.id,
       type: 'casting_decision',
@@ -347,7 +346,6 @@ export async function sendCallbackInvitations(
       action_url: `/callbacks/${invitation.invitation_id}`,
       reference_id: invitation.invitation_id,
       reference_type: 'callback_invitation',
-      is_actionable: true,
     });
   });
 
@@ -447,7 +445,6 @@ export async function respondToCallbackInvitation(
 
   // Notify the audition creator
   await createNotification({
-    user_id: audition.user_id,
     recipient_id: audition.user_id,
     sender_id: user.id,
     type: 'casting_decision',
@@ -456,7 +453,6 @@ export async function respondToCallbackInvitation(
     action_url: `/auditions/${invitation.audition_id}/callbacks`,
     reference_id: invitationId,
     reference_type: 'callback_response',
-    is_actionable: false,
   });
 
   return { data, error: null };
@@ -695,7 +691,6 @@ export async function sendCallbackInvitationByEmail(
         });
 
         await createNotification({
-          user_id: user.id,
           recipient_id: user.id,
           sender_id: invitationData.invitedBy,
           type: 'casting_decision',
@@ -704,7 +699,6 @@ export async function sendCallbackInvitationByEmail(
           action_url: `/callbacks/${data?.invitation_id}`,
           reference_id: data?.invitation_id,
           reference_type: 'callback_invitation',
-          is_actionable: true,
         });
       }
 

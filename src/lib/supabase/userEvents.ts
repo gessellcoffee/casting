@@ -74,7 +74,11 @@ export async function getUserAvailability(
       date: row.date,
       start_time: row.start_time,
       end_time: row.end_time,
+      all_day: row.all_day ?? false,
       location: null, // Hide location
+      color: row.color ?? null,
+      recurrence_rule_id: row.recurrence_rule_id ?? null,
+      is_recurring: row.is_recurring ?? false,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };

@@ -172,7 +172,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
     
     // Filter personal events for this day
     filteredPersonal.forEach(evt => {
-      const date = new Date(evt.start);
+      const date = new Date(evt.start_time || evt.start || new Date());
       const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
       if (key === dayKey) events.push({ ...evt, type: 'personal' });
     });
@@ -294,11 +294,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                   const isPersonal = event.type === 'personal';
                   const isProduction = event.type === 'production';
                   
-                  const startTime = new Date(
-                    isCallback ? event.callback_slots.start_time :
-                    isProduction ? (event.startTime || event.date) :
-                    event.audition_slots ? event.audition_slots.start_time : event.start
-                  );
+                  const startTime = new Date(event.start_time || event.start || new Date());
                   const endTime = new Date(
                     isCallback ? event.callback_slots.end_time :
                     isProduction ? (event.endTime || event.date) :

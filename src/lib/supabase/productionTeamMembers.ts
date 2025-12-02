@@ -39,7 +39,7 @@ export async function getProductionTeamMembers(
     return [];
   }
 
-  return data as ProductionTeamMemberWithProfile[] || [];
+  return (data as unknown as ProductionTeamMemberWithProfile[]) || [];
 }
 
 /**

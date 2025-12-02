@@ -141,11 +141,10 @@ export async function createCastingOffer(
       ? `${senderData.first_name || ''} ${senderData.last_name || ''}`.trim() || senderData.email
       : 'The casting director';
 
-    const showTitle = auditionData?.shows?.title || 'a production';
+    const showTitle = (auditionData?.shows as any)?.title || 'a production';
 
     // Create notification
     const notificationData = {
-      user_id: offerData.userId,
       recipient_id: offerData.userId,
       sender_id: offerData.sentBy,
       type: 'casting_offer' as const,
@@ -154,8 +153,6 @@ export async function createCastingOffer(
       action_url: `/auditions/${offerData.auditionId}`,
       reference_id: offer.offer_id,
       reference_type: 'casting_offer',
-      is_actionable: true,
-      is_read: false,
     };
 
     const { data: notificationResult, error: notificationError } = await createNotification(notificationData);
@@ -501,7 +498,6 @@ export async function acceptCastingOffer(
 
     // Create notification for casting director
     await createNotification({
-      user_id: offer.sent_by,
       recipient_id: offer.sent_by,
       sender_id: userId,
       type: 'casting_decision',
@@ -510,8 +506,6 @@ export async function acceptCastingOffer(
       action_url: `/auditions/${offer.audition_id}`,
       reference_id: offerId,
       reference_type: 'casting_offer',
-      is_actionable: false,
-      is_read: false,
     });
 
     // Return success even if timestamp update failed
@@ -566,7 +560,6 @@ export async function declineCastingOffer(
 
     // Create notification for casting director
     await createNotification({
-      user_id: offer.sent_by,
       recipient_id: offer.sent_by,
       sender_id: userId,
       type: 'casting_decision',
@@ -575,8 +568,6 @@ export async function declineCastingOffer(
       action_url: `/auditions/${offer.audition_id}`,
       reference_id: offerId,
       reference_type: 'casting_offer',
-      is_actionable: false,
-      is_read: false,
     });
 
     // Return success even if timestamp update failed
@@ -684,7 +675,6 @@ export async function revokeCastingOffer(
 
     // Create notification for the actor
     await createNotification({
-      user_id: offer.user_id,
       recipient_id: offer.user_id,
       sender_id: revokedBy,
       type: 'general',
@@ -693,8 +683,6 @@ export async function revokeCastingOffer(
       action_url: `/auditions/${offer.audition_id}`,
       reference_id: offer.cast_member_id,
       reference_type: 'cast_member',
-      is_actionable: false,
-      is_read: false,
     });
 
     return { error: null };

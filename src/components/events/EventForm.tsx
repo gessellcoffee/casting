@@ -415,7 +415,7 @@ export default function EventForm({
                       name="description"
                       rows={3}
                       className="neu-input"
-                      value={formData.description}
+                      value={formData.description ?? ''}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -431,7 +431,7 @@ export default function EventForm({
                         name="start"
                         required
                         className="neu-input w-auto"
-                        value={formData.start}
+                        value={formData.start ?? ''}
                         onChange={handleInputChange}
                       />
                     </div>
@@ -446,9 +446,9 @@ export default function EventForm({
                         name="end"
                         required
                         className="neu-input w-auto"
-                        value={formData.end}
+                        value={formData.end ?? ''}
                         onChange={handleInputChange}
-                        min={formData.start}
+                        min={formData.start ?? ''}
                       />
                     </div>
                   </div>

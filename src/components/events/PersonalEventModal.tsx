@@ -25,8 +25,8 @@ export default function PersonalEventModal({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const startTime = new Date(event.start);
-  const endTime = new Date(event.end);
+  const startTime = new Date(event.start_time || event.start || new Date());
+  const endTime = new Date(event.end_time || event.end || new Date());
   const isRecurringInstance = event._isInstance;
   const originalEventId = event._originalEventId || event.id;
 

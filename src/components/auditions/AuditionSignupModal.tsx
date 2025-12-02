@@ -61,6 +61,7 @@ export default function AuditionSignupModal({
 
       // 2. Sign up for the audition slot
       const { error: auditionSignupError } = await createAuditionSignup({
+        audition_id: auditionId,
         slot_id: slotId,
         user_id: authData.user.id,
       });

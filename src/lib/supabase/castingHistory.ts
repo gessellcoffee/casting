@@ -76,8 +76,8 @@ export async function getUserCastingHistory(userId: string) {
       ar => ar.audition_role_id === cast.audition_role_id
     );
     const audition = auditionRole?.auditions;
-    const show = audition?.shows;
-    const company = audition?.companies;
+    const show = (audition as any)?.shows;
+    const company = (audition as any)?.companies;
     
     console.log('Processing cast member:', {
       cast_member_id: cast.cast_member_id,
@@ -93,7 +93,7 @@ export async function getUserCastingHistory(userId: string) {
       role: auditionRole?.role_name || 'Role not specified',
       company_name: company?.name || null,
       company_id: company?.company_id || null,
-      date_of_production: audition?.performance_dates || null,
+      date_of_production: (audition as any)?.performance_dates || null,
       is_understudy: cast.is_understudy,
       source: 'casting' as const,
       verified: true,

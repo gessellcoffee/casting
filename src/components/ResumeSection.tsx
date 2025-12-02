@@ -594,12 +594,13 @@ export default function ResumeSection({
               for (const entry of entries) {
                 await createResumeEntry({
                   user_id: userId,
+                  resume_data: {}, 
                   company_name: entry.company || '',
                   company_id: null,
                   show_name: entry.show_name,
                   role: entry.role_name,
                   date_of_production: entry.year ? entry.year.toString() : '',
-                  source: 'Manual' as ResumeSource,
+                  source: 'manual' as ResumeSource,
                 });
               }
               

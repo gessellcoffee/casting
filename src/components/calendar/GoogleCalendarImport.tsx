@@ -177,6 +177,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
             {
               title: event.title,
               description: event.description || '',
+              date: event.start ? new Date(event.start).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
               start: event.start,
               end: event.end,
               allDay: event.allDay,

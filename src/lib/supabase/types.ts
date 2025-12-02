@@ -415,7 +415,15 @@ export interface AuditionInsert {
   location?: string | null;
   location_lat?: number | null;
   location_lng?: number | null;
+  rehearsal_dates?: string | null;
+  rehearsal_location?: string | null;
+  performance_dates?: string | null;
+  performance_location?: string | null;
+  ensemble_size?: number | null;
   equity_status?: EquityStatus | null;
+  is_paid?: boolean;
+  pay_range?: string | null;
+  pay_comments?: string | null;
   pay_rate?: string | null;
   pay_type?: string | null;
   additional_pay_info?: string | null;

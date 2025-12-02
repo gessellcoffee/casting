@@ -160,7 +160,7 @@ export async function getUserSignupsWithDetails(userId: string): Promise<UserSig
     signups: signups.filter(
       signup => signup.audition_slots?.audition_id === audition.audition_id
     ) as AuditionSignupWithDetails[]
-  }));
+  })) as any;
 
   return result;
 }

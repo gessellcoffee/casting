@@ -235,7 +235,7 @@ export default function CastShow({
       const offers = await getAuditionOffers(audition.audition_id);
       setCastingOffers(offers);
 
-      setRoles(rolesWithCast);
+      setRoles(rolesWithCast as any);
       setError(null);
     } catch (err) {
       console.error('Error loading casting data:', err);
