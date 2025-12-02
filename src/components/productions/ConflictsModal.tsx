@@ -135,29 +135,10 @@ export default function ConflictsModal({
                               {conflict.profiles.first_name} {conflict.profiles.last_name}
                             </span>
                           </div>
-                          {/* Show list of conflicting events */}
-                          {conflict.conflicting_events && conflict.conflicting_events.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-xs font-medium text-neu-text-secondary mb-1">
-                                Conflicts with:
-                              </p>
-                              <ul className="space-y-1">
-                                {conflict.conflicting_events.map((event, idx) => (
-                                  <li key={idx} className="text-sm text-neu-text-primary flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
-                                    <span className="font-medium">{event.type}:</span>
-                                    <span>{event.title}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {/* Fallback to conflict note if no structured events */}
-                          {(!conflict.conflicting_events || conflict.conflicting_events.length === 0) && conflict.conflict_note && (
-                            <p className="text-sm text-neu-text-secondary italic mt-2">
-                              "{conflict.conflict_note}"
-                            </p>
-                          )}
+                          {/* Generic conflict message - privacy protected */}
+                          <p className="text-sm text-neu-text-secondary mt-2">
+                            Has a scheduling conflict during this time
+                          </p>
                         </div>
                       </div>
                     </div>

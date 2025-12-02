@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
 import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
+import { getEvents } from '@/lib/supabase/events';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
 import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
@@ -79,17 +80,20 @@ function MyCalendarContent() {
   const [user, setUser] = useState<any>(null);
   const [signups, setSignups] = useState<any[]>([]);
   const [callbacks, setCallbacks] = useState<any[]>([]);
+  const [personalEvents, setPersonalEvents] = useState<any[]>([]);
   const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
   const [filteredProductionEvents, setFilteredProductionEvents] = useState<ProductionDateEvent[]>([]);
   const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
   const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [calendarKey, setCalendarKey] = useState(0); // Force calendar refresh
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
+    console.log('[MyCalendar] Loading calendar data...');
     setLoading(true);
     
     try {
@@ -101,6 +105,14 @@ function MyCalendarContent() {
       }
 
       setUser(currentUser);
+      
+      // Calculate date range for personal events (6 months back and forward)
+      const now = new Date();
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      
       const [
         userSignups,
         userCallbacks,
@@ -111,7 +123,8 @@ function MyCalendarContent() {
         productionTeamSlots,
         ownedRehearsalEvents,
         productionTeamRehearsalEvents,
-        userAgendaItems
+        userAgendaItems,
+        userPersonalEvents
       ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
@@ -122,13 +135,17 @@ function MyCalendarContent() {
         getUserProductionTeamAuditionSlots(currentUser.id),
         getUserOwnedRehearsalEvents(currentUser.id),
         getUserProductionTeamRehearsalEvents(currentUser.id),
-        getUserRehearsalAgendaItems(currentUser.id)
+        getUserRehearsalAgendaItems(currentUser.id),
+        getEvents(sixMonthsAgo, sixMonthsFromNow, currentUser.id)
       ]);
       
       setSignups(userSignups);
       setCallbacks(userCallbacks);
+      setPersonalEvents(userPersonalEvents);
       setHasOwnedAuditions(ownedAuditions.length > 0);
       setHasProductionTeamAuditions(productionTeamAuditions.length > 0);
+      
+      console.log('[MyCalendar] Personal events loaded:', userPersonalEvents.length);
       
       // Combine slots and rehearsal events
       const allSlots = [...ownedSlots, ...productionTeamSlots];
@@ -141,6 +158,7 @@ function MyCalendarContent() {
         allSlots: allSlots.length,
         allRehearsalEvents: allRehearsalEvents.length,
         userAgendaItems: userAgendaItems.length,
+        personalEvents: userPersonalEvents.length,
         hasOwnedAuditions: ownedAuditions.length > 0,
         hasProductionTeamAuditions: productionTeamAuditions.length > 0
       });
@@ -156,11 +174,17 @@ function MyCalendarContent() {
       console.log('Generated production events:', allProductionEvents.length, allProductionEvents);
       
       setProductionEvents(allProductionEvents);
+      
+      // Force calendar to remount and reload personal events
+      setCalendarKey(prev => prev + 1);
+      
+      console.log('[MyCalendar] Calendar data loaded successfully');
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('[MyCalendar] Error loading data:', error);
       router.push('/login');
     } finally {
       setLoading(false);
+      console.log('[MyCalendar] Loading complete');
     }
   };
 
@@ -206,6 +230,7 @@ function MyCalendarContent() {
         </div>
 
         <AuditionCalendar 
+          key={calendarKey}
           signups={signups} 
           callbacks={callbacks} 
           productionEvents={productionEvents}

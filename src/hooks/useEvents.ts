@@ -10,14 +10,16 @@ export function useEvents(userId: string) {
   const loadEvents = useCallback(async (startDate: Date, endDate: Date) => {
     if (!userId) return;
     
+    console.log('[useEvents] Loading events for date range:', { startDate, endDate, userId });
     setLoading(true);
     setError(null);
     
     try {
       const data = await fetchEvents(startDate, endDate, userId);
+      console.log(`[useEvents] Loaded ${data.length} personal events`);
       setEvents(data);
     } catch (err) {
-      console.error('Error loading events:', err);
+      console.error('[useEvents] Error loading events:', err);
       setError(err instanceof Error ? err : new Error('Failed to load events'));
     } finally {
       setLoading(false);

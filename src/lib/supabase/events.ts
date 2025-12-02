@@ -40,6 +40,7 @@ function mapRow(row: any): CalendarEvent {
 }
 
 export async function getEvents(startDate: Date, endDate: Date, userId: string): Promise<CalendarEvent[]> {
+  console.log('[getEvents] Fetching events:', { startDate, endDate, userId });
   const startIso = startDate.toISOString();
   const endIso = endDate.toISOString();
 
@@ -54,8 +55,11 @@ export async function getEvents(startDate: Date, endDate: Date, userId: string):
     .order('start_time', { ascending: true });
 
   if (nonRecurringError) {
+    console.error('[getEvents] Error fetching non-recurring events:', nonRecurringError);
     throw nonRecurringError;
   }
+
+  console.log(`[getEvents] Found ${nonRecurringData?.length || 0} non-recurring events`);
 
   // Fetch ALL recurring events for this user (regardless of start date)
   // We need to expand them to see which instances fall within the date range
@@ -67,8 +71,11 @@ export async function getEvents(startDate: Date, endDate: Date, userId: string):
     .order('start_time', { ascending: true });
 
   if (recurringError) {
+    console.error('[getEvents] Error fetching recurring events:', recurringError);
     throw recurringError;
   }
+  
+  console.log(`[getEvents] Found ${recurringData?.length || 0} recurring events`);
 
   // Map all events
   const nonRecurringEvents = (nonRecurringData || []).map(mapRow);
@@ -79,11 +86,14 @@ export async function getEvents(startDate: Date, endDate: Date, userId: string):
 
   // Combine and sort all events
   const allEvents = [...nonRecurringEvents, ...expandedRecurringEvents];
-  return allEvents.sort((a, b) => {
+  const sortedEvents = allEvents.sort((a, b) => {
     const aTime = new Date(a.start).getTime();
     const bTime = new Date(b.start).getTime();
     return aTime - bTime;
   });
+  
+  console.log(`[getEvents] Returning ${sortedEvents.length} total events`);
+  return sortedEvents;
 }
 
 export async function createEvent(form: EventFormData, userId: string): Promise<CalendarEvent | null> {

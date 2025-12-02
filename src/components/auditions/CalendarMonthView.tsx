@@ -120,6 +120,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   }, [currentDate]);
 
   useEffect(() => {
+    console.log('[CalendarMonthView] Loading personal events for month:', monthRange);
     loadEvents(monthRange.start, monthRange.end);
   }, [monthRange.start.getTime(), monthRange.end.getTime(), loadEvents]);
 

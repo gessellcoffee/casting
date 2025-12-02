@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RefreshCw, X, Check, Calendar, Download, Upload } from 'lucide-react';
+import { RefreshCw, X, Check, Calendar, Download, Upload, Settings } from 'lucide-react';
 import Button from '../Button';
 import ConfirmationModal from '../shared/ConfirmationModal';
+import SyncPreferencesModal from './SyncPreferencesModal';
 
 interface GoogleCalendarSyncProps {
   userId: string;
@@ -25,6 +26,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
     message: string;
   } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [calendars, setCalendars] = useState<any[]>([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState('primary');
   const [importing, setImporting] = useState(false);
@@ -66,8 +68,27 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
       setIsConnected(response.ok);
       
       if (response.ok) {
-        // Check if sync calendars are setup
-        // TODO: Add API endpoint to check sync status
+        // Check if sync calendars are already setup
+        try {
+          const statusResponse = await fetch('/api/google/sync/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId }),
+          });
+          
+          if (statusResponse.ok) {
+            const { calendarsSetup, calendars } = await statusResponse.json();
+            console.log('[GoogleCalendarSync] Sync status:', { calendarsSetup, calendarsCount: calendars?.length });
+            setSyncStatus({ 
+              ...syncStatus, 
+              calendarsSetup 
+            });
+          }
+        } catch (statusError) {
+          console.error('[GoogleCalendarSync] Error checking sync status:', statusError);
+          // Default to false if we can't check
+          setSyncStatus({ ...syncStatus, calendarsSetup: false });
+        }
       }
     } catch (error) {
       setIsConnected(false);
@@ -113,10 +134,11 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
       
       const { calendars } = data;
       
+      console.log('[GoogleCalendarSync] Setup complete, updating status');
       setSyncStatus({ ...syncStatus, calendarsSetup: true });
       openModal(
         'Sync Setup Complete', 
-        `Created ${calendars.length} calendars in your Google Calendar:\n\n${calendars.map((c: any) => `• ${c.name}`).join('\n')}`,
+        `Successfully set up ${calendars.length} calendars in your Google Calendar:\n\n${calendars.map((c: any) => `• ${c.name}`).join('\n')}\n\nYou can now use "Sync to Google" and "Import from Google"!`,
         undefined,
         'OK',
         false
@@ -255,19 +277,72 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
 
   const handleImportFromGoogle = async () => {
     setImporting(true);
+    console.log('[GoogleCalendarSync] Starting import...');
     try {
-      // TODO: Implement import from Google Calendar
-      openModal('Import Complete', 'Successfully imported events from Google Calendar!', undefined, 'OK', false);
+      // Calculate date range (next 6 months from now)
+      const now = new Date();
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      
+      const requestBody = { 
+        userId,
+        calendarId: selectedCalendarId,
+        timeMin: now.toISOString(),
+        timeMax: sixMonthsFromNow.toISOString()
+      };
+      console.log('[GoogleCalendarSync] Request body:', requestBody);
+      
+      console.log('[GoogleCalendarSync] Calling /api/google/import...');
+      const response = await fetch('/api/google/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('[GoogleCalendarSync] Response status:', response.status);
+      
+      if (!response.ok) {
+        const data = await response.json();
+        console.error('[GoogleCalendarSync] Error response:', data);
+        throw new Error(data.error || 'Failed to import events');
+      }
+      
+      const result = await response.json();
+      console.log('[GoogleCalendarSync] Import result:', result);
+      
+      const { imported, errors, total, message, errorDetails } = result;
+      
+      let modalMessage = `Successfully imported ${imported} of ${total} events from Google Calendar`;
+      if (errors > 0) {
+        modalMessage += `. ${errors} events failed to import.`;
+        if (errorDetails && errorDetails.length > 0) {
+          console.error('[GoogleCalendarSync] Error details:', errorDetails);
+        }
+      } else if (total === 0) {
+        modalMessage = message || 'No events found in the selected calendar for the next 6 months.';
+      } else {
+        modalMessage += '!';
+      }
+      
+      openModal(
+        'Import Complete', 
+        modalMessage,
+        undefined,
+        'OK',
+        false
+      );
       setShowImportModal(false);
       
       if (onSyncComplete) {
+        console.log('[GoogleCalendarSync] Calling onSyncComplete...');
         onSyncComplete();
       }
-    } catch (error) {
-      console.error('Error importing:', error);
-      openModal('Import Failed', 'Failed to import events. Please try again.', undefined, 'OK', false);
+    } catch (error: any) {
+      console.error('[GoogleCalendarSync] Fatal error importing:', error);
+      openModal('Import Failed', error?.message || 'Failed to import events. Please try again.', undefined, 'OK', false);
     } finally {
       setImporting(false);
+      console.log('[GoogleCalendarSync] Import process finished');
     }
   };
 
@@ -353,6 +428,15 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
               >
                 <Download className="w-4 h-4" />
               </Button>
+              <button
+                onClick={() => setShowPreferencesModal(true)}
+                className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors flex items-center gap-2"
+                title="Sync Settings"
+                disabled={isSyncing}
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
               {syncStatus.lastSynced && (
                 <span className="text-xs text-neu-text-primary/60">
                   Last synced: {new Date(syncStatus.lastSynced).toLocaleString()}
@@ -454,6 +538,12 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
         onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
         confirmButtonText={modalConfig.confirmButtonText}
         showCancel={modalConfig.showCancel}
+      />
+
+      <SyncPreferencesModal
+        isOpen={showPreferencesModal}
+        onClose={() => setShowPreferencesModal(false)}
+        userId={userId}
       />
     </>
   );

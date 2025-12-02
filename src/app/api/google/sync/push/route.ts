@@ -382,15 +382,115 @@ async function syncAuditionSignups(userId: string, calendarId: string, accessTok
  * Sync callbacks
  */
 async function syncCallbacks(userId: string, calendarId: string, accessToken: string) {
-  console.log(`[Callbacks] Skipping for now - will implement after basic sync works`);
-  return;
+  console.log(`[Callbacks] Fetching callbacks for user ${userId}`);
+  
+  const { data: callbacks, error } = await supabaseServer
+    .from('callback_invitations')
+    .select(`
+      callback_invitation_id,
+      audition_id,
+      user_id,
+      status,
+      callback_slots(
+        start_time,
+        end_time,
+        location
+      ),
+      auditions(
+        audition_id,
+        shows(
+          title
+        )
+      )
+    `)
+    .eq('user_id', userId)
+    .in('status', ['pending', 'accepted']);
+  
+  if (error) {
+    console.error('[Callbacks] Query error:', error);
+    return;
+  }
+  
+  console.log(`[Callbacks] Found ${callbacks?.length || 0} callbacks`);
+  
+  if (!callbacks || callbacks.length === 0) return;
+  
+  // Get existing mappings
+  const callbackIds = callbacks.map(c => c.callback_invitation_id);
+  const { data: existingMappings } = await supabaseServer
+    .from('google_event_mappings' as any)
+    .select('event_id')
+    .eq('user_id', userId)
+    .eq('event_type', 'callback')
+    .in('event_id', callbackIds);
+  
+  const existingIds = new Set(existingMappings?.map((m: any) => m.event_id) || []);
+  
+  for (const callback of callbacks) {
+    try {
+      const slot = Array.isArray(callback.callback_slots) ? callback.callback_slots[0] : callback.callback_slots;
+      const audition = Array.isArray(callback.auditions) ? callback.auditions[0] : callback.auditions;
+      const show = Array.isArray(audition?.shows) ? audition.shows[0] : audition?.shows;
+      
+      // Skip if already synced
+      if (existingIds.has(callback.callback_invitation_id)) {
+        console.log(`[Callbacks] Skipping already synced: ${show?.title}`);
+        continue;
+      }
+      
+      console.log(`[Callbacks] Creating event: ${show?.title}`);
+      
+      const googleEvent = await createCalendarEvent(accessToken, calendarId, {
+        summary: `Callback: ${show?.title}`,
+        description: `Callback for ${show?.title}`,
+        location: slot?.location || undefined,
+        start: slot?.start_time,
+        end: slot?.end_time,
+        allDay: false,
+        colorId: '3' // Purple
+      });
+      
+      // Store mapping
+      if (googleEvent?.id) {
+        await supabaseServer
+          .from('google_event_mappings' as any)
+          .insert({
+            user_id: userId,
+            event_type: 'callback',
+            event_id: callback.callback_invitation_id,
+            google_calendar_id: calendarId,
+            google_event_id: googleEvent.id
+          });
+      }
+      
+      console.log(`[Callbacks] Successfully created event`);
+    } catch (error) {
+      console.error(`[Callbacks] Error creating event:`, error);
+    }
+  }
 }
 
 /**
- * Sync rehearsals (rehearsal dates from auditions where user is cast)
+ * Sync rehearsals (rehearsal dates + rehearsal events + agenda items)
  */
 async function syncRehearsals(userId: string, calendarId: string, accessToken: string) {
-  console.log(`[Rehearsals] Fetching rehearsal dates for user ${userId}`);
+  console.log(`[Rehearsals] Syncing all rehearsal-related events for user ${userId}`);
+  
+  // Sync rehearsal dates (all-day events)
+  await syncRehearsalDates(userId, calendarId, accessToken);
+  
+  // Sync rehearsal events (timed events with locations)
+  await syncRehearsalEvents(userId, calendarId, accessToken);
+  
+  // Sync agenda items (specific rehearsal schedule items)
+  await syncAgendaItems(userId, calendarId, accessToken);
+}
+
+/**
+ * Sync rehearsal dates (all-day events)
+ */
+async function syncRehearsalDates(userId: string, calendarId: string, accessToken: string) {
+  console.log(`[Rehearsal Dates] Fetching rehearsal dates for user ${userId}`);
   
   // Get auditions where user is cast
   const { data: castShows, error } = await supabaseServer
@@ -427,6 +527,12 @@ async function syncRehearsals(userId: string, calendarId: string, accessToken: s
     
     for (const date of rehearsalDates) {
       try {
+        // Skip invalid dates
+        if (!date || typeof date !== 'string' || date.trim() === '') {
+          console.log(`[Rehearsal Dates] Skipping invalid date for ${show?.title}`);
+          continue;
+        }
+        
         // Create a unique ID for this date+audition combo
         const eventId = `${audition?.audition_id}_${date}`;
         
@@ -440,11 +546,11 @@ async function syncRehearsals(userId: string, calendarId: string, accessToken: s
           .single();
         
         if (existing) {
-          console.log(`[Rehearsals] Skipping already synced: ${show?.title} on ${date}`);
+          console.log(`[Rehearsal Dates] Skipping already synced: ${show?.title} on ${date}`);
           continue;
         }
         
-        console.log(`[Rehearsals] Creating event: ${show?.title} on ${date}`);
+        console.log(`[Rehearsal Dates] Creating event: ${show?.title} on ${date}`);
         
         const googleEvent = await createCalendarEvent(accessToken, calendarId, {
           summary: `Rehearsal: ${show?.title}`,
@@ -468,10 +574,216 @@ async function syncRehearsals(userId: string, calendarId: string, accessToken: s
             });
         }
         
-        console.log(`[Rehearsals] Successfully created event`);
+        console.log(`[Rehearsal Dates] Successfully created event`);
       } catch (error) {
-        console.error(`[Rehearsals] Error creating event:`, error);
+        console.error(`[Rehearsal Dates] Error creating event:`, error);
       }
+    }
+  }
+}
+
+/**
+ * Sync rehearsal events (timed events with location)
+ */
+async function syncRehearsalEvents(userId: string, calendarId: string, accessToken: string) {
+  console.log(`[Rehearsal Events] Fetching rehearsal events for user ${userId}`);
+  
+  // Get rehearsal events for shows where user is cast or user owns/is on production team
+  const { data: rehearsalEvents, error } = await supabaseServer
+    .from('rehearsal_events')
+    .select(`
+      rehearsal_events_id,
+      date,
+      start_time,
+      end_time,
+      location,
+      notes,
+      auditions!inner(
+        audition_id,
+        user_id,
+        shows(
+          title
+        )
+      )
+    `)
+    .or(`auditions.user_id.eq.${userId},auditions.audition_id.in.(
+      select audition_id from cast_members where user_id = '${userId}'
+    )`)
+    .order('date', { ascending: true });
+  
+  if (error) {
+    console.error('[Rehearsal Events] Query error:', error);
+    return;
+  }
+  
+  console.log(`[Rehearsal Events] Found ${rehearsalEvents?.length || 0} rehearsal events`);
+  
+  if (!rehearsalEvents || rehearsalEvents.length === 0) return;
+  
+  // Get existing mappings
+  const eventIds = rehearsalEvents.map(e => e.rehearsal_events_id);
+  const { data: existingMappings } = await supabaseServer
+    .from('google_event_mappings' as any)
+    .select('event_id')
+    .eq('user_id', userId)
+    .eq('event_type', 'rehearsal_event')
+    .in('event_id', eventIds);
+  
+  const existingIds = new Set(existingMappings?.map((m: any) => m.event_id) || []);
+  
+  for (const event of rehearsalEvents) {
+    try {
+      const audition = Array.isArray(event.auditions) ? event.auditions[0] : event.auditions;
+      const show = Array.isArray(audition?.shows) ? audition.shows[0] : audition?.shows;
+      
+      // Skip if already synced
+      if (existingIds.has(event.rehearsal_events_id)) {
+        console.log(`[Rehearsal Events] Skipping already synced: ${show?.title} on ${event.date}`);
+        continue;
+      }
+      
+      console.log(`[Rehearsal Events] Creating event: ${show?.title} on ${event.date}`);
+      
+      // Combine date and time
+      const startDateTime = `${event.date}T${event.start_time}`;
+      const endDateTime = `${event.date}T${event.end_time}`;
+      
+      const googleEvent = await createCalendarEvent(accessToken, calendarId, {
+        summary: `Rehearsal: ${show?.title}`,
+        description: event.notes || `Rehearsal for ${show?.title}`,
+        location: event.location || undefined,
+        start: startDateTime,
+        end: endDateTime,
+        allDay: false,
+        colorId: '5' // Yellow/Amber
+      });
+      
+      // Store mapping
+      if (googleEvent?.id) {
+        await supabaseServer
+          .from('google_event_mappings' as any)
+          .insert({
+            user_id: userId,
+            event_type: 'rehearsal_event',
+            event_id: event.rehearsal_events_id,
+            google_calendar_id: calendarId,
+            google_event_id: googleEvent.id
+          });
+      }
+      
+      console.log(`[Rehearsal Events] Successfully created event`);
+    } catch (error) {
+      console.error(`[Rehearsal Events] Error creating event:`, error);
+    }
+  }
+}
+
+/**
+ * Sync agenda items (rehearsal schedule items)
+ */
+async function syncAgendaItems(userId: string, calendarId: string, accessToken: string) {
+  console.log(`[Agenda Items] Fetching agenda items for user ${userId}`);
+  
+  // Get agenda items where user is assigned
+  const { data: agendaAssignments, error } = await supabaseServer
+    .from('agenda_assignments')
+    .select(`
+      agenda_assignments_id,
+      agenda_item_id,
+      rehearsal_agenda_items!inner(
+        title,
+        description,
+        start_time,
+        end_time,
+        rehearsal_events!inner(
+          rehearsal_events_id,
+          date,
+          location,
+          auditions!inner(
+            audition_id,
+            shows(
+              title
+            )
+          )
+        )
+      )
+    `)
+    .eq('user_id', userId)
+    .in('status', ['assigned', 'accepted']);
+  
+  if (error) {
+    console.error('[Agenda Items] Query error:', error);
+    return;
+  }
+  
+  console.log(`[Agenda Items] Found ${agendaAssignments?.length || 0} assigned agenda items`);
+  
+  if (!agendaAssignments || agendaAssignments.length === 0) return;
+  
+  // Get existing mappings
+  const agendaIds = agendaAssignments.map(a => a.agenda_item_id);
+  const { data: existingMappings } = await supabaseServer
+    .from('google_event_mappings' as any)
+    .select('event_id')
+    .eq('user_id', userId)
+    .eq('event_type', 'agenda_item')
+    .in('event_id', agendaIds);
+  
+  const existingIds = new Set(existingMappings?.map((m: any) => m.event_id) || []);
+  
+  for (const assignment of agendaAssignments) {
+    try {
+      const agendaItem = Array.isArray(assignment.rehearsal_agenda_items) 
+        ? assignment.rehearsal_agenda_items[0] 
+        : assignment.rehearsal_agenda_items;
+      const rehearsalEvent = Array.isArray(agendaItem?.rehearsal_events) 
+        ? agendaItem.rehearsal_events[0] 
+        : agendaItem?.rehearsal_events;
+      const audition = Array.isArray(rehearsalEvent?.auditions) 
+        ? rehearsalEvent.auditions[0] 
+        : rehearsalEvent?.auditions;
+      const show = Array.isArray(audition?.shows) 
+        ? audition.shows[0] 
+        : audition?.shows;
+      
+      // Skip if already synced
+      if (existingIds.has(assignment.agenda_item_id)) {
+        console.log(`[Agenda Items] Skipping already synced: ${agendaItem?.title}`);
+        continue;
+      }
+      
+      console.log(`[Agenda Items] Creating event: ${agendaItem?.title} for ${show?.title}`);
+      
+      // Combine date and time
+      const startDateTime = `${rehearsalEvent?.date}T${agendaItem?.start_time}`;
+      const endDateTime = `${rehearsalEvent?.date}T${agendaItem?.end_time}`;
+      
+      const googleEvent = await createCalendarEvent(accessToken, calendarId, {
+        summary: `${show?.title}: ${agendaItem?.title}`,
+        description: agendaItem?.description || `Rehearsal agenda item for ${show?.title}`,
+        location: rehearsalEvent?.location || undefined,
+        start: startDateTime,
+        end: endDateTime,
+        allDay: false,
+        colorId: '5' // Yellow/Amber (same as rehearsal events)
+      });
+      
+      // Store mapping
+      if (googleEvent?.id) {
+        await supabaseServer
+          .from('google_event_mappings' as any)
+          .insert({
+            user_id: userId,
+            event_type: 'agenda_item',
+            event_id: assignment.agenda_item_id,
+            google_calendar_id: calendarId,
+            google_event_id: googleEvent.id
+          });
+      }
+      
+      console.log(`[Agenda Items] Successfully created event`);
+    } catch (error) {
+      console.error(`[Agenda Items] Error creating event:`, error);
     }
   }
 }
@@ -517,6 +829,12 @@ async function syncPerformances(userId: string, calendarId: string, accessToken:
     
     for (const date of performanceDates) {
       try {
+        // Skip invalid dates
+        if (!date || typeof date !== 'string' || date.trim() === '') {
+          console.log(`[Performances] Skipping invalid date for ${show?.title}`);
+          continue;
+        }
+        
         // Create a unique ID for this date+audition combo
         const eventId = `${audition?.audition_id}_${date}`;
         
@@ -568,8 +886,10 @@ async function syncPerformances(userId: string, calendarId: string, accessToken:
 
 /**
  * Sync personal events
+ * Note: Personal events are imported FROM Google Calendar, not pushed TO it.
+ * They should remain only in the app database to avoid creating duplicates in Google.
  */
 async function syncPersonalEvents(userId: string, calendarId: string, accessToken: string) {
-  console.log(`[Personal Events] Skipping for now - will implement after basic sync works`);
+  console.log(`[Personal Events] Skipping - personal events are imported from Google, not synced to Google`);
   return;
 }
