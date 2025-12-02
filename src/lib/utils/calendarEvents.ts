@@ -133,8 +133,8 @@ export function generateProductionEvents(
       const audition = event.auditions;
       
       if (audition && audition.shows) {
-        // Combine date and time for proper datetime
-        const eventDate = new Date(event.date);
+        // Combine date and time for proper datetime - use parseLocalDate to avoid UTC conversion
+        const eventDate = parseLocalDate(event.date);
         const [startHours, startMinutes] = event.start_time.split(':');
         const [endHours, endMinutes] = event.end_time.split(':');
         
@@ -178,7 +178,8 @@ export function generateAgendaItemEvents(agendaItems: any[]): ProductionDateEven
     }
 
     const audition = rehearsalEvent.auditions;
-    const eventDate = new Date(rehearsalEvent.date);
+    // Use parseLocalDate to avoid UTC conversion
+    const eventDate = parseLocalDate(rehearsalEvent.date);
     
     // Parse start and end times
     const [startHours, startMinutes] = item.start_time.split(':');

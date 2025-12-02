@@ -370,20 +370,26 @@ export default function ReviewAndSubmit({
             Audition Slots ({castingData.slots.length})
           </h3>
           <div className="space-y-2">
-            {castingData.slots.map((slot: any, index: number) => (
-              <div key={index} className="p-3 rounded-lg bg-neu-surface/50 text-sm">
-                <div className="text-neu-text-primary">
-                  {new Date(slot.start_time).toLocaleString()} -{' '}
-                  {new Date(slot.end_time).toLocaleString()}
-                </div>
-                {slot.location && (
-                  <div className="text-neu-text-primary/60">{slot.location}</div>
-                )}
-                <div className="text-neu-text-primary/60">
-                  Max signups: {slot.max_signups}
-                </div>
+            {castingData.slots.length === 0 ? (
+              <div className="p-3 rounded-lg bg-neu-surface/50 text-sm text-neu-text-primary/60 italic">
+                No audition slots added. You can add them later after creating the production.
               </div>
-            ))}
+            ) : (
+              castingData.slots.map((slot: any, index: number) => (
+                <div key={index} className="p-3 rounded-lg bg-neu-surface/50 text-sm">
+                  <div className="text-neu-text-primary">
+                    {new Date(slot.start_time).toLocaleString()} -{' '}
+                    {new Date(slot.end_time).toLocaleString()}
+                  </div>
+                  {slot.location && (
+                    <div className="text-neu-text-primary/60">{slot.location}</div>
+                  )}
+                  <div className="text-neu-text-primary/60">
+                    Max signups: {slot.max_signups}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

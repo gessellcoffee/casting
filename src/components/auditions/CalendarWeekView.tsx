@@ -57,8 +57,13 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
   const personalByDate = useMemo(() => {
     const grouped: Record<string, any[]> = {};
     events.forEach(evt => {
+      // Create Date from ISO string - this will be in local time
       const dt = new Date((evt as any).start);
-      const key = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+      // Use local date components to avoid UTC conversion issues
+      const year = dt.getFullYear();
+      const month = dt.getMonth();
+      const date = dt.getDate();
+      const key = `${year}-${month}-${date}`;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });

@@ -27,6 +27,8 @@ function mapRow(row: any): CalendarEvent {
     date: row.date,
     start_time: row.start_time,
     end_time: row.end_time,
+    start: row.start_time, // Add alias for UI compatibility
+    end: row.end_time,     // Add alias for UI compatibility
     all_day: row.all_day ?? false,
     location: row.location ?? null,
     color: row.color ?? null,

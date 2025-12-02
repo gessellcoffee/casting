@@ -126,8 +126,13 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   const personalByDate = useMemo(() => {
     const grouped: Record<string, any[]> = {};
     events.forEach(evt => {
+      // Create Date from ISO string - this will be in local time
       const dt = new Date((evt as any).start);
-      const key = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+      // Use local date components to avoid UTC conversion issues
+      const year = dt.getFullYear();
+      const month = dt.getMonth();
+      const date = dt.getDate();
+      const key = `${year}-${month}-${date}`;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
@@ -145,7 +150,8 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   const productionByDate = useMemo(() => {
     const grouped: Record<string, ProductionDateEvent[]> = {};
     productionEvents.forEach(evt => {
-      const eventDate = new Date(evt.date);
+      // evt.date is already a Date object from calendarEvents.ts, use it directly
+      const eventDate = evt.date;
       const key = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);

@@ -11,14 +11,35 @@ interface RehearsalEventFormProps {
   auditionId: string;
   onSuccess: () => void;
   onCancel: () => void;
+  initialDate?: Date | null;
 }
 
 export default function RehearsalEventForm({
   auditionId,
   onSuccess,
   onCancel,
+  initialDate,
 }: RehearsalEventFormProps) {
-  const [dates, setDates] = useState<string[]>([]);
+  // Convert initialDate to YYYY-MM-DD format if provided (using local timezone)
+  const getInitialDates = () => {
+    if (initialDate) {
+      // Create a new Date object from the year/month/day to ensure it's in local time
+      // This prevents any UTC offset issues
+      const localDate = new Date(
+        initialDate.getFullYear(),
+        initialDate.getMonth(),
+        initialDate.getDate()
+      );
+      
+      const year = localDate.getFullYear();
+      const month = String(localDate.getMonth() + 1).padStart(2, '0');
+      const day = String(localDate.getDate()).padStart(2, '0');
+      return [`${year}-${month}-${day}`];
+    }
+    return [];
+  };
+
+  const [dates, setDates] = useState<string[]>(getInitialDates());
   const [formData, setFormData] = useState({
     start_time: '',
     end_time: '',

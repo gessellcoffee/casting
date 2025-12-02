@@ -601,11 +601,7 @@ export default function SlotScheduler({
   };
 
   const handleNext = () => {
-    if (localSlots.length === 0) {
-      setError('Please add at least one time slot');
-      return;
-    }
-
+    // Slots are optional - allow proceeding even with no slots
     onUpdate(localSlots);
     onNext(localSlots);
   };
@@ -625,10 +621,10 @@ export default function SlotScheduler({
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-neu-text-primary mb-4">
-          Schedule Audition Slots
+          Schedule Audition Slots (Optional)
         </h2>
         <p className="text-neu-text-primary/70 mb-2">
-          Drag to select time blocks on the calendar below. You can create single slots or generate multiple slots automatically.
+          Drag to select time blocks on the calendar below. You can create single slots or generate multiple slots automatically. You can also skip this step and add slots later if needed.
         </p>
         {availableDates.length > 0 && (
           <div className="mt-3 neu-info-box">
@@ -1237,7 +1233,7 @@ export default function SlotScheduler({
           onClick={handleNext}
           className="px-6 py-3 rounded-xl bg-neu-surface text-neu-text-primary border border-neu-border shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_5px_5px_10px_var(--neu-shadow-dark),inset_-5px_-5px_10px_var(--neu-shadow-light)] hover:text-neu-accent-primary hover:border-neu-border-focus transition-all duration-300 font-medium"
         >
-          Next
+          {localSlots.length === 0 ? 'Skip' : 'Next'}
         </button>
       </div>
 
