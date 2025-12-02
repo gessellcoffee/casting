@@ -262,8 +262,8 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
 
       {/* Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
-          <div className="bg-neu-surface border border-neu-border rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white border-neu-border rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-neu-text-primary">
                 Import from Google Calendar
@@ -354,7 +354,7 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
                     {events.slice(0, 20).map((event, index) => (
                       <div
                         key={index}
-                        className="p-3 rounded bg-neu-surface/50 border border-neu-border"
+                        className="p-3 rounded bg-white"
                       >
                         <div className="font-medium text-neu-text-primary">{event.title}</div>
                         <div className="text-sm text-neu-text-primary/70">

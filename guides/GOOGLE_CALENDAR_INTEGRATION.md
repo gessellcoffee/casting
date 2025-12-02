@@ -14,8 +14,8 @@ Before using this feature, you need to set up OAuth credentials in Google Cloud 
 4. Configure OAuth consent screen
 5. Create OAuth 2.0 credentials (Web application)
 6. Add authorized redirect URIs:
-   - Development: `http://localhost:3000/api/auth/callback/google`
-   - Production: `https://yourdomain.com/api/auth/callback/google`
+   - Development: `http://localhost:3000/api/google/callback`
+   - Production: `https://yourdomain.com/api/google/callback`
 
 ### 2. Environment Variables
 Add these to your `.env.local`:
@@ -23,7 +23,7 @@ Add these to your `.env.local`:
 ```env
 GOOGLE_CLIENT_ID=your_client_id_here
 GOOGLE_CLIENT_SECRET=your_client_secret_here
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/google/callback
 ```
 
 For production, update `GOOGLE_REDIRECT_URI` to your production URL.
@@ -86,7 +86,7 @@ google_calendar_tokens: {
 - `src/lib/google/auth.ts` - OAuth helper functions
 - `src/lib/google/calendar.ts` - Google Calendar API integration
 - `src/app/api/google/auth/route.ts` - Initiate OAuth flow
-- `src/app/api/auth/callback/google/route.ts` - OAuth callback handler
+- `src/app/api/google/callback/route.ts` - OAuth callback handler
 - `src/app/api/google/calendars/route.ts` - List user's calendars
 - `src/app/api/google/events/route.ts` - Fetch calendar events
 - `src/app/api/google/disconnect/route.ts` - Disconnect Google account
@@ -130,7 +130,7 @@ Generates OAuth authorization URL.
 }
 ```
 
-### GET `/api/auth/callback/google`
+### GET `/api/google/callback`
 Handles OAuth callback and stores tokens.
 
 **Query Params:**
