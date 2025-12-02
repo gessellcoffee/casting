@@ -148,6 +148,7 @@ export async function getRehearsalEventsWithAgenda(auditionId: string) {
 
 /**
  * Check if user has permission to manage rehearsal events
+ * User must be either: audition owner, production team member, or company member
  */
 export async function canManageRehearsalEvents(auditionId: string): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -163,7 +164,18 @@ export async function canManageRehearsalEvents(auditionId: string): Promise<bool
   if (!audition) return false;
   if (audition.user_id === user.id) return true;
 
-  // Check if user is production team member
+  // Check if user is audition-specific production team member
+  const { data: productionMember } = await supabase
+    .from('production_team_members')
+    .select('production_team_member_id')
+    .eq('audition_id', auditionId)
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (productionMember) return true;
+
+  // Check if user is company-level member
   if (audition.company_id) {
     const { data: membership } = await supabase
       .from('company_members')

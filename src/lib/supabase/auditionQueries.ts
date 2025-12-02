@@ -163,6 +163,35 @@ export async function getAuditionById(auditionId: string) {
 }
 
 /**
+ * Fetch all auditions where the user is either the owner OR a production team member
+ */
+export async function getUserManageableAuditions(userId: string) {
+  // Get all auditions with details
+  const { data: allAuditions, error: auditionsError } = await getAuditionsWithDetails();
+  
+  if (auditionsError || !allAuditions) {
+    return { data: null, error: auditionsError };
+  }
+
+  // Filter to auditions where user is owner or production team member
+  const manageableAuditions = allAuditions.filter((audition: any) => {
+    // Check if user is the owner
+    if (audition.user_id === userId) {
+      return true;
+    }
+
+    // Check if user is a production team member
+    const isProductionMember = audition.productionTeam?.some(
+      (member: any) => member.user_id === userId && member.status === 'active'
+    );
+    
+    return isProductionMember;
+  });
+
+  return { data: manageableAuditions, error: null };
+}
+
+/**
  * Search auditions by show title or company name
  */
 export async function searchAuditions(query: string) {

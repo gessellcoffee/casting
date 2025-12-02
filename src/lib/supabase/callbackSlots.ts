@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { getAuthenticatedUser } from './auth';
+import { isUserProductionMember } from './productionTeamMembers';
 import type { CallbackSlot, CallbackSlotInsert, CallbackSlotUpdate } from './types';
 
 /**
@@ -122,9 +123,13 @@ export async function createCallbackSlot(
     return { data: null, error: auditionError || new Error('Audition not found') };
   }
 
-  if (audition.user_id !== user.id) {
-    const unauthorizedError = new Error('Unauthorized: You can only create callback slots for your own auditions');
-    console.error('Authorization failed');
+  // Check if user is owner or production team member
+  const isOwner = audition.user_id === user.id;
+  const isMember = await isUserProductionMember(slotData.audition_id, user.id);
+  
+  if (!isOwner && !isMember) {
+    const unauthorizedError = new Error('Unauthorized: You must be the audition owner or production team member to create callback slots');
+    console.error('Authorization failed:', { isOwner, isMember });
     return { data: null, error: unauthorizedError };
   }
 
@@ -172,9 +177,13 @@ export async function createCallbackSlots(
     return { data: null, error: auditionError || new Error('Audition not found') };
   }
 
-  if (audition.user_id !== user.id) {
-    const unauthorizedError = new Error('Unauthorized: You can only create callback slots for your own auditions');
-    console.error('Authorization failed');
+  // Check if user is owner or production team member
+  const isOwner = audition.user_id === user.id;
+  const isMember = await isUserProductionMember(slotsData[0].audition_id, user.id);
+  
+  if (!isOwner && !isMember) {
+    const unauthorizedError = new Error('Unauthorized: You must be the audition owner or production team member to create callback slots');
+    console.error('Authorization failed:', { isOwner, isMember });
     return { data: null, error: unauthorizedError };
   }
 

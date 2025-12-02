@@ -83,19 +83,25 @@ export async function updateAuditionRole(
   auditionRoleId: string,
   updates: AuditionRoleUpdate
 ): Promise<{ data: AuditionRole | null; error: any }> {
-  const { data, error } = await supabase
+  // Perform the update without SELECT to avoid RLS policy conflicts
+  const { error } = await supabase
     .from('audition_roles')
     .update(updates)
-    .eq('audition_role_id', auditionRoleId)
-    .select()
-    .single();
+    .eq('audition_role_id', auditionRoleId);
 
   if (error) {
     console.error('Error updating audition role:', error);
     return { data: null, error };
   }
 
-  return { data, error: null };
+  // Fetch the updated role separately
+  const updatedRole = await getAuditionRole(auditionRoleId);
+  
+  if (!updatedRole) {
+    return { data: null, error: new Error('Update succeeded but could not retrieve updated data') };
+  }
+
+  return { data: updatedRole, error: null };
 }
 
 /**

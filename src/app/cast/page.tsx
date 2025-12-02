@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase';
-import { getAuditionsWithDetails } from '@/lib/supabase/auditionQueries';
+import { getUserManageableAuditions } from '@/lib/supabase/auditionQueries';
 import { deleteAudition } from '@/lib/supabase/auditions';
 import StarryContainer from '@/components/StarryContainer';
 import Link from 'next/link';
@@ -71,12 +71,10 @@ function CastDashboardContent() {
 
   const loadAuditions = async (userId: string) => {
     setLoading(true);
-    const { data } = await getAuditionsWithDetails();
+    // Get auditions where user is owner or production team member
+    const { data } = await getUserManageableAuditions(userId);
     
-    // Filter to only show user's auditions
-    const userAuditions = data?.filter(audition => audition.user_id === userId) || [];
-    
-    setAuditions(userAuditions);
+    setAuditions(data || []);
     setLoading(false);
   };
 

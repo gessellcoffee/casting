@@ -124,7 +124,7 @@ export default function ReviewAndSubmit({
         }
       }
 
-      // Step 3: Create audition slots (only if provided and needed for workflow status)
+      // Step 3: Create audition slots (optional - not required)
       if (castingData.slots && castingData.slots.length > 0) {
         const slotsData = castingData.slots.map((slot: any) => ({
           audition_id: audition.audition_id,
@@ -137,7 +137,9 @@ export default function ReviewAndSubmit({
         const { error: slotsError } = await createAuditionSlots(slotsData);
 
         if (slotsError) {
-          throw new Error(`Failed to create audition slots - ${slotsError.message}`);
+          console.error('Slots creation error:', slotsError);
+          // Don't throw - slots are optional, audition was created successfully
+          console.warn('Audition created successfully but slots could not be created:', slotsError.message);
         }
       }
 

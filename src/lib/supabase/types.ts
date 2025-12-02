@@ -463,7 +463,7 @@ export interface AuditionSlot {
 
 export interface AuditionSlotInsert {
   audition_id: string;
-  date: string;
+  date?: string; // Optional - not in current database schema
   start_time: string;
   end_time: string;
   max_signups?: number;

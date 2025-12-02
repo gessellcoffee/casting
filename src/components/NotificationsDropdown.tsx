@@ -468,8 +468,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       )}
 
                       {/* Action Buttons for Casting Offers */}
-                      {notification.is_actionable && 
-                       notification.type === 'casting_offer' && 
+                      {notification.type === 'casting_offer' && 
                        !notification.action_taken && (
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-3">
                           <button

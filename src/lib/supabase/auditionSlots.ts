@@ -104,19 +104,25 @@ export async function updateAuditionSlot(
   slotId: string,
   updates: AuditionSlotUpdate
 ): Promise<{ data: AuditionSlot | null; error: any }> {
-  const { data, error } = await supabase
+  // Perform the update without SELECT to avoid RLS policy conflicts
+  const { error } = await supabase
     .from('audition_slots')
     .update(updates)
-    .eq('slot_id', slotId)
-    .select()
-    .single();
+    .eq('slot_id', slotId);
 
   if (error) {
     console.error('Error updating audition slot:', error);
     return { data: null, error };
   }
 
-  return { data, error: null };
+  // Fetch the updated slot separately
+  const updatedSlot = await getAuditionSlot(slotId);
+  
+  if (!updatedSlot) {
+    return { data: null, error: new Error('Update succeeded but could not retrieve updated data') };
+  }
+
+  return { data: updatedSlot, error: null };
 }
 
 /**

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getUser } from '@/lib/supabase';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
+import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import { updateAudition } from '@/lib/supabase/auditions';
 import { deleteAuditionSlots, createAuditionSlots } from '@/lib/supabase/auditionSlots';
 import { createAuditionRole, updateAuditionRole, deleteAuditionRole } from '@/lib/supabase/auditionRoles';
@@ -98,9 +99,12 @@ export default function EditAuditionPage() {
       return;
     }
 
-    // Check authorization
-    if (data.user_id !== userId) {
-      openModal('Unauthorized', 'You can only edit your own auditions. Redirecting to dashboard.', () => router.push('/cast'), 'OK', false);
+    // Check authorization - user must be owner or production team member
+    const isOwner = data.user_id === userId;
+    const isMember = await isUserProductionMember(params.id as string, userId);
+    
+    if (!isOwner && !isMember) {
+      openModal('Unauthorized', 'You do not have permission to edit this audition. Redirecting to dashboard.', () => router.push('/cast'), 'OK', false);
       return;
     }
 
@@ -215,15 +219,11 @@ export default function EditAuditionPage() {
         throw new Error('Failed to delete existing slots: ' + deleteError.message);
       }
 
-      // Step 4: Create new slots if any exist
+      // Step 4: Create new slots if any exist (optional - not required)
       if (slotsToSave.length > 0) {
         const slotsData = slotsToSave.map((slot: any) => {
-          // Extract date from start_time (ISO string)
-          const date = new Date(slot.start_time).toISOString().split('T')[0];
-          
           return {
             audition_id: params.id as string,
-            date: date,
             start_time: slot.start_time,
             end_time: slot.end_time,
             max_signups: slot.max_signups,
@@ -234,7 +234,8 @@ export default function EditAuditionPage() {
 
         if (slotsError) {
           console.error('Create slots error:', slotsError);
-          throw new Error('Failed to create new slots: ' + slotsError.message);
+          // Don't throw error - slots are optional, just log it
+          console.warn('Slots could not be created, but audition was saved:', slotsError.message);
         }
       }
       

@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { getAuthenticatedUser } from './auth';
+import { isUserProductionMember } from './productionTeamMembers';
 import type { Audition, AuditionInsert, AuditionUpdate, Show, Company } from './types';
 import type { PostgrestError } from '@supabase/supabase-js';
 
@@ -192,29 +193,40 @@ export async function updateAudition(
     return { data: null, error: notFoundError };
   }
 
-  // Authorization check: user can only update their own auditions
-  if (audition.user_id !== user.id) {
-    const unauthorizedError = new Error('Unauthorized: You can only update your own auditions');
+  // Authorization check: user must be owner or production team member
+  const isOwner = audition.user_id === user.id;
+  const isMember = await isUserProductionMember(auditionId, user.id);
+  
+  if (!isOwner && !isMember) {
+    const unauthorizedError = new Error('Unauthorized: You must be the audition owner or production team member to update this audition');
     console.error('Authorization failed:', { 
       authenticatedUserId: user.id, 
-      auditionUserId: audition.user_id 
+      auditionUserId: audition.user_id,
+      isOwner,
+      isMember
     });
     return { data: null, error: unauthorizedError };
   }
 
-  const { data, error } = await supabase
+  // Perform the update without SELECT to avoid RLS policy conflicts
+  const { error } = await supabase
     .from('auditions')
     .update(updates)
-    .eq('audition_id', auditionId)
-    .select()
-    .single();
+    .eq('audition_id', auditionId);
 
   if (error) {
     console.error('Error updating audition:', error);
     return { data: null, error };
   }
 
-  return { data, error: null };
+  // Fetch the updated audition separately
+  const updatedAudition = await getAudition(auditionId);
+  
+  if (!updatedAudition) {
+    return { data: null, error: new Error('Update succeeded but could not retrieve updated data') };
+  }
+
+  return { data: updatedAudition, error: null };
 }
 
 /**

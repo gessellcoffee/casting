@@ -153,6 +153,7 @@ export async function createCastingOffer(
       action_url: `/auditions/${offerData.auditionId}`,
       reference_id: offer.offer_id,
       reference_type: 'casting_offer',
+      is_actionable: true,
     };
 
     const { data: notificationResult, error: notificationError } = await createNotification(notificationData);

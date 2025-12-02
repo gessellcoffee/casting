@@ -6,6 +6,7 @@ import { getUser } from '@/lib/supabase/auth';
 import { getAudition } from '@/lib/supabase/auditions';
 import { getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents } from '@/lib/supabase/auditionSignups';
 import { getAuditionCastMembers } from '@/lib/supabase/castMembers';
+import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import StarryContainer from '@/components/StarryContainer';
 import Button from '@/components/Button';
@@ -65,11 +66,12 @@ export default function ProductionCalendarPage() {
       
       // Check if user can manage (owner or production team)
       const isOwner = auditionData.user_id === currentUser.id;
-      setCanManage(isOwner); // TODO: Also check production team membership
+      const isMember = await isUserProductionMember(auditionId, currentUser.id);
+      const canUserManage = isOwner || isMember;
       
-      if (!isOwner) {
-        // TODO: Check if user is on production team
-        // For now, redirect if not owner
+      setCanManage(canUserManage);
+      
+      if (!canUserManage) {
         router.push(`/auditions/${auditionId}`);
         return;
       }
