@@ -26,8 +26,7 @@ export async function getProductionTeamMembers(
         email,
         first_name,
         last_name,
-        email,
-        profile_photo_url,
+        profile_photo_url
       )
     `)
     .eq('audition_id', auditionId)
@@ -57,7 +56,6 @@ export async function getProductionTeamMember(
         email,
         first_name,
         last_name,
-        email,
         profile_photo_url
       )
     `)
@@ -247,7 +245,6 @@ export async function getProductionTeamInvitationsByEmail(
         email,
         first_name,
         last_name,
-        email,
         profile_photo_url
       )
     `)
