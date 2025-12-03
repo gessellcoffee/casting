@@ -455,6 +455,15 @@ export default function LiveAuditionManager({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden flex relative">
+          {/* Mobile backdrop overlay */}
+          {showMobileDetails && (
+            <div 
+              className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+              onClick={handleCloseMobileDetails}
+              aria-label="Close details"
+            />
+          )}
+          
           {/* Sidebar - Full width on mobile, fixed width on desktop */}
           <div className={`w-full lg:w-80 xl:w-96 border-r border-neu-border overflow-y-auto bg-neu-surface transition-transform duration-300 ${
             showMobileDetails ? 'hidden lg:block' : 'block'
@@ -673,21 +682,22 @@ export default function LiveAuditionManager({
           <div className={`
             fixed lg:relative inset-0 lg:inset-auto
             z-50 lg:z-auto
-            flex-1 overflow-y-auto
+            flex-1 
             bg-neu-surface lg:bg-transparent
             transition-transform duration-300 ease-out
+            flex flex-col
             ${
               showMobileDetails 
                 ? 'translate-x-0' 
                 : 'translate-x-full lg:translate-x-0'
             }
           `}>
-            {/* Mobile back button */}
+            {/* Mobile back button - Fixed at top */}
             {(selectedSignup || selectedVirtualAudition) && (
-              <div className="lg:hidden sticky top-0 z-10 bg-neu-surface border-b border-neu-border p-4 flex items-center gap-3">
+              <div className="lg:hidden sticky top-0 z-20 bg-neu-surface border-b border-neu-border p-4 flex items-center gap-3 shadow-md">
                 <button
                   onClick={handleCloseMobileDetails}
-                  className="neu-icon-btn-sm neu-button-primary"
+                  className="neu-icon-btn-sm neu-button-primary shrink-0"
                   aria-label="Back to list"
                 >
                   <MdArrowBack className="w-5 h-5" />
@@ -695,7 +705,9 @@ export default function LiveAuditionManager({
                 <h2 className="text-lg font-semibold text-neu-text-primary">Details</h2>
               </div>
             )}
-
+            
+            {/* Scrollable content area */}
+            <div className="flex-1 overflow-y-auto">
             {selectedVirtualAudition ? (
               <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Actor Info */}
@@ -1006,6 +1018,7 @@ export default function LiveAuditionManager({
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
