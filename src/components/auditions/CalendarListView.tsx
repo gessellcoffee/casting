@@ -336,7 +336,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className={`text-base sm:text-lg font-semibold mb-1 flex items-center gap-2 truncate ${
+                              <h4 className={`text-lg sm:text-xl font-semibold mb-1 flex items-start gap-2 break-words overflow-wrap-anywhere ${
                                 isCallback ? 'text-purple-400 dark:text-purple-300' : 
                                 isPersonal ? 'text-green-500 dark:text-green-400' : 
                                 isProduction ? (
@@ -355,15 +355,15 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                 {isProduction && event.type === 'audition_slot' && <span className="flex-shrink-0">📋</span>}
                                 {isProduction && event.type === 'rehearsal_event' && <span className="flex-shrink-0">🎬</span>}
                                 {isProduction && event.type === 'agenda_item' && <span className="flex-shrink-0">🎬</span>}
-                                <span className="truncate">{showTitle}</span>
+                                <span className="break-words overflow-wrap-anywhere">{showTitle}</span>
                               </h4>
                               {showAuthor && (
-                                <p className="text-xs sm:text-sm text-neu-text-primary/60 truncate">
+                                <p className="text-xs sm:text-sm text-neu-text-primary/60 break-words overflow-wrap-anywhere">
                                   by {showAuthor}
                                 </p>
                               )}
                               {roleName && (
-                                <p className="text-xs sm:text-sm text-neu-accent-primary font-medium mt-1 truncate">
+                                <p className="text-xs sm:text-sm text-neu-accent-primary font-medium mt-1 break-words overflow-wrap-anywhere">
                                   Role: {roleName}
                                 </p>
                               )}
@@ -403,9 +403,9 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                               {formatUSTime(startTime)} - {formatUSTime(endTime)} ({duration} min)
                             </div>
                             {location && (
-                              <div className="flex items-center gap-1 truncate">
-                                <MdLocationOn className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                                <span className="truncate">{location}</span>
+                              <div className="flex items-start gap-1 break-words overflow-wrap-anywhere">
+                                <MdLocationOn className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 mt-0.5" />
+                                <span className="break-words overflow-wrap-anywhere">{location}</span>
                               </div>
                             )}
                           </div>

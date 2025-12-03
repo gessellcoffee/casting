@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MdChevronLeft, MdChevronRight, MdCalendarToday, MdList } from 'react-icons/md';
 import CalendarMonthView from './CalendarMonthView';
 import CalendarWeekView from './CalendarWeekView';
@@ -31,8 +31,31 @@ export default function AuditionCalendar({
   hasProductionTeamAuditions = false,
   onFilteredEventsChange
 }: AuditionCalendarProps) {
+  // Start with safe defaults - will be updated after mount
+  const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Handle responsive view mode - runs only on client after mount
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+
+    // Initial check and set default view for mobile
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+    if (mobile && !isInitialized) {
+      setViewMode('list');
+    }
+    setIsInitialized(true);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isInitialized]);
+
   const [showCallbacks, setShowCallbacks] = useState(true);
   
   // Event type filters
@@ -83,7 +106,7 @@ export default function AuditionCalendar({
   );
   
   const filteredProductionEvents = useMemo(() => {
-    const filtered = productionEvents.filter(evt => {
+    return productionEvents.filter(evt => {
       if (evt.type === 'rehearsal' && !eventFilters.rehearsalDates) return false;
       if (evt.type === 'performance' && !eventFilters.performanceDates) return false;
       if (evt.type === 'audition_slot' && !eventFilters.auditionSlots) return false;
@@ -91,14 +114,14 @@ export default function AuditionCalendar({
       if (evt.type === 'agenda_item' && !eventFilters.rehearsalEvents) return false; // Use same filter as rehearsal_event
       return true;
     });
-    
-    // Notify parent of filtered events change
+  }, [productionEvents, eventFilters]);
+
+  // Notify parent of filtered events change (after render)
+  useEffect(() => {
     if (onFilteredEventsChange) {
-      onFilteredEventsChange(filtered);
+      onFilteredEventsChange(filteredProductionEvents);
     }
-    
-    return filtered;
-  }, [productionEvents, eventFilters, onFilteredEventsChange]);
+  }, [filteredProductionEvents, onFilteredEventsChange]);
 
   // Navigate to previous period
   const handlePrevious = () => {

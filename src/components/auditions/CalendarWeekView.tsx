@@ -157,6 +157,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                     ? 'bg-[#5a8ff5]/10 border-neu-border-focus ring-2 ring-[#5a8ff5]/30'
                     : 'bg-neu-surface/30 border-neu-border'
                 }`}
+                style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
               >
               {/* Day header */}
               <div className="text-center mb-3 pb-2 border-b border-neu-border">
@@ -210,16 +211,16 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                             minute: '2-digit',
                           })}
                         </div>
-                        <div className="text-sm font-medium text-neu-text-primary truncate">
+                        <div className="text-sm font-medium text-neu-text-primary break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           {showTitle}
                         </div>
                         {roleName && (
-                          <div className="text-xs text-neu-text-primary/70 truncate">
+                          <div className="text-xs text-neu-text-primary/70 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             {roleName}
                           </div>
                         )}
                         {signup.audition_slots.location && (
-                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/60 break-words mt-1 flex items-start gap-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             📍 {signup.audition_slots.location}
                           </div>
                         )}
@@ -241,11 +242,11 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                           {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           {endTime ? ` - ${endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
                         </div>
-                        <div className="text-sm font-medium text-neu-text-primary truncate">
+                        <div className="text-sm font-medium text-neu-text-primary break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           {evt.title}
                         </div>
                         {evt.location && (
-                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/60 break-words mt-1 flex items-start gap-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             📍 {evt.location}
                           </div>
                         )}
@@ -267,17 +268,17 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                         <div className={`text-xs font-semibold mb-1 ${evt.type === 'rehearsal' ? 'text-orange-400' : 'text-blue-400'}`}>
                           {evt.type === 'rehearsal' ? 'Rehearsal' : 'Performance'}
                         </div>
-                        <div className="text-sm font-medium text-neu-text-primary truncate flex items-center gap-1">
+                        <div className="text-sm font-medium text-neu-text-primary break-words flex items-start gap-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           <span>{evt.type === 'rehearsal' ? '🎭' : '🎪'}</span>
-                          <span className="truncate">{evt.show.title}</span>
+                          <span className="break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{evt.show.title}</span>
                         </div>
                         {evt.role && (
-                          <div className="text-xs text-neu-text-primary/70 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/70 break-words mt-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             {evt.role}
                           </div>
                         )}
                         {evt.location && (
-                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/60 break-words mt-1 flex items-start gap-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             📍 {evt.location}
                           </div>
                         )}
@@ -306,12 +307,12 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                             minute: '2-digit',
                           })}
                         </div>
-                        <div className="text-sm font-medium text-neu-text-primary truncate flex items-center gap-1">
+                        <div className="text-sm font-medium text-neu-text-primary break-words flex items-start gap-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           <span>📋</span>
                           {showTitle}
                         </div>
                         {callback.callback_slots.location && (
-                          <div className="text-xs text-neu-text-primary/60 truncate mt-1">
+                          <div className="text-xs text-neu-text-primary/60 break-words mt-1 flex items-start gap-1" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             📍 {callback.callback_slots.location}
                           </div>
                         )}
