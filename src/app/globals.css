@@ -2057,3 +2057,40 @@ select.neu-input {
     white-space: normal;
   }
 }
+
+/* ===== MOBILE TOUCH INTERACTIONS ===== */
+/* Active scale effect for mobile touch feedback */
+.active\:scale-98:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+/* Smooth slide-in animation for mobile panels */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Prevent scroll on body when mobile panel is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  body.modal-open {
+    overflow: auto;
+  }
+}

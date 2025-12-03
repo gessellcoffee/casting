@@ -75,6 +75,7 @@ export default function LiveAuditionManager({
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
+  const [showMobileDetails, setShowMobileDetails] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sort slots by start time
@@ -381,22 +382,39 @@ export default function LiveAuditionManager({
 
   const slotsByDate = groupSlotsByDate();
 
+  // Handle selection with mobile support
+  const handleSelectSignup = (signup: SignupWithDetails) => {
+    setSelectedSignup(signup);
+    setSelectedVirtualAudition(null);
+    setShowMobileDetails(true);
+  };
+
+  const handleSelectVirtualAudition = (va: VirtualAuditionWithDetails) => {
+    setSelectedVirtualAudition(va);
+    setSelectedSignup(null);
+    setShowMobileDetails(true);
+  };
+
+  const handleCloseMobileDetails = () => {
+    setShowMobileDetails(false);
+  };
+
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <div className="h-screen flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-neu-border flex items-center justify-between bg-neu-surface shadow-sm">
-          <div className="flex items-center gap-4">
+        <div className="p-4 sm:p-6 border-b border-neu-border flex items-center justify-between bg-neu-surface shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
             <button
               onClick={onClose}
-              className="neu-icon-btn-sm neu-button-primary "
+              className="neu-icon-btn-sm neu-button-primary shrink-0"
               aria-label="Back to Audition"
             >
               <MdArrowBack className="w-5 h-5" />
             </button>
-            <div>
-              <h1 className="text-2xl font-semibold text-neu-text-primary">Live Audition Manager</h1>
-              <p className="text-sm text-neu-text-primary/70 mt-1">{auditionTitle}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-semibold text-neu-text-primary truncate">Live Audition Manager</h1>
+              <p className="text-xs sm:text-sm text-neu-text-primary/70 mt-1 truncate">{auditionTitle}</p>
             </div>
           </div>
         </div>
@@ -404,33 +422,45 @@ export default function LiveAuditionManager({
         {/* Tabs */}
         <div className="border-b border-neu-border bg-neu-surface flex">
           <button
-            onClick={() => setViewMode('slots')}
-            className={`px-6 py-3 font-medium transition-all ${
+            onClick={() => {
+              setViewMode('slots');
+              setShowMobileDetails(false);
+            }}
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-3 font-medium transition-all text-sm sm:text-base ${
               viewMode === 'slots'
                 ? 'text-neu-accent-primary border-b-2 border-neu-accent-primary'
                 : 'text-neu-text-secondary hover:text-neu-text-primary'
             }`}
           >
-            Slot Signups ({signups.length})
+            <span className="hidden sm:inline">Slot Signups</span>
+            <span className="sm:hidden">Slots</span>
+            <span className="ml-1">({signups.length})</span>
           </button>
           <button
-            onClick={() => setViewMode('virtual')}
-            className={`px-6 py-3 font-medium transition-all ${
+            onClick={() => {
+              setViewMode('virtual');
+              setShowMobileDetails(false);
+            }}
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-3 font-medium transition-all text-sm sm:text-base ${
               viewMode === 'virtual'
                 ? 'text-neu-accent-primary border-b-2 border-neu-accent-primary'
                 : 'text-neu-text-secondary hover:text-neu-text-primary'
             }`}
           >
-            Virtual Auditions ({virtualAuditions.length})
+            <span className="hidden sm:inline">Virtual Auditions</span>
+            <span className="sm:hidden">Virtual</span>
+            <span className="ml-1">({virtualAuditions.length})</span>
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden flex">
-          {/* Sidebar */}
-          <div className="w-80 border-r border-neu-border overflow-y-auto">
-            <div className="p-4">
-              <h3 className="text-sm font-semibold text-neu-text-primary/70 uppercase mb-3">
+        <div className="flex-1 overflow-hidden flex relative">
+          {/* Sidebar - Full width on mobile, fixed width on desktop */}
+          <div className={`w-full lg:w-80 xl:w-96 border-r border-neu-border overflow-y-auto bg-neu-surface transition-transform duration-300 ${
+            showMobileDetails ? 'hidden lg:block' : 'block'
+          }`}>
+            <div className="p-3 sm:p-4">
+              <h3 className="text-xs sm:text-sm font-semibold text-neu-text-primary/70 uppercase mb-3">
                 {viewMode === 'slots' ? 'Audition Slots' : 'Virtual Submissions'}
               </h3>
 
@@ -453,14 +483,11 @@ export default function LiveAuditionManager({
                       return (
                         <button
                           key={va.virtual_audition_id}
-                          onClick={() => {
-                            setSelectedVirtualAudition(va);
-                            setSelectedSignup(null);
-                          }}
-                          className={`w-full p-3 rounded-lg text-left transition-all ${
+                          onClick={() => handleSelectVirtualAudition(va)}
+                          className={`w-full p-4 sm:p-3 rounded-lg text-left transition-all active:scale-98 ${
                             isSelected
                               ? 'bg-neu-accent-primary/20 border-2 border-neu-accent-primary shadow-md'
-                              : 'neu-card-inset border border-neu-border hover:border-neu-accent-primary/50'
+                              : 'neu-card-inset border border-neu-border hover:border-neu-accent-primary/50 active:bg-neu-accent-primary/10'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -514,7 +541,7 @@ export default function LiveAuditionManager({
                         {/* Date Header */}
                         <button
                           onClick={() => toggleDateCollapse(dateKey)}
-                          className="w-full flex items-center justify-between p-3 rounded-lg neu-card-raised border border-neu-border hover:border-neu-accent-primary transition-all"
+                          className="w-full flex items-center justify-between p-4 sm:p-3 rounded-lg neu-card-raised border border-neu-border hover:border-neu-accent-primary transition-all active:scale-98"
                         >
                           <div className="flex items-center gap-2">
                             {isCollapsed ? (
@@ -522,7 +549,7 @@ export default function LiveAuditionManager({
                             ) : (
                               <MdExpandMore className="w-5 h-5 text-neu-text-primary" />
                             )}
-                            <span className="font-semibold text-neu-text-primary">
+                            <span className="text-sm sm:text-base font-semibold text-neu-text-primary">
                               {formattedDate}
                             </span>
                           </div>
@@ -533,7 +560,7 @@ export default function LiveAuditionManager({
 
                         {/* Slots for this date */}
                         {!isCollapsed && (
-                          <div className="space-y-4 pl-2">
+                          <div className="space-y-3 sm:space-y-4 pl-1 sm:pl-2">
                             {dateSlots.map((slot) => {
                     const slotSignups = getSignupsForSlot(slot.slot_id);
                     const isActive = activeSlotId === slot.slot_id;
@@ -545,7 +572,7 @@ export default function LiveAuditionManager({
                     return (
                       <div key={slot.slot_id} className="space-y-2">
                         {/* Slot Time Header */}
-                        <div className={`p-3 rounded-lg ${
+                        <div className={`p-3 sm:p-3 rounded-lg ${
                           isActive 
                             ? 'bg-green-500/20 border-2 border-green-500'
                             : isPast
@@ -584,7 +611,7 @@ export default function LiveAuditionManager({
 
                         {/* All Signups for this slot */}
                         {slotSignups.length > 0 ? (
-                          <div className="space-y-2 pl-3">
+                          <div className="space-y-2 pl-2 sm:pl-3">
                             {slotSignups.map((signup) => {
                               const userName = signup.profiles.first_name && signup.profiles.last_name
                                 ? `${signup.profiles.first_name} ${signup.profiles.last_name}`
@@ -596,11 +623,11 @@ export default function LiveAuditionManager({
                               return (
                                 <button
                                   key={signup.signup_id}
-                                  onClick={() => setSelectedSignup(signup)}
-                                  className={`w-full text-left p-3 rounded-lg transition-all flex items-center gap-3 ${
+                                  onClick={() => handleSelectSignup(signup)}
+                                  className={`w-full text-left p-4 sm:p-3 rounded-lg transition-all flex items-center gap-3 active:scale-98 ${
                                     isSelected
                                       ? 'bg-neu-accent-primary/20 border-2 border-neu-accent-primary'
-                                      : 'neu-card-raised border border-neu-border hover:border-neu-accent-primary'
+                                      : 'neu-card-raised border border-neu-border hover:border-neu-accent-primary active:bg-neu-accent-primary/10'
                                   }`}
                                 >
                                   <Avatar
@@ -642,10 +669,35 @@ export default function LiveAuditionManager({
             </div>
           </div>
 
-          {/* Details Panel */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Details Panel - Slide in on mobile, always visible on desktop */}
+          <div className={`
+            fixed lg:relative inset-0 lg:inset-auto
+            z-50 lg:z-auto
+            flex-1 overflow-y-auto
+            bg-neu-surface lg:bg-transparent
+            transition-transform duration-300 ease-out
+            ${
+              showMobileDetails 
+                ? 'translate-x-0' 
+                : 'translate-x-full lg:translate-x-0'
+            }
+          `}>
+            {/* Mobile back button */}
+            {(selectedSignup || selectedVirtualAudition) && (
+              <div className="lg:hidden sticky top-0 z-10 bg-neu-surface border-b border-neu-border p-4 flex items-center gap-3">
+                <button
+                  onClick={handleCloseMobileDetails}
+                  className="neu-icon-btn-sm neu-button-primary"
+                  aria-label="Back to list"
+                >
+                  <MdArrowBack className="w-5 h-5" />
+                </button>
+                <h2 className="text-lg font-semibold text-neu-text-primary">Details</h2>
+              </div>
+            )}
+
             {selectedVirtualAudition ? (
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Actor Info */}
                 <div className="neu-card-raised p-4">
                   <div className="flex items-center gap-4">
@@ -724,7 +776,7 @@ export default function LiveAuditionManager({
                 </div>
               </div>
             ) : selectedSignup ? (
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Actor Info */}
                 <div className="neu-card-raised p-4">
                   <div className="flex items-center gap-4">
@@ -895,7 +947,7 @@ export default function LiveAuditionManager({
                   />
 
                   {selectedSignup.media_files && selectedSignup.media_files.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {selectedSignup.media_files.map((media, index) => (
                         <div key={index} className="neu-card-inset rounded-lg overflow-hidden relative group">
                           {media.type === 'image' ? (
@@ -938,17 +990,17 @@ export default function LiveAuditionManager({
                 </div>
               </div>
             ) : (
-              <div className="h-full flex items-center justify-center text-neu-text-primary/50">
-                <div className="text-center">
+              <div className="h-full flex items-center justify-center text-neu-text-primary/50 p-4">
+                <div className="text-center max-w-sm">
                   {viewMode === 'virtual' ? (
                     <>
-                      <MdVideocam className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>Select a virtual audition submission to view videos and details</p>
+                      <MdVideocam className="w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-sm sm:text-base">Select a virtual audition submission to view videos and details</p>
                     </>
                   ) : (
                     <>
-                      <MdPerson className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>Select an auditionee to view and manage their information</p>
+                      <MdPerson className="w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-sm sm:text-base">Select an auditionee to view and manage their information</p>
                     </>
                   )}
                 </div>

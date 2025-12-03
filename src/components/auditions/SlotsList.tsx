@@ -110,6 +110,11 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
 
   const handleSignup = async (slotId: string, slot?: any) => {
     if (!user) {
+      // Check if slot is full before opening modal
+      if (slot && (slot.current_signups || 0) >= slot.max_signups) {
+        setError('This slot is full. Please choose a different time slot.');
+        return;
+      }
       // Open signup modal instead of redirecting to login
       setSelectedSlot(slot);
       setShowSignupModal(true);

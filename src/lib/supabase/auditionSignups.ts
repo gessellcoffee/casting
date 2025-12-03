@@ -236,13 +236,30 @@ export async function createAuditionSignup(
   // Get the audition_id and time information for this slot
   const { data: slotData, error: slotError } = await supabase
     .from('audition_slots')
-    .select('audition_id, start_time, end_time')
+    .select('audition_id, start_time, end_time, max_signups')
     .eq('slot_id', signupData.slot_id)
     .single();
 
   if (slotError || !slotData) {
     console.error('Error fetching slot data:', slotError);
     return { data: null, error: slotError || new Error('Slot not found') };
+  }
+
+  // Check if slot is full
+  const { count: currentSignups, error: countError } = await supabase
+    .from('audition_signups')
+    .select('*', { count: 'exact', head: true })
+    .eq('slot_id', signupData.slot_id);
+
+  if (countError) {
+    console.error('Error checking slot capacity:', countError);
+    return { data: null, error: countError };
+  }
+
+  const maxSignups = slotData.max_signups ?? 1;
+  if ((currentSignups ?? 0) >= maxSignups) {
+    const error = new Error('This slot is full. Please choose a different time slot.');
+    return { data: null, error };
   }
 
   // Check if user already has a signup for this audition
