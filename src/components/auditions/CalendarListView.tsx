@@ -13,6 +13,11 @@ import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { formatUSMonthYear, formatUSMonthShort, formatUSTime } from '@/lib/utils/dateUtils';
 
+// Generate Google Maps link from address
+const getGoogleMapsLink = (address: string): string => {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+};
+
 interface CalendarListViewProps {
   signups: any[];
   callbacks?: any[];
@@ -405,7 +410,15 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                             {location && (
                               <div className="flex items-start gap-1 break-words overflow-wrap-anywhere">
                                 <MdLocationOn className="w-3 h-3 sm:w-4 sm:h-4 shrink-0 mt-0.5" />
-                                <span className="break-words overflow-wrap-anywhere">{location}</span>
+                                <a
+                                  href={getGoogleMapsLink(location)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="break-words overflow-wrap-anywhere text-neu-accent-primary hover:text-neu-accent-secondary underline decoration-dotted underline-offset-2 transition-colors"
+                                >
+                                  {location}
+                                </a>
                               </div>
                             )}
                           </div>

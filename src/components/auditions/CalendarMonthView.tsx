@@ -16,6 +16,7 @@ import { Fragment } from 'react';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import type { EventTypeFilter } from './CalendarLegend';
+import RehearsalEventModal from './RehearsalEventModal';
 
 
 interface CalendarMonthViewProps {
@@ -38,6 +39,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
   const [showDayView, setShowDayView] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<any>({ date: null, signups: [], callbacks: [], personal: [], production: [] });
+  const [selectedRehearsalEvent, setSelectedRehearsalEvent] = useState<ProductionDateEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Detect mobile for vertical scrolling layout - runs only on client
@@ -102,37 +104,19 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     return [...emptyStartCells, ...currentMonthDays, ...emptyEndCells];
   };
 
-  // For vertical scrolling: generate 3 months (previous, current, next)
+  // For mobile: generate only the current month
   const monthsToDisplay = useMemo(() => {
     if (!isMobile) return [];
     
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
-    const prevMonth = month === 0 ? 11 : month - 1;
-    const prevYear = month === 0 ? year - 1 : year;
-    
-    const nextMonth = month === 11 ? 0 : month + 1;
-    const nextYear = month === 11 ? year + 1 : year;
-    
     return [
-      {
-        year: prevYear,
-        month: prevMonth,
-        days: generateMonthGrid(prevYear, prevMonth),
-        title: new Date(prevYear, prevMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-      },
       {
         year,
         month,
         days: generateMonthGrid(year, month),
         title: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-      },
-      {
-        year: nextYear,
-        month: nextMonth,
-        days: generateMonthGrid(nextYear, nextMonth),
-        title: new Date(nextYear, nextMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
       }
     ];
   }, [currentDate, isMobile]);
@@ -301,7 +285,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     return (
       <div
         key={`${monthYear}-${day.fullDate.getTime()}`}
-        className={`min-h-[70px] md:min-h-[100px] p-2 rounded-lg border transition-all duration-200 cursor-pointer hover:bg-neu-surface/50 bg-neu-surface/30 border-neu-border ${
+        className={`min-h-[70px] md:min-h-[100px] p-2 rounded-lg border transition-all duration-200 cursor-pointer hover:bg-neu-surface/50 active:bg-neu-surface/60 bg-neu-surface/30 border-neu-border touch-manipulation ${
           today ? 'ring-2 ring-[#5a8ff5] bg-[#5a8ff5]/10' : ''
         }`}
         onClick={() => {
@@ -380,14 +364,11 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
 
   return (
     <>
-      {/* Mobile: Vertical Scrolling Multi-Month View */}
+      {/* Mobile: Single Month View */}
       {isMobile ? (
-        <div className="space-y-8">
+        <div>
           {monthsToDisplay.map((monthData) => (
             <div key={`${monthData.year}-${monthData.month}`}>
-              <h3 className="text-lg font-semibold text-neu-text-primary mb-3 px-2">
-                {monthData.title}
-              </h3>
               <div className="grid grid-cols-7 gap-2">
                 {/* Day headers */}
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
@@ -495,10 +476,10 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           setSelectedDate(new Date());
           setShowPersonalEventsModal(true);
         }}
-        className="md:hidden fixed bottom-20 right-4 w-14 h-14 rounded-full bg-neu-accent-primary text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50"
+        className="md:hidden fixed bottom-20 right-4 w-14 h-14 rounded-full bg-neu-accent-primary text-white shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50 touch-manipulation"
         aria-label="Add event"
       >
-        <MdAdd className="w-6 h-6" />
+        <MdAdd className="w-7 h-7" />
       </button>
 
       {/* Day View Modal - Shows all events for selected day */}
@@ -644,6 +625,8 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
               {/* Production Events */}
               {selectedDayEvents.production.map((evt: any) => {
                 let bgColor, borderColor, textColor, icon, label;
+                const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
+                
                 if (evt.type === 'rehearsal') {
                   bgColor = 'bg-orange-500/20';
                   borderColor = 'border-orange-500/50';
@@ -662,17 +645,25 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                   textColor = 'text-[#0d9488] dark:text-[#2dd4bf]';
                   icon = '📋';
                   label = 'Audition Slot';
-                } else if (evt.type === 'rehearsal_event' || evt.type === 'agenda_item') {
+                } else if (isRehearsalEvent) {
                   bgColor = 'bg-amber-500/20';
                   borderColor = 'border-amber-500/50';
                   textColor = 'text-[#d97706] dark:text-[#fbbf24]';
                   icon = '🎬';
                   label = 'Rehearsal Event';
                 }
+
+                const Component = isRehearsalEvent ? 'button' : 'div';
+                
                 return (
-                  <div
+                  <Component
                     key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                    className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor}`}
+                    className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor} ${isRehearsalEvent ? 'hover:bg-amber-500/30 active:bg-amber-500/40 transition-colors cursor-pointer touch-manipulation' : ''}`}
+                    onClick={isRehearsalEvent ? (e: any) => {
+                      e.stopPropagation();
+                      setSelectedRehearsalEvent(evt);
+                      setShowDayView(false);
+                    } : undefined}
                   >
                     <div className="flex items-start gap-3">
                       <div className="text-2xl">{icon}</div>
@@ -687,7 +678,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                         {evt.role && <div className="text-sm text-neu-text-primary/70 mt-1">Role: {evt.role}</div>}
                       </div>
                     </div>
-                  </div>
+                  </Component>
                 );
               })}
 
@@ -720,6 +711,22 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           </div>
         </Dialog>
       </Transition>
+
+      {/* Rehearsal Event Modal */}
+      {selectedRehearsalEvent && (
+        <RehearsalEventModal
+          event={{
+            title: selectedRehearsalEvent.show.title,
+            date: selectedRehearsalEvent.date,
+            startTime: selectedRehearsalEvent.startTime,
+            endTime: selectedRehearsalEvent.endTime,
+            location: selectedRehearsalEvent.location || undefined,
+            notes: (selectedRehearsalEvent as any).notes,
+            agendaItems: (selectedRehearsalEvent as any).agendaItems,
+          }}
+          onClose={() => setSelectedRehearsalEvent(null)}
+        />
+      )}
       
     </>
   );

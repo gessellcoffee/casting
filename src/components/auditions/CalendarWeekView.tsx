@@ -11,6 +11,7 @@ import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import RehearsalEventModal from './RehearsalEventModal';
 
 interface CalendarWeekViewProps {
   signups: any[];
@@ -27,6 +28,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
   const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [selectedRehearsalEvent, setSelectedRehearsalEvent] = useState<ProductionDateEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Generate week days
@@ -181,30 +183,30 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
 
   return (
     <>
-      <div className="overflow-x-auto -mx-6 px-6">
+      <div className="-mx-6 px-6 pb-4">
         {/* Week day headers - sticky */}
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] gap-0 min-w-[900px] sticky top-0 z-20 border-b-2 border-neu-border shadow-sm" style={{ background: 'var(--neu-bg-base)' }}>
-          <div className="h-20 border-r border-neu-border"></div>
+        <div className="grid grid-cols-[50px_repeat(7,1fr)] md:grid-cols-[60px_repeat(7,1fr)] gap-0 sticky top-0 z-20 border-b-2 border-neu-border shadow-sm" style={{ background: 'var(--neu-bg-base)' }}>
+          <div className="h-16 md:h-20 border-r border-neu-border"></div>
           {weekDays.map((date, index) => {
             const today = isToday(date);
             return (
               <div
                 key={index}
-                className={`text-center py-3 border-r border-neu-border ${
+                className={`text-center py-2 md:py-3 border-r border-neu-border ${
                   today ? 'bg-[#5a8ff5]/10' : ''
                 }`}
               >
-                <div className="text-xs uppercase tracking-wide text-neu-text-primary/60 font-semibold mb-1">
+                <div className="text-[10px] md:text-xs uppercase tracking-wide text-neu-text-primary/60 font-semibold mb-0.5 md:mb-1">
                   {date.toLocaleDateString('en-US', { weekday: 'short' })}
                 </div>
                 <div
-                  className={`text-2xl font-bold ${
+                  className={`text-xl md:text-2xl font-bold ${
                     today ? 'text-neu-accent-primary' : 'text-neu-text-primary'
                   }`}
                 >
                   {date.getDate()}
                 </div>
-                <div className="text-xs text-neu-text-primary/50">
+                <div className="text-[10px] md:text-xs text-neu-text-primary/50">
                   {date.toLocaleDateString('en-US', { month: 'short' })}
                 </div>
               </div>
@@ -213,16 +215,16 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
         </div>
 
         {/* Time grid */}
-        <div className="relative grid grid-cols-[60px_repeat(7,1fr)] gap-0 min-w-[900px]">
+        <div className="relative grid grid-cols-[50px_repeat(7,1fr)] md:grid-cols-[60px_repeat(7,1fr)] gap-0">
           {/* Time labels column */}
           <div className="relative border-r border-neu-border">
             {hours.map((hour, hourIndex) => (
               <div
                 key={hour}
-                className="text-[11px] text-neu-text-primary/60 text-right pr-2 relative"
+                className="text-[10px] md:text-[11px] text-neu-text-primary/60 text-right pr-1 md:pr-2 relative"
                 style={{ height: `${HOUR_HEIGHT}px` }}
               >
-                <span className="absolute top-0 right-2 -translate-y-2">
+                <span className="absolute top-0 right-1 md:right-2 -translate-y-2">
                   {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : hour === 0 ? '12 AM' : `${hour} AM`}
                 </span>
               </div>
@@ -255,14 +257,14 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                       setSelectedDate(eventDate);
                       setShowPersonalEventsModal(true);
                     }}
-                    className="absolute w-full border-t border-neu-border hover:bg-neu-accent-primary/5 transition-colors cursor-pointer group"
+                    className="absolute w-full border-t border-neu-border hover:bg-neu-accent-primary/5 active:bg-neu-accent-primary/10 transition-colors cursor-pointer group touch-manipulation"
                     style={{
                       top: `${hourIndex * HOUR_HEIGHT}px`,
                       height: `${HOUR_HEIGHT}px`
                     }}
                     aria-label={`Add event at ${hour > 12 ? hour - 12 : hour} ${hour >= 12 ? 'PM' : 'AM'}`}
                   >
-                    <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-xs text-neu-accent-primary font-medium transition-opacity">
+                    <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-active:opacity-100 text-xs md:text-sm text-neu-accent-primary font-medium transition-opacity">
                       +
                     </span>
                   </button>
@@ -288,23 +290,23 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                         e.stopPropagation();
                         setSelectedEvent(signup);
                       }}
-                      className="absolute left-1 right-1 text-left px-2 py-1.5 rounded-md bg-[#5a8ff5] backdrop-blur-sm border border-[#5a8ff5] hover:shadow-lg transition-all duration-200 z-20 overflow-hidden"
+                      className="absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md bg-[#5a8ff5] backdrop-blur-sm border border-[#5a8ff5] hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation"
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
                       }}
                     >
-                      <div className="text-[10px] font-bold text-white/90 mb-0.5 truncate">
+                      <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
                         })}
                       </div>
-                      <div className="text-xs font-semibold text-white truncate leading-tight">
+                      <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         {showTitle}
                       </div>
                       {roleName && height > 50 && (
-                        <div className="text-[10px] text-white/75 truncate mt-0.5">
+                        <div className="text-[9px] md:text-[10px] text-white/75 truncate mt-0.5">
                           {roleName}
                         </div>
                       )}
@@ -330,16 +332,16 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                         e.stopPropagation();
                         setSelectedPersonalEvent(evt);
                       }}
-                      className="absolute left-1 right-1 text-left px-2 py-1.5 rounded-md bg-green-600 backdrop-blur-sm border border-green-600 hover:shadow-lg transition-all duration-200 z-20 overflow-hidden"
+                      className="absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md bg-green-600 backdrop-blur-sm border border-green-600 hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation"
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
                       }}
                     >
-                      <div className="text-[10px] font-bold text-white/90 mb-0.5 truncate">
+                      <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
                         {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                       </div>
-                      <div className="text-xs font-semibold text-white truncate leading-tight">
+                      <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         {evt.title}
                       </div>
                     </button>
@@ -365,16 +367,16 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                         e.stopPropagation();
                         setSelectedEvent({ ...callback, isCallback: true });
                       }}
-                      className="absolute left-1 right-1 text-left px-2 py-1.5 rounded-md bg-purple-600 backdrop-blur-sm border border-purple-600 hover:shadow-lg transition-all duration-200 z-20 overflow-hidden"
+                      className="absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md bg-purple-600 backdrop-blur-sm border border-purple-600 hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation"
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
                       }}
                     >
-                      <div className="text-[10px] font-bold text-white/90 mb-0.5 truncate">
+                      <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
                         {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                       </div>
-                      <div className="text-xs font-semibold text-white truncate leading-tight">
+                      <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         📋 {showTitle}
                       </div>
                     </button>
@@ -390,6 +392,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   const endTime = evt.endTime!;
                   const top = getEventPosition(startTime);
                   const height = getEventHeight(startTime, endTime);
+                  const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
 
                   let bgColor, borderColor;
                   if (evt.type === 'rehearsal') {
@@ -401,7 +404,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   } else if (evt.type === 'audition_slot') {
                     bgColor = 'bg-teal-600';
                     borderColor = 'border-teal-600';
-                  } else if (evt.type === 'rehearsal_event' || evt.type === 'agenda_item') {
+                  } else if (isRehearsalEvent) {
                     bgColor = 'bg-amber-600';
                     borderColor = 'border-amber-600';
                   } else {
@@ -412,30 +415,36 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   const label = evt.type === 'rehearsal' ? 'Rehearsal' :
                                evt.type === 'performance' ? 'Performance' :
                                evt.type === 'audition_slot' ? 'Audition Slot' :
-                               evt.type === 'rehearsal_event' || evt.type === 'agenda_item' ? 'Rehearsal Event' :
+                               isRehearsalEvent ? 'Rehearsal Event' :
                                'Event';
 
+                  const Component = isRehearsalEvent ? 'button' : 'div';
+
                   return (
-                    <div
+                    <Component
                       key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                      className={`absolute left-1 right-1 text-left px-2 py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg transition-all duration-200 z-20 overflow-hidden cursor-default ${bgColor} ${borderColor}`}
+                      className={`absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation ${bgColor} ${borderColor} ${isRehearsalEvent ? 'cursor-pointer' : 'cursor-default'}`}
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
                       }}
+                      onClick={isRehearsalEvent ? (e: any) => {
+                        e.stopPropagation();
+                        setSelectedRehearsalEvent(evt);
+                      } : undefined}
                     >
-                      <div className="text-[10px] font-bold text-white/90 mb-0.5 truncate">
+                      <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
                         {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                       </div>
-                      <div className="text-xs font-semibold text-white truncate leading-tight">
+                      <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         {evt.show.title}
                       </div>
                       {height > 45 && (
-                        <div className="text-[10px] text-white/75 truncate mt-0.5">
+                        <div className="text-[9px] md:text-[10px] text-white/75 truncate mt-0.5">
                           {label}
                         </div>
                       )}
-                    </div>
+                    </Component>
                   );
                 })}
 
@@ -516,11 +525,27 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
           setSelectedDate(new Date());
           setShowPersonalEventsModal(true);
         }}
-        className="md:hidden fixed bottom-20 right-4 w-14 h-14 rounded-full bg-neu-accent-primary text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50"
+        className="md:hidden fixed bottom-20 right-4 w-14 h-14 rounded-full bg-neu-accent-primary text-white shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50 touch-manipulation"
         aria-label="Add event"
       >
-        <MdAdd className="w-6 h-6" />
+        <MdAdd className="w-7 h-7" />
       </button>
+
+      {/* Rehearsal Event Modal */}
+      {selectedRehearsalEvent && (
+        <RehearsalEventModal
+          event={{
+            title: selectedRehearsalEvent.show.title,
+            date: selectedRehearsalEvent.date,
+            startTime: selectedRehearsalEvent.startTime,
+            endTime: selectedRehearsalEvent.endTime,
+            location: selectedRehearsalEvent.location || undefined,
+            notes: (selectedRehearsalEvent as any).notes,
+            agendaItems: (selectedRehearsalEvent as any).agendaItems,
+          }}
+          onClose={() => setSelectedRehearsalEvent(null)}
+        />
+      )}
     </>
   );
 }
