@@ -73,8 +73,9 @@ export function generateProductionEvents(
 
     if (userRole === 'cast') {
       // From getUserCastShows - nested in audition_slots
-      audition = item.audition_slots?.auditions;
-      role = item.roles?.role_name;
+      // OR from getUserCastShowsFromCastMembers - direct auditions property
+      audition = item.audition_slots?.auditions || item.auditions || item;
+      role = item.role_name || item.roles?.role_name;
     } else if (userRole === 'production_team') {
       // From getUserProductionTeamAuditions - nested in auditions
       audition = item.auditions;

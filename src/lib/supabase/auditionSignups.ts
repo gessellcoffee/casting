@@ -639,6 +639,52 @@ export async function getUserCastShows(userId: string): Promise<any[]> {
 }
 
 /**
+ * Get auditions where user is cast (from cast_members table)
+ * This includes all cast members regardless of how they were cast
+ */
+export async function getUserCastShowsFromCastMembers(userId: string): Promise<any[]> {
+  console.log('getUserCastShowsFromCastMembers called for userId:', userId);
+  
+  const { data, error } = await supabase
+    .from('cast_members')
+    .select(`
+      *,
+      auditions (
+        audition_id,
+        rehearsal_dates,
+        rehearsal_location,
+        performance_dates,
+        performance_location,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      ),
+      roles (
+        role_id,
+        role_name
+      ),
+      audition_roles:audition_role_id (
+        audition_role_id,
+        role_name
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching user cast shows from cast_members:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    return [];
+  }
+
+  console.log('getUserCastShowsFromCastMembers returned:', data?.length, 'records');
+  console.log('Sample data:', data?.[0]);
+  
+  return data || [];
+}
+
+/**
  * Get auditions owned by the user
  * These shows should appear in the owner's calendar with rehearsal and performance dates
  */

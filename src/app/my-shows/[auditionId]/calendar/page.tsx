@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
-import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
+import { getUserSignupsWithDetails, getUserCastShows, getUserCastShowsFromCastMembers, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserCastRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import { getCastMemberWithDetails } from '@/lib/supabase/castMembers';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
@@ -57,35 +57,62 @@ export default function ShowCalendarPage() {
         userSignups,
         userCallbacks,
         castShows,
+        castShowsFromMembers,
         ownedAuditions,
         productionTeamAuditions,
         ownedSlots,
         productionTeamSlots,
         ownedRehearsalEvents,
         productionTeamRehearsalEvents,
+        castRehearsalEvents,
         userAgendaItems
       ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
         getUserCastShows(currentUser.id),
+        getUserCastShowsFromCastMembers(currentUser.id),
         getUserOwnedAuditions(currentUser.id),
         getUserProductionTeamAuditions(currentUser.id),
         getUserOwnedAuditionSlots(currentUser.id),
         getUserProductionTeamAuditionSlots(currentUser.id),
         getUserOwnedRehearsalEvents(currentUser.id),
         getUserProductionTeamRehearsalEvents(currentUser.id),
+        getUserCastRehearsalEvents(currentUser.id),
         getUserRehearsalAgendaItems(currentUser.id)
       ]);
       
+      console.log('DEBUG - Calendar data loaded:', {
+        auditionId,
+        castShowsCount: castShows.length,
+        castShowsFromMembersCount: castShowsFromMembers.length,
+        castShowsFromMembers: castShowsFromMembers,
+        ownedAuditionsCount: ownedAuditions.length
+      });
+      
       // Combine slots and rehearsal events
       const allSlots = [...ownedSlots, ...productionTeamSlots];
-      const allRehearsalEvents = [...ownedRehearsalEvents, ...productionTeamRehearsalEvents];
+      const allRehearsalEvents = [...ownedRehearsalEvents, ...productionTeamRehearsalEvents, ...castRehearsalEvents];
+      
+      // Transform castShowsFromMembers to match calendar event format
+      const castMemberAuditions = castShowsFromMembers
+        .filter((member: any) => member.auditions)
+        .map((member: any) => ({
+          audition_id: member.auditions.audition_id,
+          rehearsal_dates: member.auditions.rehearsal_dates,
+          rehearsal_location: member.auditions.rehearsal_location,
+          performance_dates: member.auditions.performance_dates,
+          performance_location: member.auditions.performance_location,
+          shows: member.auditions.shows,
+          is_understudy: member.is_understudy,
+          role_name: member.audition_roles?.role_name || member.roles?.role_name
+        }));
       
       // Generate ALL production events
       const allProductionEvents = [
-        ...generateProductionEvents(castShows, 'cast'),
-        ...generateProductionEvents(ownedAuditions, 'owner', allSlots),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots),
+        ...generateProductionEvents(castShows, 'cast', undefined, allRehearsalEvents),
+        ...generateProductionEvents(castMemberAuditions, 'cast', undefined, allRehearsalEvents),
+        ...generateProductionEvents(ownedAuditions, 'owner', allSlots, allRehearsalEvents),
+        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, allRehearsalEvents),
         ...generateAgendaItemEvents(userAgendaItems)
       ];
       
@@ -93,20 +120,36 @@ export default function ShowCalendarPage() {
       const filteredEvents = filterEventsByAuditionId(allProductionEvents, auditionId);
       setProductionEvents(filteredEvents);
       
-      // Get show details from the first event
+      // Get show details from the first event OR from cast membership data
       if (filteredEvents.length > 0) {
         setShowDetails(filteredEvents[0].show);
+      } else {
+        // Fallback: Get show details from cast membership
+        const castMember = castShowsFromMembers.find((member: any) => 
+          member.auditions?.audition_id === auditionId
+        );
+        if (castMember && castMember.auditions?.shows) {
+          setShowDetails(castMember.auditions.shows);
+        }
       }
       
       // Find the cast membership for this show to get role info
-      const castShow = castShows.find((show: any) => 
-        show.audition_slots?.auditions?.audition_id === auditionId
+      // First try from cast_members table (more reliable)
+      let castMember = castShowsFromMembers.find((member: any) => 
+        member.auditions?.audition_id === auditionId
       );
       
-      if (castShow) {
+      // Fall back to audition_signups if not found
+      if (!castMember) {
+        castMember = castShows.find((show: any) => 
+          show.audition_slots?.auditions?.audition_id === auditionId
+        );
+      }
+      
+      if (castMember) {
         setCastMembership({
-          role_name: castShow.roles?.role_name || 'Ensemble',
-          is_understudy: castShow.is_understudy || false,
+          role_name: castMember.audition_roles?.role_name || castMember.roles?.role_name || 'Ensemble',
+          is_understudy: castMember.is_understudy || false,
         });
       }
       
