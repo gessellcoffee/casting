@@ -155,8 +155,10 @@ export function generateProductionEvents(
           location: event.location,
           auditionId: audition.audition_id,
           userRole,
-          eventId: event.rehearsal_events_id
-        });
+          eventId: event.rehearsal_events_id,
+          notes: event.notes,
+          agendaItems: event.rehearsal_agenda_items || []
+        } as any);
       }
     });
   }

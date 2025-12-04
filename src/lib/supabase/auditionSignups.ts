@@ -851,6 +851,13 @@ export async function getUserOwnedRehearsalEvents(userId: string): Promise<any[]
           title,
           author
         )
+      ),
+      rehearsal_agenda_items (
+        rehearsal_agenda_items_id,
+        title,
+        description,
+        start_time,
+        end_time
       )
     `)
     .eq('auditions.user_id', userId)
@@ -900,6 +907,13 @@ export async function getUserProductionTeamRehearsalEvents(userId: string): Prom
           title,
           author
         )
+      ),
+      rehearsal_agenda_items (
+        rehearsal_agenda_items_id,
+        title,
+        description,
+        start_time,
+        end_time
       )
     `)
     .in('audition_id', auditionIds)
@@ -962,6 +976,13 @@ export async function getUserCastRehearsalEvents(userId: string): Promise<any[]>
             title,
             author
           )
+        ),
+        rehearsal_agenda_items (
+          rehearsal_agenda_items_id,
+          title,
+          description,
+          start_time,
+          end_time
         )
       `)
       .in('audition_id', castAuditionIds)

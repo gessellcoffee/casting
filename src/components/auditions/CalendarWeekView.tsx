@@ -12,6 +12,7 @@ import PersonalEventModal from '@/components/events/PersonalEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import RehearsalEventModal from './RehearsalEventModal';
+import type { EventTypeFilter } from './CalendarLegend';
 
 interface CalendarWeekViewProps {
   signups: any[];
@@ -20,9 +21,10 @@ interface CalendarWeekViewProps {
   currentDate: Date;
   userId: string;
   onRefresh?: () => void;
+  eventFilters?: EventTypeFilter;
 }
 
-export default function CalendarWeekView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh }: CalendarWeekViewProps) {
+export default function CalendarWeekView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh, eventFilters }: CalendarWeekViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -112,11 +114,13 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
 
   const getPersonalForDate = (date: Date) => {
     const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    return (personalByDate[dateKey] || []).sort((a: any, b: any) => {
+    const personalEvents = (personalByDate[dateKey] || []).sort((a: any, b: any) => {
       const timeA = new Date(a.start).getTime();
       const timeB = new Date(b.start).getTime();
       return timeA - timeB;
     });
+    // Filter based on eventFilters if provided
+    return eventFilters?.personalEvents === false ? [] : personalEvents;
   };
 
   // Group production events by individual dates

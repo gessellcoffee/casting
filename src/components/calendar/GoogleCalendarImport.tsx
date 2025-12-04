@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, X, Check } from 'lucide-react';
+import { Calendar, X, Check, Trash2 } from 'lucide-react';
 import Button from '../Button';
 import { createEvent } from '@/lib/supabase/events';
 import ConfirmationModal from '../shared/ConfirmationModal';
@@ -25,6 +25,8 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
   const [events, setEvents] = useState<any[]>([]);
   const [importing, setImporting] = useState(false);
   const [importStep, setImportStep] = useState<'select' | 'preview' | 'importing'>('select');
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, currentEvent: '' });
+  const [deleting, setDeleting] = useState(false);
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -110,6 +112,42 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
     openModal('Confirm Disconnect', 'Are you sure you want to disconnect your Google Calendar?', disconnectAction, 'Disconnect');
   };
 
+  const handleDeleteAllPersonal = async () => {
+    const deleteAction = async () => {
+      setDeleting(true);
+      try {
+        const response = await fetch('/api/events/delete-all-personal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          openModal('Success', `Successfully deleted ${result.deletedCount} personal event${result.deletedCount !== 1 ? 's' : ''}.`, undefined, 'OK', false);
+          if (onImportComplete) {
+            onImportComplete(); // Refresh calendar
+          }
+        } else {
+          throw new Error(result.error || 'Failed to delete events');
+        }
+      } catch (error: any) {
+        console.error('Error deleting personal events:', error);
+        openModal('Error', error.message || 'Failed to delete personal events. Please try again.', undefined, 'OK', false);
+      } finally {
+        setDeleting(false);
+      }
+    };
+
+    openModal(
+      'Delete All Personal Events', 
+      'Are you sure you want to delete ALL of your personal events? This will remove all personal calendar entries and cannot be undone.', 
+      deleteAction, 
+      'Delete All'
+    );
+  };
+
   const handleStartImport = async () => {
     setShowImportModal(true);
     setImportStep('select');
@@ -166,14 +204,54 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
 
     setImporting(true);
     setImportStep('importing');
+    setImportProgress({ current: 0, total: events.length, currentEvent: '' });
 
     try {
       let importedCount = 0;
+      let skippedCount = 0;
       let errorCount = 0;
 
-      for (const event of events) {
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i];
+        setImportProgress({ current: i + 1, total: events.length, currentEvent: event.title });
+        
+        // Small delay to ensure UI updates
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
         try {
-          await createEvent(
+          // Debug: Log event data
+          console.log('Processing event:', { 
+            title: event.title, 
+            hasGoogleId: !!event.googleEventId,
+            googleEventId: event.googleEventId 
+          });
+          
+          // Check if this Google event has already been imported
+          if (event.googleEventId) {
+            const response = await fetch('/api/google/event-mapping', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId,
+                googleEventId: event.googleEventId,
+                action: 'check'
+              }),
+            });
+            
+            const result = await response.json();
+            console.log('Mapping check result:', result);
+            
+            if (result.exists) {
+              console.log('Skipping already imported event:', event.title);
+              skippedCount++;
+              continue; // Skip this event
+            }
+          } else {
+            console.warn('Event missing googleEventId:', event.title);
+          }
+          
+          // Create the event
+          const createdEvent = await createEvent(
             {
               title: event.title,
               description: event.description || '',
@@ -199,6 +277,22 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
             },
             userId
           );
+          
+          // Create mapping if we have a Google event ID
+          if (event.googleEventId && createdEvent) {
+            await fetch('/api/google/event-mapping', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId,
+                googleEventId: event.googleEventId,
+                eventId: createdEvent.id,
+                calendarId: selectedCalendarId,
+                action: 'create'
+              }),
+            });
+          }
+          
           importedCount++;
         } catch (error) {
           console.error('Error importing event:', event.title, error);
@@ -206,7 +300,12 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
         }
       }
 
-      openModal('Import Complete', `Successfully imported ${importedCount} events${errorCount > 0 ? `. ${errorCount} events failed to import.` : '!'}`, undefined, 'OK', false);
+      const messages = [];
+      if (importedCount > 0) messages.push(`${importedCount} new event${importedCount !== 1 ? 's' : ''} imported`);
+      if (skippedCount > 0) messages.push(`${skippedCount} duplicate${skippedCount !== 1 ? 's' : ''} skipped`);
+      if (errorCount > 0) messages.push(`${errorCount} error${errorCount !== 1 ? 's' : ''}`);
+
+      openModal('Import Complete', messages.join(', ') + '.', undefined, 'OK', false);
       
       setShowImportModal(false);
       setEvents([]);
@@ -246,9 +345,18 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
             <Button
               text="Import from Google Calendar"
               onClick={handleStartImport}
-              disabled={loading}
+              disabled={loading || deleting}
               className="flex items-center gap-2"
             />
+            <button
+              onClick={handleDeleteAllPersonal}
+              disabled={deleting}
+              className="px-3 py-2 text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+              title="Delete all personal events"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">{deleting ? 'Deleting...' : 'Reset Personal Events'}</span>
+            </button>
             <button
               onClick={handleDisconnect}
               className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors"
@@ -391,10 +499,37 @@ export default function GoogleCalendarImport({ userId, onImportComplete }: Googl
             )}
 
             {importStep === 'importing' && (
-              <div className="text-center py-8">
-                <div className="animate-spin h-12 w-12 border-4 border-neu-border border-t-neu-accent-primary rounded-full mx-auto mb-4"></div>
-                <p className="text-neu-text-primary">Importing events...</p>
-                <p className="text-sm text-neu-text-primary/70 mt-2">Please wait</p>
+              <div className="py-8 px-4">
+                <div className="mb-6 text-center">
+                  <p className="text-lg font-medium text-neu-text-primary mb-2">
+                    Importing events...
+                  </p>
+                  <p className="text-sm text-neu-text-primary/70">
+                    {importProgress.current} of {importProgress.total}
+                  </p>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full bg-neu-border rounded-full h-3 mb-4 overflow-hidden">
+                  <div 
+                    className="bg-neu-accent-primary h-full transition-all duration-300 ease-out"
+                    style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                  />
+                </div>
+                
+                {/* Current Event */}
+                {importProgress.currentEvent && (
+                  <div className="text-center">
+                    <p className="text-xs text-neu-text-primary/60 mb-1">Currently importing:</p>
+                    <p className="text-sm text-neu-text-primary font-medium truncate px-4">
+                      {importProgress.currentEvent}
+                    </p>
+                  </div>
+                )}
+                
+                <p className="text-xs text-neu-text-primary/50 text-center mt-4">
+                  Please wait, do not close this window
+                </p>
               </div>
             )}
           </div>

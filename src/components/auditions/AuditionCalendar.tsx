@@ -288,6 +288,7 @@ export default function AuditionCalendar({
             currentDate={currentDate}
             userId={userId}
             onRefresh={onRefresh}
+            eventFilters={eventFilters}
           />
         )}
         {viewMode === 'list' && (

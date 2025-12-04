@@ -299,7 +299,22 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                   const isPersonal = event.type === 'personal';
                   const isProduction = event.type === 'production';
                   
-                  const startTime = new Date(event.start_time || event.start || new Date());
+                  // Debug log for production events
+                  if (isProduction) {
+                    console.log('Production event in list:', {
+                      title: event.title,
+                      eventType: event.type,
+                      startTime: event.startTime,
+                      date: event.date,
+                      hasStartTime: !!event.startTime
+                    });
+                  }
+                  
+                  // Get start time - production events use startTime (capital T), others use start_time
+                  const startTime = new Date(
+                    isProduction ? (event.startTime || event.date) :
+                    event.start_time || event.start || new Date()
+                  );
                   const endTime = new Date(
                     isCallback ? event.callback_slots.end_time :
                     isProduction ? (event.endTime || event.date) :
@@ -383,21 +398,28 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                 </p>
                               )}
                               {isProduction && (
-                                <p className={`text-xs sm:text-sm font-medium mt-1 ${
-                                  event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 
-                                  event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
-                                  event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
-                                  event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
-                                  event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
-                                  'text-neu-accent-primary'
-                                }`}>
-                                  {event.type === 'rehearsal' ? 'Rehearsal Period' : 
-                                   event.type === 'performance' ? 'Performance Run' :
-                                   event.type === 'audition_slot' ? 'Audition Slot' :
-                                   event.type === 'rehearsal_event' ? 'Rehearsal Event' :
-                                   event.type === 'agenda_item' ? 'Rehearsal' :
-                                   'Production Event'}
-                                </p>
+                                <>
+                                  <p className={`text-xs sm:text-sm font-medium mt-1 ${
+                                    event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 
+                                    event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
+                                    event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
+                                    event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
+                                    event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
+                                    'text-neu-accent-primary'
+                                  }`}>
+                                    {event.type === 'rehearsal' ? 'Rehearsal Period' : 
+                                     event.type === 'performance' ? 'Performance Run' :
+                                     event.type === 'audition_slot' ? 'Audition Slot' :
+                                     event.type === 'rehearsal_event' ? 'Rehearsal Event' :
+                                     event.type === 'agenda_item' ? 'Rehearsal' :
+                                     'Production Event'}
+                                  </p>
+                                  {(event.eventId || event.slotId) && (
+                                    <p className="text-[10px] text-neu-text-primary/40 mt-0.5 font-mono">
+                                      ID: {event.eventId || event.slotId}
+                                    </p>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>

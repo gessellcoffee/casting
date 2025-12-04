@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RefreshCw, X, Check, Calendar, Download, Upload, Settings } from 'lucide-react';
+import { RefreshCw, X, Check, Calendar, Download, Upload, Settings, Trash2 } from 'lucide-react';
 import Button from '../Button';
 import ConfirmationModal from '../shared/ConfirmationModal';
 import SyncPreferencesModal from './SyncPreferencesModal';
@@ -30,6 +30,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
   const [calendars, setCalendars] = useState<any[]>([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState('primary');
   const [importing, setImporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -369,6 +370,42 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
     openModal('Confirm Disconnect', 'Are you sure you want to disconnect your Google Calendar? This will stop syncing.', disconnectAction, 'Disconnect');
   };
 
+  const handleDeleteAllPersonal = async () => {
+    const deleteAction = async () => {
+      setDeleting(true);
+      try {
+        const response = await fetch('/api/events/delete-all-personal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          openModal('Success', `Successfully deleted ${result.deletedCount} personal event${result.deletedCount !== 1 ? 's' : ''}.`, undefined, 'OK', false);
+          if (onSyncComplete) {
+            onSyncComplete(); // Refresh calendar
+          }
+        } else {
+          throw new Error(result.error || 'Failed to delete events');
+        }
+      } catch (error: any) {
+        console.error('Error deleting personal events:', error);
+        openModal('Error', error.message || 'Failed to delete personal events. Please try again.', undefined, 'OK', false);
+      } finally {
+        setDeleting(false);
+      }
+    };
+
+    openModal(
+      'Delete All Personal Events', 
+      'Are you sure you want to delete ALL of your personal events? This will remove all personal calendar entries and cannot be undone.', 
+      deleteAction, 
+      'Delete All'
+    );
+  };
+
   if (checkingConnection) {
     return (
       <div className="text-sm text-neu-text-primary/70">
@@ -380,7 +417,7 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
   return (
     <>
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
           {!isConnected ? (
             <Button
               text="Connect Google Calendar"
@@ -392,14 +429,23 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
           ) : !syncStatus.calendarsSetup ? (
             <>
               <Button
-                text="Setup Sync"
+                text="Set Up Calendars"
                 onClick={handleSetupSync}
                 disabled={isSyncing}
                 className="flex items-center gap-2"
-                title="Create sync calendars in Google Calendar"
+                title="Set up Google Calendar sync"
               >
                 <Calendar className="w-4 h-4" />
               </Button>
+              <button
+                onClick={handleDeleteAllPersonal}
+                disabled={deleting || isSyncing}
+                className="px-3 py-2 text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                title="Delete all personal events"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">{deleting ? 'Deleting...' : ''}</span>
+              </button>
               <button
                 onClick={handleDisconnect}
                 className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors"
@@ -422,12 +468,21 @@ export default function GoogleCalendarSync({ userId, onSyncComplete }: GoogleCal
               <Button
                 text="Import from Google"
                 onClick={handleStartImport}
-                disabled={isSyncing}
+                disabled={isSyncing || deleting}
                 className="flex items-center gap-2"
                 title="Import events from your Google Calendar"
               >
                 <Download className="w-4 h-4" />
               </Button>
+              <button
+                onClick={handleDeleteAllPersonal}
+                disabled={deleting || isSyncing}
+                className="px-3 py-2 text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                title="Delete all personal events"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">{deleting ? 'Deleting...' : ''}</span>
+              </button>
               <button
                 onClick={() => setShowPreferencesModal(true)}
                 className="px-3 py-2 text-sm text-neu-text-primary/70 hover:text-neu-text-primary transition-colors flex items-center gap-2"

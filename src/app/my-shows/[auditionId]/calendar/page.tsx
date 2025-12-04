@@ -9,7 +9,7 @@ import { getCastMemberWithDetails } from '@/lib/supabase/castMembers';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import StarryContainer from '@/components/StarryContainer';
 import Button from '@/components/Button';
-import { generateProductionEvents, generateAgendaItemEvents, filterEventsByAuditionId, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { generateProductionEvents, filterEventsByAuditionId, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { ArrowLeft, Download } from 'lucide-react';
 import DownloadShowPDFButton from '@/components/shows/DownloadShowPDFButton';
 
@@ -86,12 +86,14 @@ export default function ShowCalendarPage() {
         castShowsCount: castShows.length,
         castShowsFromMembersCount: castShowsFromMembers.length,
         castShowsFromMembers: castShowsFromMembers,
-        ownedAuditionsCount: ownedAuditions.length
+        ownedAuditionsCount: ownedAuditions.length,
+        ownedRehearsalEventsCount: ownedRehearsalEvents.length,
+        productionTeamRehearsalEventsCount: productionTeamRehearsalEvents.length,
+        castRehearsalEventsCount: castRehearsalEvents.length
       });
       
-      // Combine slots and rehearsal events
+      // Combine slots (but keep rehearsal events separate to avoid duplicates)
       const allSlots = [...ownedSlots, ...productionTeamSlots];
-      const allRehearsalEvents = [...ownedRehearsalEvents, ...productionTeamRehearsalEvents, ...castRehearsalEvents];
       
       // Transform castShowsFromMembers to match calendar event format
       const castMemberAuditions = castShowsFromMembers
@@ -108,17 +110,65 @@ export default function ShowCalendarPage() {
         }));
       
       // Generate ALL production events
+      // Note: Pass rehearsal events separately to each call to avoid duplicates
+      // Note: Agenda items are shown within rehearsal event modals, not as separate calendar events
+      const castShowsEvents = generateProductionEvents(castShows, 'cast', undefined, []);
+      const castMemberEvents = generateProductionEvents(castMemberAuditions, 'cast', undefined, castRehearsalEvents);
+      const ownedEvents = generateProductionEvents(ownedAuditions, 'owner', allSlots, ownedRehearsalEvents);
+      const teamEvents = generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents);
+      
+      console.log('DEBUG - Generated events:', {
+        castShowsEvents: castShowsEvents.length,
+        castMemberEvents: castMemberEvents.length,
+        ownedEvents: ownedEvents.length,
+        teamEvents: teamEvents.length,
+        castShowsRehearsals: castShowsEvents.filter(e => e.type === 'rehearsal_event').length,
+        castMemberRehearsals: castMemberEvents.filter(e => e.type === 'rehearsal_event').length,
+        ownedRehearsals: ownedEvents.filter(e => e.type === 'rehearsal_event').length,
+        teamRehearsals: teamEvents.filter(e => e.type === 'rehearsal_event').length
+      });
+      
       const allProductionEvents = [
-        ...generateProductionEvents(castShows, 'cast', undefined, allRehearsalEvents),
-        ...generateProductionEvents(castMemberAuditions, 'cast', undefined, allRehearsalEvents),
-        ...generateProductionEvents(ownedAuditions, 'owner', allSlots, allRehearsalEvents),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, allRehearsalEvents),
-        ...generateAgendaItemEvents(userAgendaItems)
+        ...castShowsEvents,
+        ...castMemberEvents,
+        ...ownedEvents,
+        ...teamEvents
+        // Removed: generateAgendaItemEvents(userAgendaItems) - agenda items shown in rehearsal event modals instead
       ];
       
       // Filter to only this show's events
       const filteredEvents = filterEventsByAuditionId(allProductionEvents, auditionId);
-      setProductionEvents(filteredEvents);
+      
+      // Deduplicate events - if user has multiple roles (owner + team + cast), they may get the same event multiple times
+      const seenKeys = new Set<string>();
+      const deduplicatedEvents: ProductionDateEvent[] = [];
+      
+      filteredEvents.forEach((event: ProductionDateEvent) => {
+        // For rehearsal events and audition slots, deduplicate by eventId/slotId
+        const uniqueKey = event.eventId || event.slotId || `${event.type}-${event.date.getTime()}-${event.title}`;
+        
+        if (!seenKeys.has(uniqueKey)) {
+          seenKeys.add(uniqueKey);
+          deduplicatedEvents.push(event);
+        } else {
+          console.log('DUPLICATE FOUND - Skipping:', {
+            title: event.title,
+            type: event.type,
+            eventId: event.eventId,
+            date: event.date,
+            uniqueKey
+          });
+        }
+      });
+      
+      console.log('DEBUG - Deduplication:', {
+        beforeDedup: filteredEvents.length,
+        afterDedup: deduplicatedEvents.length,
+        removed: filteredEvents.length - deduplicatedEvents.length,
+        seenKeys: Array.from(seenKeys)
+      });
+      
+      setProductionEvents(deduplicatedEvents);
       
       // Get show details from the first event OR from cast membership data
       if (filteredEvents.length > 0) {

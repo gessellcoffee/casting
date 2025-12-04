@@ -61,6 +61,7 @@ export function convertGoogleEventToLocal(googleEvent: GoogleCalendarEvent) {
   const isAllDay = !!googleEvent.start.date;
   
   return {
+    googleEventId: googleEvent.id, // Include Google event ID for tracking
     title: googleEvent.summary || 'Untitled Event',
     description: googleEvent.description || null,
     start: isAllDay ? googleEvent.start.date! : googleEvent.start.dateTime!,

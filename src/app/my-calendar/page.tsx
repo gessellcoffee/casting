@@ -9,7 +9,7 @@ import { getEvents } from '@/lib/supabase/events';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
 import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
-import { generateProductionEvents, generateAgendaItemEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { generateProductionEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { Check, X } from 'lucide-react';
 
 // Component that uses searchParams - must be wrapped in Suspense
@@ -166,17 +166,46 @@ function MyCalendarContent() {
         hasProductionTeamAuditions: productionTeamAuditions.length > 0
       });
       
-      // Generate production events (rehearsal/performance dates, audition slots, agenda items)
+      // Generate production events (rehearsal/performance dates, audition slots, rehearsal events)
+      // Note: Agenda items are shown within rehearsal event modals, not as separate calendar events
       const allProductionEvents = [
         ...generateProductionEvents(castShows, 'cast', [], castRehearsalEvents),
         ...generateProductionEvents(ownedAuditions, 'owner', allSlots, ownedRehearsalEvents),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents),
-        ...generateAgendaItemEvents(userAgendaItems)
+        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents)
+        // Removed: generateAgendaItemEvents(userAgendaItems) - agenda items shown in rehearsal event modals instead
       ];
       
       console.log('Generated production events:', allProductionEvents.length, allProductionEvents);
       
-      setProductionEvents(allProductionEvents);
+      // Deduplicate events - if user has multiple roles (owner + team + cast), they may get the same event multiple times
+      const seenKeys = new Set<string>();
+      const deduplicatedEvents: ProductionDateEvent[] = [];
+      
+      allProductionEvents.forEach((event: ProductionDateEvent) => {
+        // For rehearsal events and audition slots, deduplicate by eventId/slotId
+        const uniqueKey = event.eventId || event.slotId || `${event.type}-${event.date.getTime()}-${event.title}`;
+        
+        if (!seenKeys.has(uniqueKey)) {
+          seenKeys.add(uniqueKey);
+          deduplicatedEvents.push(event);
+        } else {
+          console.log('[MyCalendar] DUPLICATE FOUND - Skipping:', {
+            title: event.title,
+            type: event.type,
+            eventId: event.eventId,
+            date: event.date,
+            uniqueKey
+          });
+        }
+      });
+      
+      console.log('[MyCalendar] Deduplication:', {
+        beforeDedup: allProductionEvents.length,
+        afterDedup: deduplicatedEvents.length,
+        removed: allProductionEvents.length - deduplicatedEvents.length
+      });
+      
+      setProductionEvents(deduplicatedEvents);
       
       // Force calendar to remount and reload personal events
       setCalendarKey(prev => prev + 1);
