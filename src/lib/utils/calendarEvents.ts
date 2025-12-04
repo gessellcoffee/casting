@@ -127,8 +127,8 @@ export function generateProductionEvents(
     });
   }
 
-  // Add rehearsal events for owners/production team
-  if ((userRole === 'owner' || userRole === 'production_team') && rehearsalEvents) {
+  // Add rehearsal events for owners/production team/cast
+  if (rehearsalEvents) {
     rehearsalEvents.forEach(event => {
       const audition = event.auditions;
       

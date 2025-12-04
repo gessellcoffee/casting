@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
-import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
+import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserCastRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import { getEvents } from '@/lib/supabase/events';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
@@ -123,6 +123,7 @@ function MyCalendarContent() {
         productionTeamSlots,
         ownedRehearsalEvents,
         productionTeamRehearsalEvents,
+        castRehearsalEvents,
         userAgendaItems,
         userPersonalEvents
       ] = await Promise.all([
@@ -135,6 +136,7 @@ function MyCalendarContent() {
         getUserProductionTeamAuditionSlots(currentUser.id),
         getUserOwnedRehearsalEvents(currentUser.id),
         getUserProductionTeamRehearsalEvents(currentUser.id),
+        getUserCastRehearsalEvents(currentUser.id),
         getUserRehearsalAgendaItems(currentUser.id),
         getEvents(sixMonthsAgo, sixMonthsFromNow, currentUser.id)
       ]);
@@ -149,13 +151,14 @@ function MyCalendarContent() {
       
       // Combine slots and rehearsal events
       const allSlots = [...ownedSlots, ...productionTeamSlots];
-      const allRehearsalEvents = [...ownedRehearsalEvents, ...productionTeamRehearsalEvents];
+      const allRehearsalEvents = [...ownedRehearsalEvents, ...productionTeamRehearsalEvents, ...castRehearsalEvents];
       
       console.log('Calendar Data Summary:', {
         ownedAuditions: ownedAuditions.length,
         ownedSlots: ownedSlots.length,
         productionTeamSlots: productionTeamSlots.length,
         allSlots: allSlots.length,
+        castRehearsalEvents: castRehearsalEvents.length,
         allRehearsalEvents: allRehearsalEvents.length,
         userAgendaItems: userAgendaItems.length,
         personalEvents: userPersonalEvents.length,
@@ -165,9 +168,9 @@ function MyCalendarContent() {
       
       // Generate production events (rehearsal/performance dates, audition slots, agenda items)
       const allProductionEvents = [
-        ...generateProductionEvents(castShows, 'cast'),
-        ...generateProductionEvents(ownedAuditions, 'owner', allSlots),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots),
+        ...generateProductionEvents(castShows, 'cast', [], castRehearsalEvents),
+        ...generateProductionEvents(ownedAuditions, 'owner', allSlots, ownedRehearsalEvents),
+        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents),
         ...generateAgendaItemEvents(userAgendaItems)
       ];
       

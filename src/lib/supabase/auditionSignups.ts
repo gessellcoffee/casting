@@ -869,6 +869,142 @@ export async function getUserProductionTeamRehearsalEvents(userId: string): Prom
 }
 
 /**
+ * Get all rehearsal events for shows where user is a cast member
+ * Shows rehearsal events where user is assigned to at least one agenda item
+ * OR where the event has no agenda items assigned to anyone (full cast call)
+ */
+export async function getUserCastRehearsalEvents(userId: string): Promise<any[]> {
+  try {
+    // Get all shows where user is cast (from cast_members table with status 'Accepted')
+    const { data: castMemberships, error: castError } = await supabase
+      .from('cast_members')
+      .select('audition_id')
+      .eq('user_id', userId)
+      .eq('status', 'Accepted');
+
+    if (castError) {
+      console.error('Error fetching cast memberships:', castError);
+      return [];
+    }
+
+    const castAuditionIds = (castMemberships || [])
+      .map(m => m.audition_id)
+      .filter((id): id is string => !!id);
+
+    console.log('[getUserCastRehearsalEvents] Cast audition IDs:', castAuditionIds);
+
+    if (castAuditionIds.length === 0) {
+      console.log('[getUserCastRehearsalEvents] No cast memberships found');
+      return [];
+    }
+
+    // Get all rehearsal events for these auditions
+    const { data: rehearsalEvents, error: eventsError } = await supabase
+      .from('rehearsal_events')
+      .select(`
+        rehearsal_events_id,
+        audition_id,
+        date,
+        start_time,
+        end_time,
+        location,
+        notes,
+        auditions!inner (
+          audition_id,
+          shows (
+            show_id,
+            title,
+            author
+          )
+        )
+      `)
+      .in('audition_id', castAuditionIds)
+      .order('date', { ascending: true })
+      .order('start_time', { ascending: true });
+
+    console.log('[getUserCastRehearsalEvents] Rehearsal events query result:', {
+      error: eventsError,
+      count: rehearsalEvents?.length || 0,
+      events: rehearsalEvents
+    });
+
+    if (eventsError || !rehearsalEvents) {
+      console.error('Error fetching cast rehearsal events:', eventsError);
+      return [];
+    }
+
+    if (rehearsalEvents.length === 0) {
+      console.log('[getUserCastRehearsalEvents] No rehearsal events found for cast member');
+      return [];
+    }
+
+    const rehearsalEventIds = rehearsalEvents.map(e => e.rehearsal_events_id);
+    console.log('[getUserCastRehearsalEvents] Found rehearsal event IDs:', rehearsalEventIds);
+
+    // Get all agenda items for these rehearsal events
+    const { data: allAgendaItems, error: itemsError } = await supabase
+      .from('rehearsal_agenda_items')
+      .select('rehearsal_agenda_items_id, rehearsal_event_id')
+      .in('rehearsal_event_id', rehearsalEventIds);
+
+    if (itemsError) {
+      console.error('Error fetching agenda items for cast events:', itemsError);
+      // Return all events if we can't check assignments
+      return rehearsalEvents;
+    }
+
+    // Get all assignments for these agenda items
+    const agendaItemIds = (allAgendaItems || []).map(item => item.rehearsal_agenda_items_id);
+    
+    let assignments: any[] = [];
+    if (agendaItemIds.length > 0) {
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('agenda_assignments')
+        .select('agenda_item_id, user_id')
+        .in('agenda_item_id', agendaItemIds);
+
+      if (assignmentsError) {
+        console.error('Error fetching assignments for cast events:', assignmentsError);
+      } else {
+        assignments = assignmentsData || [];
+      }
+    }
+
+    // Filter events: show if user is assigned to any agenda item OR event has no assignments
+    const visibleEvents = rehearsalEvents.filter(event => {
+      const eventAgendaItems = (allAgendaItems || [])
+        .filter(item => item.rehearsal_event_id === event.rehearsal_events_id);
+      
+      // If no agenda items exist for this event, show it (full cast call)
+      if (eventAgendaItems.length === 0) {
+        console.log(`[getUserCastRehearsalEvents] Event ${event.rehearsal_events_id} has no agenda items - showing`);
+        return true;
+      }
+
+      const eventItemIds = eventAgendaItems.map(item => item.rehearsal_agenda_items_id);
+      const eventAssignments = assignments.filter(a => eventItemIds.includes(a.agenda_item_id));
+
+      // If no assignments for this event's agenda items, show it (full cast call)
+      if (eventAssignments.length === 0) {
+        console.log(`[getUserCastRehearsalEvents] Event ${event.rehearsal_events_id} has agenda items but no assignments - showing`);
+        return true;
+      }
+
+      // Check if user is assigned to any agenda item in this event
+      const isAssigned = eventAssignments.some(a => a.user_id === userId);
+      console.log(`[getUserCastRehearsalEvents] Event ${event.rehearsal_events_id} user assigned:`, isAssigned);
+      return isAssigned;
+    });
+
+    console.log('[getUserCastRehearsalEvents] Filtered visible events:', visibleEvents.length, visibleEvents);
+    return visibleEvents;
+  } catch (error) {
+    console.error('Error in getUserCastRehearsalEvents:', error);
+    return [];
+  }
+}
+
+/**
  * Get signups with user details for multiple slot IDs
  * Used for checking which users will be affected by slot deletions
  */

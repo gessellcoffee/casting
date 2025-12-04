@@ -64,40 +64,42 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     
-    // Days from previous month
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    const prevMonthDays = Array.from(
+    // Empty cells before the first day of the month
+    const emptyStartCells = Array.from(
       { length: startingDayOfWeek },
       (_, i) => ({
-        date: prevMonthLastDay - startingDayOfWeek + i + 1,
+        date: null,
         isCurrentMonth: false,
-        fullDate: new Date(year, month - 1, prevMonthLastDay - startingDayOfWeek + i + 1),
+        isEmpty: true,
+        fullDate: null,
       })
     );
     
-    // Days in current month
+    // Days in current month only
     const currentMonthDays = Array.from(
       { length: daysInMonth },
       (_, i) => ({
         date: i + 1,
         isCurrentMonth: true,
+        isEmpty: false,
         fullDate: new Date(year, month, i + 1),
       })
     );
     
-    // Days from next month to fill the grid
-    const totalDays = prevMonthDays.length + currentMonthDays.length;
+    // Empty cells after the last day to complete the week
+    const totalDays = emptyStartCells.length + currentMonthDays.length;
     const remainingDays = totalDays % 7 === 0 ? 0 : 7 - (totalDays % 7);
-    const nextMonthDays = Array.from(
+    const emptyEndCells = Array.from(
       { length: remainingDays },
       (_, i) => ({
-        date: i + 1,
+        date: null,
         isCurrentMonth: false,
-        fullDate: new Date(year, month + 1, i + 1),
+        isEmpty: true,
+        fullDate: null,
       })
     );
     
-    return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
+    return [...emptyStartCells, ...currentMonthDays, ...emptyEndCells];
   };
 
   // For vertical scrolling: generate 3 months (previous, current, next)
@@ -148,40 +150,42 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     
-    // Days from previous month
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    const prevMonthDays = Array.from(
+    // Empty cells before the first day of the month
+    const emptyStartCells = Array.from(
       { length: startingDayOfWeek },
       (_, i) => ({
-        date: prevMonthLastDay - startingDayOfWeek + i + 1,
+        date: null,
         isCurrentMonth: false,
-        fullDate: new Date(year, month - 1, prevMonthLastDay - startingDayOfWeek + i + 1),
+        isEmpty: true,
+        fullDate: null,
       })
     );
     
-    // Days in current month
+    // Days in current month only
     const currentMonthDays = Array.from(
       { length: daysInMonth },
       (_, i) => ({
         date: i + 1,
         isCurrentMonth: true,
+        isEmpty: false,
         fullDate: new Date(year, month, i + 1),
       })
     );
     
-    // Days from next month to fill the grid
-    const totalDays = prevMonthDays.length + currentMonthDays.length;
+    // Empty cells after the last day to complete the week
+    const totalDays = emptyStartCells.length + currentMonthDays.length;
     const remainingDays = totalDays % 7 === 0 ? 0 : 7 - (totalDays % 7);
-    const nextMonthDays = Array.from(
+    const emptyEndCells = Array.from(
       { length: remainingDays },
       (_, i) => ({
-        date: i + 1,
+        date: null,
         isCurrentMonth: false,
-        fullDate: new Date(year, month + 1, i + 1),
+        isEmpty: true,
+        fullDate: null,
       })
     );
     
-    return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
+    return [...emptyStartCells, ...currentMonthDays, ...emptyEndCells];
   }, [currentDate]);
 
   // Group signups by date
@@ -268,7 +272,17 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
 
 
   // Render a single day cell
-  const renderDayCell = (day: any, monthYear: string) => {
+  const renderDayCell = (day: any, monthYear: string, index?: number) => {
+    // Handle empty cells
+    if (day.isEmpty || !day.fullDate) {
+      return (
+        <div
+          key={`${monthYear}-empty-${index || Math.random()}`}
+          className="min-h-[70px] md:min-h-[100px] p-2 rounded-lg border border-transparent bg-transparent"
+        />
+      );
+    }
+
     const daySignups = getSignupsForDate(day.fullDate);
     const dayCallbacks = getCallbacksForDate(day.fullDate);
     const dayPersonal = getPersonalForDate(day.fullDate);
@@ -287,11 +301,9 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     return (
       <div
         key={`${monthYear}-${day.fullDate.getTime()}`}
-        className={`min-h-[70px] md:min-h-[100px] p-2 rounded-lg border transition-all duration-200 cursor-pointer hover:bg-neu-surface/50 ${
-          day.isCurrentMonth
-            ? 'bg-neu-surface/30 border-neu-border'
-            : 'bg-neu-surface/10 border-[#4a7bd9]/10'
-        } ${today ? 'ring-2 ring-[#5a8ff5] bg-[#5a8ff5]/10' : ''}`}
+        className={`min-h-[70px] md:min-h-[100px] p-2 rounded-lg border transition-all duration-200 cursor-pointer hover:bg-neu-surface/50 bg-neu-surface/30 border-neu-border ${
+          today ? 'ring-2 ring-[#5a8ff5] bg-[#5a8ff5]/10' : ''
+        }`}
         onClick={() => {
           setSelectedDate(day.fullDate);
           setSelectedDayEvents({
@@ -305,58 +317,58 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
         }}
       >
         <div
-          className={`text-lg md:text-xl font-bold text-center mb-1 ${
-            day.isCurrentMonth ? 'text-neu-text-primary' : 'text-neu-text-primary/40'
-          } ${today ? 'text-neu-accent-primary' : ''}`}
+          className={`text-lg md:text-xl font-bold text-center mb-1 text-neu-text-primary ${
+            today ? 'text-neu-accent-primary' : ''
+          }`}
         >
           {day.date}
         </div>
 
-        {/* Event indicator dots - mobile optimized */}
+        {/* Event indicator dots */}
         {totalEvents > 0 && (
-          <div className="flex flex-col items-center gap-1">
-            {/* Colored dots for event types (max 4 visible) */}
-            <div className="flex justify-center gap-1 flex-wrap">
+          <div className="flex flex-col items-center gap-1 md:gap-1.5">
+            {/* Colored dots for event types */}
+            <div className="flex justify-center gap-1 md:gap-1.5 flex-wrap">
               {hasAuditions && (
                 <div 
-                  className="w-2 h-2 rounded-full bg-[#5a8ff5]" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#5a8ff5] shadow-sm" 
                   title="Auditions"
                 />
               )}
               {hasCallbacks && (
                 <div 
-                  className="w-2 h-2 rounded-full bg-purple-500" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-purple-500 shadow-sm" 
                   title="Callbacks"
                 />
               )}
               {hasPersonal && (
                 <div 
-                  className="w-2 h-2 rounded-full bg-green-500" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-green-500 shadow-sm" 
                   title="Personal Events"
                 />
               )}
               {hasRehearsals && (
                 <div 
-                  className="w-2 h-2 rounded-full bg-orange-500" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shadow-sm" 
                   title="Rehearsals"
                 />
               )}
               {hasPerformances && (
                 <div 
-                  className="w-2 h-2 rounded-full bg-red-500" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-red-500 shadow-sm" 
                   title="Performances"
                 />
               )}
               {hasAuditionSlots && (
                 <div 
-                  className="w-2 h-2 rounded-full bg-teal-500" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-teal-500 shadow-sm" 
                   title="Audition Slots"
                 />
               )}
             </div>
             {/* Event count */}
             {totalEvents > 1 && (
-              <div className="text-[10px] font-medium text-neu-text-primary/70">
+              <div className="text-[10px] md:text-xs font-medium text-neu-text-primary/70">
                 {totalEvents}
               </div>
             )}
@@ -412,198 +424,6 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           </div>
         </div>
       )}
-
-      {/* Old calendar days mapping - remove this */}
-      <div className="hidden">
-        {calendarDays.map((day, index) => {
-          const daySignups = getSignupsForDate(day.fullDate);
-          const dayCallbacks = getCallbacksForDate(day.fullDate);
-          const dayPersonal = getPersonalForDate(day.fullDate);
-          const dayProduction = getProductionForDate(day.fullDate);
-          const today = isToday(day.fullDate);
-          const totalEvents = daySignups.length + dayCallbacks.length + dayPersonal.length + dayProduction.length;
-
-          return (
-            <div
-              key={index}
-              className={`min-h-[100px] sm:min-h-[120px] p-2 sm:p-3 rounded-lg border transition-all duration-200 ${
-                day.isCurrentMonth
-                  ? 'bg-neu-surface/30 border-neu-border'
-                  : 'bg-neu-surface/10 border-[#4a7bd9]/10'
-              } ${today ? 'ring-1 sm:ring-2 ring-[#5a8ff5]/50' : ''}`}
-              onClick={() => {
-                setSelectedDate(day.fullDate);
-                setShowAddEventModal(true);
-              }}
-            >
-              <div
-                className={`text-sm sm:text-base font-medium mb-1 sm:mb-2 ${
-                  day.isCurrentMonth ? 'text-neu-text-primary' : 'text-neu-text-primary/40'
-                } ${today ? 'text-neu-accent-primary font-bold' : ''}`}
-              >
-                {day.date}
-              </div>
-
-              {/* Events for this day */}
-              <div className="space-y-1">
-                {/* Audition Events */}
-                {daySignups.slice(0, 2).map((signup) => {
-                  const startTime = new Date(signup.audition_slots.start_time);
-                  const showTitle = signup.audition_slots?.auditions?.shows?.title || 'Unknown Show';
-                   
-                  return (
-                    <button
-                      key={signup.signup_id}
-                      onClick={() => setSelectedEvent(signup)}
-                      className="w-full text-left px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm bg-[#5a8ff5]/20 backdrop-blur-sm border border-[#5a8ff5]/50 text-neu-text-primary hover:bg-[#5a8ff5]/30 hover:border-[#5a8ff5]/70 transition-all duration-200 min-h-[44px] break-words flex flex-col justify-center"
-                    >
-                      <div className="font-medium break-words overflow-wrap-anywhere">{showTitle}</div>
-                      <div className="text-[#5a8ff5] hidden sm:block">
-                        {startTime.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    </button>
-                  );
-                })}
-
-                {/* Personal Events */}
-                {dayPersonal.slice(0, Math.max(0, 2 - daySignups.length)).map((evt: any) => {
-                  const startTime = new Date(evt.start);
-                  return (
-                    <button
-                      key={evt.id || `${evt.title}-${evt.start}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPersonalEvent(evt);
-                      }}
-                      className="w-full text-left px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm bg-green-500/20 backdrop-blur-sm border border-green-500/50 text-neu-text-primary hover:bg-green-500/30 hover:border-green-500/70 transition-all duration-200 min-h-[44px] break-words flex flex-col justify-center"
-                      title={evt.title}
-                    >
-                      <div className="font-medium break-words overflow-wrap-anywhere">{evt.title}</div>
-                      <div className="text-green-400 hidden sm:block">
-                        {startTime.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    </button>
-                  );
-                })}
-
-                {/* Production Events (Rehearsal/Performance/Audition Slots/Rehearsal Events) */}
-                {dayProduction.slice(0, Math.max(0, 3 - daySignups.length - Math.min(dayPersonal.length, Math.max(0, 2 - daySignups.length)))).map((evt) => {
-                  // Determine color and icon based on event type
-                  let bgColor, borderColor, textColor, icon;
-                  
-                  if (evt.type === 'rehearsal') {
-                    // Cast member rehearsal dates (orange)
-                    bgColor = 'bg-orange-500/20';
-                    borderColor = 'border-orange-500/50';
-                    textColor = 'text-orange-400';
-                    icon = '🎭';
-                  } else if (evt.type === 'performance') {
-                    // Cast member performance dates (red)
-                    bgColor = 'bg-red-500/20';
-                    borderColor = 'border-red-500/50';
-                    textColor = 'text-red-400';
-                    icon = '🎪';
-                  } else if (evt.type === 'audition_slot') {
-                    // Owner/production team audition slots (teal)
-                    bgColor = 'bg-teal-500/20';
-                    borderColor = 'border-teal-500/50';
-                    textColor = 'text-teal-400';
-                    icon = '📋';
-                  } else if (evt.type === 'rehearsal_event') {
-                    // Owner/production team rehearsal events (amber)
-                    bgColor = 'bg-amber-500/20';
-                    borderColor = 'border-amber-500/50';
-                    textColor = 'text-amber-400';
-                    icon = '🎬';
-                  } else if (evt.type === 'agenda_item') {
-                    // Rehearsal agenda items (amber - same as rehearsal events)
-                    bgColor = 'bg-amber-500/20';
-                    borderColor = 'border-amber-500/50';
-                    textColor = 'text-amber-400';
-                    icon = '🎬';
-                  }
-                  
-                  return (
-                    <div
-                      key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date.getTime()}-${evt.startTime?.getTime() || ''}`}
-                      className={`w-full text-left px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm backdrop-blur-sm border text-neu-text-primary transition-all duration-200 min-h-[44px] break-words flex flex-col justify-center ${bgColor} ${borderColor}`}
-                      title={evt.title}
-                    >
-                      <div className="font-medium break-words overflow-wrap-anywhere flex items-start gap-1">
-                        <span className="flex-shrink-0">{icon}</span>
-                        <span className="break-words overflow-wrap-anywhere">{evt.show.title}</span>
-                      </div>
-                      {evt.startTime && (
-                        <div className={`text-[10px] sm:text-xs break-words ${textColor}`}>
-                          {evt.startTime.toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          })}
-                        </div>
-                      )}
-                      {evt.role && !evt.startTime && (
-                        <div className={`text-[10px] sm:text-xs break-words ${textColor}`}>
-                          {evt.role}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* Add Event Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedDate(day.fullDate);
-                    setShowPersonalEventsModal(true);
-                  }}
-                  className="w-full text-left px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm bg-neu-surface/80 backdrop-blur-sm border border-neu-border-focus text-neu-text-primary hover:bg-neu-surface hover:text-neu-accent-primary transition-all duration-200 min-h-[44px] break-words flex items-center"
-                >
-                  + Add Personal Event
-                </button>
-
-
-                {/* Callback Events */}
-                {dayCallbacks.slice(0, Math.max(0, 3 - daySignups.length - Math.min(dayPersonal.length, Math.max(0, 3 - daySignups.length)))).map((callback) => {
-                  const startTime = new Date(callback.callback_slots.start_time);
-                  const showTitle = callback.callback_slots?.auditions?.shows?.title || 'Callback';
-                   
-                  return (
-                    <button
-                      key={callback.invitation_id}
-                      onClick={() => setSelectedEvent({ ...callback, isCallback: true })}
-                      className="w-full text-left px-2 py-1.5 sm:py-2 rounded text-xs sm:text-sm bg-purple-500/20 backdrop-blur-sm border border-purple-500/50 text-neu-text-primary hover:bg-purple-500/30 hover:border-purple-500/70 transition-all duration-200 min-h-[44px] break-words flex flex-col justify-center"
-                    >
-                      <div className="font-medium break-words overflow-wrap-anywhere flex items-start gap-1">
-                        <span className="hidden sm:inline">📋</span>
-                        {showTitle}
-                      </div>
-                      <div className="text-purple-400 hidden sm:block">
-                        {startTime.toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    </button>
-                  );
-                })}
-
-                {totalEvents > 3 && (
-                  <div className="text-xs sm:text-sm text-neu-text-primary/60 px-2 py-1">
-                    +{totalEvents - 3} more
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
       {/* Event Modals */}
       {selectedEvent && !selectedEvent.isCallback && (
