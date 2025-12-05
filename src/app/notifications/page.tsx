@@ -10,6 +10,7 @@ import {
   handleNotificationAction,
 } from '@/lib/supabase/notifications';
 import { respondToCallbackInvitation } from '@/lib/supabase/callbackInvitations';
+import { acceptCastingOffer, declineCastingOffer } from '@/lib/supabase/castingOffers';
 import StarryContainer from '@/components/StarryContainer';
 import { formatTimeAgo } from '@/lib/utils/dateUtils';
 import CallbackResponseModal from '@/components/callbacks/CallbackResponseModal';
@@ -22,6 +23,7 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'callbacks'>('all');
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState<string | null>(null);
+  const [processingOfferId, setProcessingOfferId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState<{
     invitationId: string;
@@ -214,6 +216,8 @@ export default function NotificationsPage() {
               filteredNotifications.map((notification) => {
                 const isCallback = notification.reference_type === 'callback_invitation';
                 const isPending = isCallback && notification.is_actionable && !notification.action_taken;
+                const isCastingOffer = notification.type === 'casting_offer';
+                const isCastingOfferPending = isCastingOffer && notification.is_actionable && !notification.action_taken;
 
                 return (
                   <div
@@ -263,17 +267,40 @@ export default function NotificationsPage() {
                       </div>
                     )}
 
-                    {/* Action Link */}
-                    {notification.action_url && !isPending && (
-                      <div className="mt-4">
+                    {/* Casting Offer Actions */}
+                    {isCastingOfferPending && user && (
+                      <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
                         <button
-                          onClick={() => {
-                            handleMarkAsRead(notification.notification_id);
-                            router.push(notification.action_url);
+                          onClick={async () => {
+                            setProcessingOfferId(notification.notification_id);
+                            try {
+                              await acceptCastingOffer(notification.reference_id, user.id);
+                              await handleNotificationAction(notification.notification_id, 'accepted');
+                              loadData();
+                            } finally {
+                              setProcessingOfferId(null);
+                            }
                           }}
-                          className="text-neu-accent-primary hover:text-neu-accent-secondary text-sm font-semibold transition-colors"
+                          disabled={processingOfferId === notification.notification_id}
+                          className="n-button-primary"
                         >
-                          View Details →
+                          {processingOfferId === notification.notification_id ? 'Processing...' : 'Accept Offer'}
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setProcessingOfferId(notification.notification_id);
+                            try {
+                              await declineCastingOffer(notification.reference_id, user.id);
+                              await handleNotificationAction(notification.notification_id, 'declined');
+                              loadData();
+                            } finally {
+                              setProcessingOfferId(null);
+                            }
+                          }}
+                          disabled={processingOfferId === notification.notification_id}
+                          className="n-button-danger"
+                        >
+                          {processingOfferId === notification.notification_id ? 'Processing...' : 'Decline Offer'}
                         </button>
                       </div>
                     )}
