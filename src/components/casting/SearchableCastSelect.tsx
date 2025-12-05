@@ -178,7 +178,7 @@ export default function SearchableCastSelect({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className="neu-input w-full pl-10 pr-8"
+          className="neu-input w-full pl-11 pr-8"
         />
         <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-neu-text-primary/50 w-5 h-5" />
         {selectedActor && !isOpen && (

@@ -298,18 +298,183 @@ export default function CastShow({
     };
   };
 
+  const saveSingleRoleAssignment = async (auditionRoleId: string, userId: string, isUnderstudy: boolean) => {
+    try {
+      setIsSaving(true);
+
+      // Get existing cast members for this audition
+      const existingCast = await getAuditionCastMembers(audition.audition_id);
+      const role = roles.find((r) => r.audition_role_id === auditionRoleId);
+      if (!role) {
+        return;
+      }
+
+      const existingForRole = existingCast.filter(
+        (cm) => cm.audition_role_id === auditionRoleId && cm.is_understudy === isUnderstudy
+      );
+
+      if (userId) {
+        const existingCastForUser = existingForRole.find((cm) => cm.user_id === userId);
+
+        // Add new cast member if not already assigned
+        if (!existingCastForUser) {
+          const { error: createError } = await createCastMember({
+            audition_id: audition.audition_id,
+            role_id: role.role_id || null,
+            audition_role_id: auditionRoleId,
+            user_id: userId,
+            status: 'Offered',
+            is_understudy: isUnderstudy,
+          });
+          if (createError) {
+            throw new Error(
+              `Failed to assign ${isUnderstudy ? 'understudy for ' : ''}${role.role_name}: ${createError.message}`
+            );
+          }
+        }
+
+        // Remove any other cast members for this role / understudy slot
+        for (const existing of existingForRole) {
+          if (existing.user_id !== userId) {
+            await deleteCastMember(existing.cast_member_id);
+          }
+        }
+      } else {
+        // No user selected, remove all cast members for this role / understudy slot
+        for (const existing of existingForRole) {
+          await deleteCastMember(existing.cast_member_id);
+        }
+      }
+
+      // Let local state handle immediate UI; backend will enforce consistency
+      setError(null);
+    } catch (err) {
+      console.error('Error saving cast member:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save cast member';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const saveEnsembleMember = async (userId: string) => {
+    try {
+      setIsSaving(true);
+
+      // Get existing cast members
+      const existingCast = await getAuditionCastMembers(audition.audition_id);
+      const existingEnsemble = existingCast.filter((cm) => !cm.role_id && !cm.audition_role_id);
+
+      // If already in ensemble, do nothing
+      if (existingEnsemble.some((cm) => cm.user_id === userId)) {
+        return;
+      }
+
+      const { error: createError } = await createCastMember({
+        audition_id: audition.audition_id,
+        role_id: null as any,
+        audition_role_id: null as any,
+        user_id: userId,
+        status: 'Offered',
+        is_understudy: false,
+      });
+      if (createError) {
+        throw new Error(`Failed to add ensemble member: ${createError.message}`);
+      }
+
+      await loadData();
+      setError(null);
+    } catch (err) {
+      console.error('Error saving ensemble member:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save ensemble member';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const removeEnsembleMember = async (userId: string) => {
+    try {
+      setIsSaving(true);
+
+      const existingCast = await getAuditionCastMembers(audition.audition_id);
+      const existingEnsemble = existingCast.filter((cm) => !cm.role_id && !cm.audition_role_id);
+
+      for (const existing of existingEnsemble) {
+        if (existing.user_id === userId) {
+          await deleteCastMember(existing.cast_member_id);
+        }
+      }
+
+      await loadData();
+      setError(null);
+    } catch (err) {
+      console.error('Error removing ensemble member:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to remove ensemble member';
+      setError(errorMessage);
+      onError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleRoleCastChange = (roleId: string, userId: string) => {
-    setRoleSelections((prev) => ({
-      ...prev,
-      [roleId]: userId,
-    }));
+    setRoleSelections((prev) => {
+      const next = {
+        ...prev,
+        [roleId]: userId,
+      };
+      // Autosave this single role assignment so offers can be sent without a separate save step
+      saveSingleRoleAssignment(roleId, userId, false);
+      return next;
+    });
+
+    // Update local roles state so the UI immediately reflects the saved principal
+    setRoles((prevRoles) =>
+      prevRoles.map((role) => {
+        if (role.audition_role_id !== roleId) return role;
+
+        return {
+          ...role,
+          castMembers: userId
+            ? [
+                // Preserve any existing data for this user if present
+                role.castMembers.find((cm: any) => cm.user_id === userId) || { user_id: userId },
+              ]
+            : [],
+        };
+      })
+    );
   };
 
   const handleUnderstudyCastChange = (roleId: string, userId: string) => {
-    setUnderstudySelections((prev) => ({
-      ...prev,
-      [roleId]: userId,
-    }));
+    setUnderstudySelections((prev) => {
+      const next = {
+        ...prev,
+        [roleId]: userId,
+      };
+      // Autosave this single understudy assignment
+      saveSingleRoleAssignment(roleId, userId, true);
+      return next;
+    });
+
+    // Update local roles state so the UI immediately reflects the saved understudy
+    setRoles((prevRoles) =>
+      prevRoles.map((role) => {
+        if (role.audition_role_id !== roleId) return role;
+
+        return {
+          ...role,
+          understudyCastMembers: userId
+            ? [
+                role.understudyCastMembers.find((cm: any) => cm.user_id === userId) || { user_id: userId },
+              ]
+            : [],
+        };
+      })
+    );
   };
 
   // Generate default offer message
@@ -575,17 +740,21 @@ export default function CastShow({
     setEnsembleMembers((prev) => [
       ...prev,
       {
-        cast_member_id: '', // Will be created on save
+        cast_member_id: '', // Will be created on save / autosave
         user_id: actor.user_id,
         full_name: actor.full_name,
         email: actor.email,
       },
     ]);
+    // Autosave ensemble addition
+    saveEnsembleMember(actor.user_id);
     setSelectedEnsembleActor('');
   };
 
   const handleRemoveEnsembleMember = (userId: string) => {
     setEnsembleMembers((prev) => prev.filter((em) => em.user_id !== userId));
+    // Autosave ensemble removal
+    removeEnsembleMember(userId);
   };
 
   const handleSave = async () => {
