@@ -346,6 +346,7 @@ export async function sendCallbackInvitations(
       action_url: `/notifications`,
       reference_id: invitation.invitation_id,
       reference_type: 'callback_invitation',
+      is_actionable: true,
     });
   });
 
@@ -699,6 +700,7 @@ export async function sendCallbackInvitationByEmail(
           action_url: `/callbacks/${data?.invitation_id}`,
           reference_id: data?.invitation_id,
           reference_type: 'callback_invitation',
+          is_actionable: true,
         });
       }
 

@@ -774,7 +774,9 @@ export interface Notification {
   action_url: string | null;
   reference_id: string | null;
   reference_type: string | null;
-  read: boolean;
+  is_read: boolean; // Matches DB column and UI usage
+  is_actionable: boolean | null;
+  action_taken: string | null;
   created_at: string;
 }
 
@@ -788,11 +790,14 @@ export interface NotificationInsert {
   action_url?: string | null;
   reference_id?: string | null;
   reference_type?: string | null;
-  read?: boolean;
+  is_read?: boolean;
+  is_actionable?: boolean;
+  action_taken?: string | null;
 }
 
 export interface NotificationUpdate {
-  read?: boolean;
+  is_read?: boolean;
+  action_taken?: string | null;
 }
 
 // ============= REHEARSAL EVENT TYPES =============
