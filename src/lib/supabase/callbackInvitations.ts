@@ -343,7 +343,7 @@ export async function sendCallbackInvitations(
       type: 'casting_decision',
       title: `Callback Invitation for ${showTitle}`,
       message: `You've been invited to a callback for ${showTitle} on ${formattedDate} at ${formattedTime}${slot.location ? ` at ${slot.location}` : ''}. Please respond to accept or decline.`,
-      action_url: `/callbacks/${invitation.invitation_id}`,
+      action_url: `/notifications`,
       reference_id: invitation.invitation_id,
       reference_type: 'callback_invitation',
     });
@@ -450,7 +450,7 @@ export async function respondToCallbackInvitation(
     type: 'casting_decision',
     title: `Callback Response: ${email}`,
     message: `${email} has ${statusText} the callback invitation for ${showTitle}.${actorComment ? ` Comment: "${actorComment}"` : ''}`,
-    action_url: `/auditions/${invitation.audition_id}/callbacks`,
+    action_url: `/notifications`,
     reference_id: invitationId,
     reference_type: 'callback_response',
   });

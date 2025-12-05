@@ -61,7 +61,7 @@ export default function NotificationsPage() {
     try {
       const currentUser = await getUser();
       if (!currentUser) {
-        router.push('/login');
+        router.push('/login?redirect=/notifications');
         return;
       }
       setUser(currentUser);

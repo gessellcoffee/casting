@@ -211,8 +211,11 @@ export default function AuditionDetailPage() {
                 ) : null;
               })()}
 
-              {/* Audition Slots (Only if workflow_status is auditioning) */}
-              {audition.workflow_status === 'auditioning' && (
+              {/* Audition Slots
+                - Visible to all users while workflow_status is 'auditioning'
+                - Always visible to managers (owner or production team) so they can review slots later
+              */}
+              {(audition.workflow_status === 'auditioning' || canManage) && (
                 <SlotsList 
                   slots={audition.slots || []} 
                   auditionId={audition.audition_id}

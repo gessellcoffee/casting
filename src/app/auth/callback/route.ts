@@ -9,11 +9,18 @@ export async function GET(request: NextRequest) {
   const type = requestUrl.searchParams.get('type');
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
+  const redirectParam = requestUrl.searchParams.get('redirect');
+  const redirectPath = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
 
   // Handle errors from Supabase
   if (error) {
     console.error('Auth callback error:', error, errorDescription);
-    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(errorDescription || error)}`, requestUrl.origin));
+    const loginUrl = new URL('/login', requestUrl.origin);
+    loginUrl.searchParams.set('error', errorDescription || error);
+    if (redirectPath && redirectPath !== '/') {
+      loginUrl.searchParams.set('redirect', redirectPath);
+    }
+    return NextResponse.redirect(loginUrl);
   }
 
   if (code) {
@@ -43,7 +50,12 @@ export async function GET(request: NextRequest) {
     
     if (exchangeError) {
       console.error('Session exchange error:', exchangeError);
-      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(exchangeError.message)}`, requestUrl.origin));
+      const loginUrl = new URL('/login', requestUrl.origin);
+      loginUrl.searchParams.set('error', exchangeError.message);
+      if (redirectPath && redirectPath !== '/') {
+        loginUrl.searchParams.set('redirect', redirectPath);
+      }
+      return NextResponse.redirect(loginUrl);
     }
   }
 
@@ -53,5 +65,5 @@ export async function GET(request: NextRequest) {
   }
 
   // Otherwise redirect to home page after successful authentication
-  return NextResponse.redirect(new URL('/', requestUrl.origin));
+  return NextResponse.redirect(new URL(redirectPath || '/', requestUrl.origin));
 }

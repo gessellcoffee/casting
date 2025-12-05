@@ -81,7 +81,7 @@ export default function RolesList({ roles, showId, auditionId }: RolesListProps)
           
           return (
             <div
-              key={role.role_id}
+              key={role.audition_role_id || role.role_id}
               className="p-4 rounded-lg bg-neu-surface/50 border border-[#4a7bd9]/10"
             >
               {/* Mobile: Stack vertically, Desktop: Horizontal */}

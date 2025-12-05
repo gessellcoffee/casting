@@ -150,7 +150,7 @@ export async function createCastingOffer(
       type: 'casting_offer' as const,
       title: 'Casting Offer Received',
       message: `${senderName} has offered you${roleInfo} in "${showTitle}"`,
-      action_url: `/auditions/${offerData.auditionId}`,
+      action_url: `/notifications`,
       reference_id: offer.offer_id,
       reference_type: 'casting_offer',
       is_actionable: true,

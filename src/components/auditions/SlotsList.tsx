@@ -79,8 +79,7 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
 
   // Filter and sort slots
   const now = new Date();
-  let availableSlots = slots
-    .filter(slot => new Date(slot.start_time) > now)
+  let availableSlots = (canManage ? slots : slots.filter(slot => new Date(slot.start_time) > now))
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   // Get unique dates for filter dropdown

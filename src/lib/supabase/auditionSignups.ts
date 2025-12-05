@@ -64,7 +64,16 @@ export async function getAuditionSignupWithDetails(signupId: string): Promise<Au
 export async function getSlotSignups(slotId: string): Promise<AuditionSignup[]> {
   const { data, error } = await supabase
     .from('audition_signups')
-    .select('*')
+    .select(`
+      *,
+      profiles!audition_signups_user_id_fkey (
+        id,
+        first_name,
+        last_name,
+        email,
+        profile_photo_url
+      )
+    `)
     .eq('slot_id', slotId)
     .order('created_at', { ascending: true });
 
