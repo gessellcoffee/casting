@@ -14,6 +14,8 @@ export default function LoginPageClient({ redirectTo }: LoginPageClientProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -31,6 +33,12 @@ export default function LoginPageClient({ redirectTo }: LoginPageClientProps) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+            },
+          },
         });
 
         if (error) throw error;
@@ -39,6 +47,8 @@ export default function LoginPageClient({ redirectTo }: LoginPageClientProps) {
           setMessage("Check your email for the confirmation link!");
           setEmail("");
           setPassword("");
+          setFirstName("");
+          setLastName("");
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -109,6 +119,42 @@ export default function LoginPageClient({ redirectTo }: LoginPageClientProps) {
 
           {/* Auth Form */}
           <form onSubmit={handleAuth} className="space-y-4">
+            {isSignUp && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-neu-text-primary mb-2">
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required={isSignUp}
+                    className="neu-input"
+                    placeholder="John"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-neu-text-primary mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required={isSignUp}
+                    className="neu-input"
+                    placeholder="Doe"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neu-text-primary mb-2">
                 Email

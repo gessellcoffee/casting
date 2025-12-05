@@ -14,7 +14,7 @@ import { MdArrowDropDown } from "react-icons/md";
 import { supabase, signOut, getUser } from "@/lib/supabase";
 import { getProfile } from "@/lib/supabase/profile";
 import type { Profile } from "@/lib/supabase/types";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 type NavigationBarProps = {
   logoSrc?: string;
@@ -28,6 +28,7 @@ export default function NavigationBar() {
       const [user, setUser] = useState<any>(null);
       const [profile, setProfile] = useState<Profile | null>(null);
       const router = useRouter();
+      const pathname = usePathname();
       const productionsDropdownRef = useRef<HTMLDivElement>(null);
 
       useEffect(() => {
@@ -50,6 +51,22 @@ export default function NavigationBar() {
           setProfile(null);
         }
       }, [user]);
+
+      // Redirect users without a first and last name to complete their profile
+      useEffect(() => {
+        if (!user?.id || !profile) return;
+
+        const missingName = !profile.first_name || !profile.last_name;
+        if (!missingName) return;
+
+        const currentPath = pathname || "/";
+        const isOnCompleteProfile = currentPath === "/complete-profile";
+        const isAuthRoute = currentPath.startsWith("/login") || currentPath.startsWith("/signup") || currentPath.startsWith("/auth");
+
+        if (!isOnCompleteProfile && !isAuthRoute) {
+          router.push("/complete-profile");
+        }
+      }, [user, profile, pathname, router]);
 
       // Close dropdown when clicking outside
       useEffect(() => {
