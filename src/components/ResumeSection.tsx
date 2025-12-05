@@ -59,6 +59,8 @@ export default function ResumeSection({
   const [showImporter, setShowImporter] = useState(false);
   const [showPDFViewer, setShowPDFViewer] = useState(false);
 
+  const manualResumes = resumes.filter((resume) => resume.source !== 'application');
+
   useEffect(() => {
     loadResumes();
     loadCastingHistory();
@@ -252,7 +254,7 @@ export default function ResumeSection({
     try {
       await generateResumePDF({
         profile,
-        manualResumes: resumes,
+        manualResumes,
         castingHistory: castingHistory,
       });
       setSuccess('Resume exported successfully!');
@@ -548,13 +550,13 @@ export default function ResumeSection({
       )}
 
       {/* Manual Resume Entries Section */}
-      {resumes.length > 0 && (
+      {manualResumes.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neu-text-primary">
             Additional Credits
           </h3>
           <div className="space-y-4">
-            {resumes.map((resume) => (
+            {manualResumes.map((resume) => (
               <ResumeEntry
                 key={resume.resume_entry_id}
                 entry={resume}
@@ -571,7 +573,7 @@ export default function ResumeSection({
       )}
 
       {/* Empty State */}
-      {resumes.length === 0 && castingHistory.length === 0 && !isAddingNew && (
+      {manualResumes.length === 0 && castingHistory.length === 0 && !isAddingNew && (
         <div className="p-8 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border text-center">
           <p className="text-neu-text-primary/70">No resume entries yet.</p>
           {isEditing && (

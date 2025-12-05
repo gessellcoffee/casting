@@ -949,7 +949,7 @@ export interface EventFormData {
 
 // ============= USER RESUME TYPES =============
 
-export type ResumeSource = 'manual' | 'imported' | 'company_approved';
+export type ResumeSource = 'manual' | 'imported' | 'company_approved' | 'application';
 
 export interface UserResume {
   user_resume_id: string;
