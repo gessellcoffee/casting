@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { createAuditionSignup, getUserSignupForAudition, getUserSignupsWithTimes, doSlotsOverlap, deleteAuditionSignup, getSlotSignups } from '@/lib/supabase/auditionSignups';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { MdCalendarToday, MdCheckCircle, MdWarning, MdDelete } from 'react-icons/md';
+import { MdCalendarToday, MdCheckCircle, MdWarning, MdDelete, MdKeyboardArrowDown } from 'react-icons/md';
 import Alert from '@/components/ui/feedback/Alert';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import { formatUSDateWithFullWeekday, formatUSTime } from '@/lib/utils/dateUtils';
@@ -36,6 +36,8 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   // Check if user has already signed up for this audition and get all their signups
   useEffect(() => {
@@ -106,6 +108,117 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
   } else if (filterStatus === 'filled') {
     availableSlots = availableSlots.filter(slot => (slot.current_signups || 0) >= slot.max_signups);
   }
+
+  const toggleDay = (dateKey: string) => {
+    setExpandedDays(prev => ({
+      ...prev,
+      [dateKey]: !prev[dateKey],
+    }));
+  };
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
+
+  const renderSlotRow = (slot: any) => {
+    const startTime = new Date(slot.start_time);
+    const endTime = new Date(slot.end_time);
+    const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+
+    const conflictingSignup = userSignups.find(signup =>
+      signup.audition_slots &&
+      signup.audition_slots.slot_id !== slot.slot_id &&
+      doSlotsOverlap(
+        slot.start_time,
+        slot.end_time,
+        signup.audition_slots.start_time,
+        signup.audition_slots.end_time
+      )
+    );
+    const hasConflict = !!conflictingSignup;
+
+    return (
+      <div
+        key={slot.slot_id}
+        className="calendar-slot-card p-4 rounded-lg flex items-center justify-between"
+      >
+        <div className="flex-1">
+          <div className="text-neu-text-primary font-medium">
+            {formatUSDateWithFullWeekday(startTime)}
+          </div>
+          <div className="text-neu-text-primary/70 text-sm">
+            {formatUSTime(startTime)} - {formatUSTime(endTime)} ({duration} min)
+          </div>
+          {slot.location && (
+            <div className="text-neu-text-primary/60 text-xs mt-1">
+              📍 {slot.location}
+            </div>
+          )}
+          <div className="text-neu-text-primary/50 text-xs mt-1">
+            {slot.current_signups || 0} / {slot.max_signups} signed up
+          </div>
+
+          {/* Show avatars for production team/owners */}
+          {canManage && slotSignups[slot.slot_id] && slotSignups[slot.slot_id].length > 0 && (
+            <div className="flex items-center gap-1 mt-2 flex-wrap">
+              {slotSignups[slot.slot_id].map((signup: any) => {
+                const userName = signup.profiles?.first_name && signup.profiles?.last_name
+                  ? `${signup.profiles.first_name} ${signup.profiles.last_name}`
+                  : signup.profiles?.email || 'User';
+                return (
+                  <Avatar
+                    key={signup.signup_id}
+                    src={signup.profiles?.profile_photo_url}
+                    alt={userName}
+                    size="sm"
+                    onClick={() => setSelectedUserId(signup.user_id)}
+                  />
+                );
+              })}
+            </div>
+          )}
+          {hasConflict && (
+            <div className="flex items-center gap-1 text-orange-300 text-xs mt-1">
+              <MdWarning className="w-3 h-3" />
+              <span className="text-orange-300/90">Time conflict with another audition</span>
+            </div>
+          )}
+        </div>
+
+        {userSignup && userSignup.audition_slots.slot_id === slot.slot_id ? (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-accent-success font-medium shadow-[4px_4px_8px_rgba(163,177,198,0.3),-2px_-2px_6px_rgba(255,255,255,0.4)]">
+            <MdCheckCircle className="w-5 h-5" />
+            Signed Up
+          </div>
+        ) : (
+          <button
+            onClick={() => handleSignup(slot.slot_id, slot)}
+            disabled={
+              signingUp === slot.slot_id ||
+              (slot.current_signups >= slot.max_signups) ||
+              (userSignup !== null) ||
+              hasConflict ||
+              isLoadingSignup
+            }
+            className="n-button-primary px-4 py-2 rounded-lg font-medium"
+          >
+            {signingUp === slot.slot_id
+              ? 'Signing up...'
+              : slot.current_signups >= slot.max_signups
+              ? 'Full'
+              : userSignup !== null
+              ? 'Already Signed Up'
+              : hasConflict
+              ? 'Time Conflict'
+              : 'Sign Up'}
+          </button>
+        )}
+      </div>
+    );
+  };
 
   const handleSignup = async (slotId: string, slot?: any) => {
     if (!user) {
@@ -309,104 +422,93 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
           }
         />
       ) : (
-        <div className="space-y-3">
-        {availableSlots.map((slot) => {
-          const startTime = new Date(slot.start_time);
-          const endTime = new Date(slot.end_time);
-          const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-          
-          // Check if this slot conflicts with any existing signups
-          const conflictingSignup = userSignups.find(signup => 
-            signup.audition_slots && 
-            signup.audition_slots.slot_id !== slot.slot_id &&
-            doSlotsOverlap(
-              slot.start_time,
-              slot.end_time,
-              signup.audition_slots.start_time,
-              signup.audition_slots.end_time
-            )
-          );
-          const hasConflict = !!conflictingSignup;
+        <div className="space-y-4">
+          {(() => {
+            const slotsByDate: Record<string, any[]> = {};
+            availableSlots.forEach((slot) => {
+              const dateKey = new Date(slot.start_time).toISOString().slice(0, 10);
+              if (!slotsByDate[dateKey]) {
+                slotsByDate[dateKey] = [];
+              }
+              slotsByDate[dateKey].push(slot);
+            });
 
-          return (
-            <div
-              key={slot.slot_id}
-              className="calendar-slot-card p-4 rounded-lg flex items-center justify-between"
-            >
-              <div className="flex-1">
-                <div className="text-neu-text-primary font-medium">
-                  {formatUSDateWithFullWeekday(startTime)}
-                </div>
-                <div className="text-neu-text-primary/70 text-sm">
-                  {formatUSTime(startTime)} - {formatUSTime(endTime)} ({duration} min)
-                </div>
-                {slot.location && (
-                  <div className="text-neu-text-primary/60 text-xs mt-1">
-                    📍 {slot.location}
-                  </div>
-                )}
-                <div className="text-neu-text-primary/50 text-xs mt-1">
-                  {slot.current_signups || 0} / {slot.max_signups} signed up
-                </div>
-                
-                {/* Show avatars for production team/owners */}
-                {canManage && slotSignups[slot.slot_id] && slotSignups[slot.slot_id].length > 0 && (
-                  <div className="flex items-center gap-1 mt-2 flex-wrap">
-                    {slotSignups[slot.slot_id].map((signup: any) => {
-                      const userName = signup.profiles?.first_name && signup.profiles?.last_name
-                        ? `${signup.profiles.first_name} ${signup.profiles.last_name}`
-                        : signup.profiles?.email || 'User';
+            return Object.entries(slotsByDate)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([dateKey, dateSlots]) => {
+                if (dateSlots.length === 0) return null;
+
+                const dayLabel = formatUSDateWithFullWeekday(new Date(dateSlots[0].start_time));
+                const isDayExpanded = !!expandedDays[dateKey];
+
+                const groups: any[][] = [];
+                for (let i = 0; i < dateSlots.length; i += 10) {
+                  groups.push(dateSlots.slice(i, i + 10));
+                }
+
+                return (
+                  <div key={dateKey} className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleDay(dateKey)}
+                      className="w-full flex items-center justify-between px-2 py-2 text-left"
+                      aria-expanded={isDayExpanded}
+                    >
+                      <span className="text-sm font-semibold text-neu-text-primary/80">
+                        {dayLabel}
+                      </span>
+                      <MdKeyboardArrowDown
+                        className={`w-5 h-5 text-neu-text-primary/70 transition-transform ${
+                          isDayExpanded ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isDayExpanded && groups.map((group, groupIndex) => {
+                      const globalStartIndex = groupIndex * 10;
+                      const firstSlot = group[0];
+                      const lastSlot = group[group.length - 1];
+                      const firstStart = new Date(firstSlot.start_time);
+                      const lastEnd = new Date(lastSlot.end_time || lastSlot.start_time);
+                      const timeRangeLabel = `${formatUSTime(firstStart)} - ${formatUSTime(lastEnd)}`;
+                      const indexLabel = `Slots ${globalStartIndex + 1}-${globalStartIndex + group.length}`;
+                      const groupId = `${dateKey}-group-${groupIndex}`;
+                      const isExpanded = !!expandedGroups[groupId];
+
                       return (
-                        <Avatar
-                          key={signup.signup_id}
-                          src={signup.profiles?.profile_photo_url}
-                          alt={userName}
-                          size="sm"
-                          onClick={() => setSelectedUserId(signup.user_id)}
-                        />
+                        <div key={groupId} className="neu-card-raised rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => toggleGroup(groupId)}
+                            className="w-full flex items-center justify-between px-4 py-3 text-left"
+                            aria-expanded={isExpanded}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                              <span className="font-medium text-neu-text-primary text-sm sm:text-base">
+                                {indexLabel}
+                              </span>
+                              <span className="text-xs sm:text-sm text-neu-text-primary/70">
+                                {timeRangeLabel}
+                              </span>
+                            </div>
+                            <MdKeyboardArrowDown
+                              className={`w-5 h-5 text-neu-text-primary/70 transition-transform ${
+                                isExpanded ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+                          {isExpanded && (
+                            <div className="border-t border-neu-border px-4 py-3 space-y-3">
+                              {group.map((slot) => renderSlotRow(slot))}
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
-                )}
-                {hasConflict && (
-                  <div className="flex items-center gap-1 text-orange-300 text-xs mt-1">
-                    <MdWarning className="w-3 h-3" />
-                    <span className="text-orange-300/90">Time conflict with another audition</span>
-                  </div>
-                )}
-              </div>
-
-              {userSignup && userSignup.audition_slots.slot_id === slot.slot_id ? (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neu-surface border border-neu-border text-neu-accent-success font-medium shadow-[4px_4px_8px_rgba(163,177,198,0.3),-2px_-2px_6px_rgba(255,255,255,0.4)]">
-                  <MdCheckCircle className="w-5 h-5" />
-                  Signed Up
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleSignup(slot.slot_id, slot)}
-                  disabled={
-                    signingUp === slot.slot_id || 
-                    (slot.current_signups >= slot.max_signups) ||
-                    (userSignup !== null) ||
-                    hasConflict ||
-                    isLoadingSignup
-                  }
-                  className="n-button-primary px-4 py-2 rounded-lg font-medium"
-                >
-                  {signingUp === slot.slot_id
-                    ? 'Signing up...'
-                    : slot.current_signups >= slot.max_signups
-                    ? 'Full'
-                    : userSignup !== null
-                    ? 'Already Signed Up'
-                    : hasConflict
-                    ? 'Time Conflict'
-                    : 'Sign Up'}
-                </button>
-              )}
-            </div>
-          );
-        })}
+                );
+              });
+          })()}
         </div>
       )}
 
