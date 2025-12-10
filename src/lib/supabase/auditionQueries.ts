@@ -214,3 +214,18 @@ export async function searchAuditions(query: string) {
 
   return { data, error: null };
 }
+export async function updateAudition(auditionId: string, updates: any) {
+  const { data, error } = await supabase
+    .from('auditions')
+    .update(updates)
+    .eq('audition_id', auditionId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating audition:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
