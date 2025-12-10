@@ -48,7 +48,6 @@ export async function updateProfile(
     id: userId,
     email: user.email || '',
     ...updates,
-    updated_at: new Date().toISOString(),
   };
 
   const { data, error } = await supabase
