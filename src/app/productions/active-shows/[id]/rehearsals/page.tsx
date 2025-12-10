@@ -4,12 +4,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { getRehearsalEvents, canManageRehearsalEvents, deleteRehearsalEvent } from '@/lib/supabase/rehearsalEvents';
+import { getBatchConflictSummary } from '@/lib/supabase/agendaItems';
 import { getUser } from '@/lib/supabase';
 import StarryContainer from '@/components/StarryContainer';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import WorkflowStatusBadge from '@/components/productions/WorkflowStatusBadge';
 import Button from '@/components/Button';
-import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAccessTime, MdCalendarToday, MdArrowBack, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import Avatar from '@/components/shared/Avatar';
+import ConflictsModal from '@/components/productions/ConflictsModal';
+import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAccessTime, MdCalendarToday, MdArrowBack, MdChevronLeft, MdChevronRight, MdWarning } from 'react-icons/md';
 import { formatUSDate, isToday } from '@/lib/utils/dateUtils';
 import type { RehearsalEvent } from '@/lib/supabase/types';
 import RehearsalEventForm from '@/components/productions/RehearsalEventForm';
@@ -18,6 +21,18 @@ import ConfirmationModal from '@/components/shared/ConfirmationModal';
 // Helper function to format time string (HH:MM:SS) to 12-hour format
 function formatTimeString(timeString: string): string {
   if (!timeString) return '';
+  
+  // Handle ISO date strings (e.g. from personal events)
+  if (timeString.includes('T')) {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  }
+
+  // Handle simple time strings (HH:MM:SS)
   const [hours, minutes] = timeString.split(':');
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -36,6 +51,9 @@ export default function RehearsalsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [conflicts, setConflicts] = useState<Record<string, any[]>>({});
+  const [loadingConflicts, setLoadingConflicts] = useState(false);
+  const [selectedConflictEvent, setSelectedConflictEvent] = useState<string | null>(null);
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -161,6 +179,28 @@ export default function RehearsalsPage() {
     return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
   }, [currentDate]);
 
+  // Load conflicts when calendar view changes
+  useEffect(() => {
+    if (calendarDays.length > 0 && params.id) {
+      loadConflicts();
+    }
+  }, [calendarDays, params.id]);
+
+  const loadConflicts = async () => {
+    if (!calendarDays.length) return;
+    
+    setLoadingConflicts(true);
+    const startDate = calendarDays[0].fullDate;
+    const endDate = calendarDays[calendarDays.length - 1].fullDate;
+    
+    const { data } = await getBatchConflictSummary(params.id as string, startDate, endDate);
+    
+    if (data) {
+      setConflicts(prev => ({ ...prev, ...data }));
+    }
+    setLoadingConflicts(false);
+  };
+
   // Parse YYYY-MM-DD string as local date to avoid UTC conversion
   const parseLocalDate = (dateString: string): Date => {
     const [year, month, day] = dateString.split('-').map(Number);
@@ -254,9 +294,16 @@ export default function RehearsalsPage() {
               {/* Calendar Header */}
               <div className="calendar-header-border p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                  <h2 className="text-xl sm:text-2xl font-semibold text-neu-text-primary">
-                    {periodDisplay}
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-neu-text-primary">
+                      {periodDisplay}
+                    </h2>
+                    {loadingConflicts && (
+                      <span className="text-xs text-neu-text-secondary animate-pulse">
+                        Checking conflicts...
+                      </span>
+                    )}
+                  </div>
                   
                   {/* Add Rehearsal Button */}
                   {canManage && (
@@ -334,7 +381,7 @@ export default function RehearsalsPage() {
                         return (
                           <div
                             key={index}
-                            className={`min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 rounded-lg border transition-all duration-200 ${
+                            className={`min-h-[100px] sm:min-h-[140px] p-1 sm:p-2 rounded-lg border transition-all duration-200 ${
                               day.isCurrentMonth
                                 ? 'bg-neu-surface/30 border-neu-border'
                                 : 'bg-neu-surface/10 border-[#4a7bd9]/10'
@@ -355,6 +402,10 @@ export default function RehearsalsPage() {
                             <div className="space-y-1">
                               {dayRehearsals.map((event) => {
                                 const startTime = formatTimeString(event.start_time);
+                                const eventConflicts = conflicts[event.rehearsal_events_id] || [];
+                                const hasConflicts = eventConflicts.length > 0;
+                                const showAvatars = hasConflicts && eventConflicts.length <= 3;
+                                const showWarning = hasConflicts && eventConflicts.length > 3;
                                 
                                 return (
                                   <div
@@ -366,18 +417,59 @@ export default function RehearsalsPage() {
                                         e.stopPropagation();
                                         router.push(`/productions/active-shows/${params.id}/rehearsals/${event.rehearsal_events_id}`);
                                       }}
-                                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-amber-500/20 backdrop-blur-sm border border-amber-500/50 text-neu-text-primary hover:bg-amber-500/30 hover:border-amber-500/70 transition-all duration-200 truncate"
+                                      className="w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs bg-amber-500/20 backdrop-blur-sm border border-amber-500/50 text-neu-text-primary hover:bg-amber-500/30 hover:border-amber-500/70 transition-all duration-200"
                                     >
-                                      <div className="font-medium truncate flex items-center gap-1">
-                                        <span className="shrink-0">🎬</span>
-                                        <span className="truncate">Rehearsal</span>
+                                      <div className="flex items-center justify-between mb-0.5">
+                                        <div className="font-medium truncate flex items-center gap-1">
+                                          <span className="shrink-0">🎬</span>
+                                          <span className="truncate">Rehearsal</span>
+                                        </div>
+                                        {showWarning && (
+                                          <div 
+                                            className="flex items-center gap-0.5 bg-yellow-500/90 text-white rounded-full px-1 py-0.5 hover:bg-yellow-600 transition-colors cursor-pointer"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSelectedConflictEvent(event.rehearsal_events_id);
+                                            }}
+                                            title={`${eventConflicts.length} users with conflicts`}
+                                          >
+                                            <MdWarning className="w-3 h-3" />
+                                            <span className="text-[9px] font-bold">{eventConflicts.length}</span>
+                                          </div>
+                                        )}
                                       </div>
                                       <div className="text-amber-400 text-[9px] sm:text-[10px] truncate">
                                         {startTime}
                                       </div>
                                       {event.location && (
-                                        <div className="text-amber-400/70 text-[9px] truncate">
+                                        <div className="text-amber-400/70 text-[9px] truncate mb-0.5">
                                           📍 {event.location}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Conflict Avatars */}
+                                      {showAvatars && (
+                                        <div 
+                                          className="flex items-center -space-x-1.5 mt-1 relative z-10"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedConflictEvent(event.rehearsal_events_id);
+                                          }}
+                                        >
+                                          {eventConflicts.map((c: any) => (
+                                            <div 
+                                              key={c.user.id} 
+                                              className="ring-1 ring-amber-500 rounded-full bg-neu-surface cursor-pointer hover:z-20 hover:scale-110 transition-transform"
+                                              title={`${c.user.first_name} ${c.user.last_name}: ${c.conflicts.length} conflicts`}
+                                            >
+                                              <Avatar
+                                                src={c.user.profile_photo_url}
+                                                alt={`${c.user.first_name} ${c.user.last_name}`}
+                                                size="sm"
+                                                className="w-4 h-4 text-[8px]"
+                                              />
+                                            </div>
+                                          ))}
                                         </div>
                                       )}
                                     </button>
@@ -390,7 +482,7 @@ export default function RehearsalsPage() {
                                           handleDelete(event.rehearsal_events_id);
                                         }}
                                         disabled={deleting === event.rehearsal_events_id}
-                                        className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500/90 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover/event:opacity-100 transition-opacity disabled:opacity-50 shadow-lg"
+                                        className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500/90 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover/event:opacity-100 transition-opacity disabled:opacity-50 shadow-lg z-20"
                                         title="Delete rehearsal"
                                       >
                                         <MdDelete className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -426,12 +518,35 @@ export default function RehearsalsPage() {
               setShowAddForm(false);
               setSelectedDate(null);
               loadData();
+              loadConflicts(); // Reload conflicts
             }}
             onCancel={() => {
               setShowAddForm(false);
               setSelectedDate(null);
             }}
             initialDate={selectedDate}
+          />
+        )}
+
+        {/* Conflicts Modal */}
+        {selectedConflictEvent && conflicts[selectedConflictEvent] && (
+          <ConflictsModal
+            isOpen={!!selectedConflictEvent}
+            onClose={() => setSelectedConflictEvent(null)}
+            agendaItems={[{
+              rehearsal_agenda_items_id: 'batch-view',
+              title: 'All Conflicts for this Event',
+              start_time: rehearsalEvents.find(e => e.rehearsal_events_id === selectedConflictEvent)?.start_time || '',
+              end_time: rehearsalEvents.find(e => e.rehearsal_events_id === selectedConflictEvent)?.end_time || '',
+              conflicts: conflicts[selectedConflictEvent].map(c => ({
+                agenda_assignments_id: 'batch-' + c.user.id,
+                status: 'conflict',
+                user_id: c.user.id,
+                profiles: c.user,
+                conflicting_events: c.conflicts
+              }))
+            }]}
+            formatTimeString={formatTimeString}
           />
         )}
       </StarryContainer>

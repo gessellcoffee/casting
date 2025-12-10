@@ -6,6 +6,8 @@ import Avatar from '@/components/shared/Avatar';
 interface ConflictingEvent {
   type: string;
   title: string;
+  start_time: string;
+  end_time: string;
 }
 
 interface ConflictAssignment {
@@ -136,9 +138,16 @@ export default function ConflictsModal({
                             </span>
                           </div>
                           {/* Generic conflict message - privacy protected */}
-                          <p className="text-sm text-neu-text-secondary mt-2">
-                            Has a scheduling conflict during this time
-                          </p>
+                          <div className="mt-2 space-y-1">
+                            {conflict.conflicting_events?.map((event, index) => (
+                              <div key={index} className="text-sm text-neu-text-secondary flex flex-col">
+                                <span className="font-medium">Busy</span>
+                                <span className="text-xs opacity-75">
+                                  {formatTimeString(event.start_time)} - {formatTimeString(event.end_time)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>

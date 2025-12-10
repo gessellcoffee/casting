@@ -47,6 +47,7 @@ interface CastingData {
     workflowStatus: 'auditioning' | 'casting' | 'offering_roles' | 'rehearsing' | 'performing' | 'completed';
     virtualAuditionsEnabled: boolean;
     virtualAuditionInstructions: string;
+    showCastPublicly: boolean;
   };
   slots: any[];
 }
@@ -80,6 +81,7 @@ export default function NewCastingPage() {
       workflowStatus: 'auditioning',
       virtualAuditionsEnabled: false,
       virtualAuditionInstructions: '',
+      showCastPublicly: false,
     },
     slots: [],
   });

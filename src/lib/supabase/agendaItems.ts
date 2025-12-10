@@ -473,7 +473,9 @@ export async function getConflictSummary(rehearsalEventId: string) {
             )) {
               conflictingEvents.push({
                 type: 'Audition Signup',
-                title: (signupGroup.audition as any)?.shows?.title || 'Audition'
+                title: (signupGroup.audition as any)?.shows?.title || 'Audition',
+                start_time: signup.audition_slots.start_time,
+                end_time: signup.audition_slots.end_time
               });
             }
           }
@@ -492,7 +494,9 @@ export async function getConflictSummary(rehearsalEventId: string) {
           )) {
             conflictingEvents.push({
               type: 'Callback',
-              title: callback.callback_slots?.auditions?.shows?.title || 'Callback'
+              title: callback.callback_slots?.auditions?.shows?.title || 'Callback',
+              start_time: callback.callback_slots.start_time,
+              end_time: callback.callback_slots.end_time
             });
           }
         }
@@ -507,7 +511,9 @@ export async function getConflictSummary(rehearsalEventId: string) {
           if (doTimeRangesOverlap(itemStart, itemEnd, otherStart, otherEnd)) {
             conflictingEvents.push({
               type: 'Rehearsal',
-              title: otherItem.rehearsal_events?.auditions?.shows?.title || 'Rehearsal'
+              title: otherItem.rehearsal_events?.auditions?.shows?.title || 'Rehearsal',
+              start_time: otherStart.toISOString(),
+              end_time: otherEnd.toISOString()
             });
           }
         }
@@ -527,7 +533,9 @@ export async function getConflictSummary(rehearsalEventId: string) {
             console.log(`[Conflict Detection]   ✓ CONFLICT FOUND with personal event "${event.title}"`);
             conflictingEvents.push({
               type: 'Personal Event',
-              title: event.title
+              title: event.title,
+              start_time: event.start,
+              end_time: event.end
             });
           }
         }
@@ -569,4 +577,204 @@ export async function getConflictSummary(rehearsalEventId: string) {
   })));
 
   return { data: filteredItems, error: null };
+}
+
+/**
+ * Get conflict summary for multiple rehearsal events in a date range
+ * Optimized to fetch user calendar data once per user instead of per event
+ */
+export async function getBatchConflictSummary(
+  auditionId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  console.log('=== BATCH CONFLICT DETECTION STARTING ===');
+  console.log('Audition ID:', auditionId);
+  console.log('Range:', startDate.toISOString(), 'to', endDate.toISOString());
+
+  // 1. Get all rehearsal events with agenda items in range
+  const { data: events, error: eventsError } = await supabase
+    .from('rehearsal_events')
+    .select(`
+      rehearsal_events_id,
+      date,
+      start_time,
+      end_time,
+      rehearsal_agenda_items (
+        rehearsal_agenda_items_id,
+        title,
+        start_time,
+        end_time
+      )
+    `)
+    .eq('audition_id', auditionId)
+    .gte('date', startDate.toISOString().split('T')[0])
+    .lte('date', endDate.toISOString().split('T')[0]);
+
+  if (eventsError) {
+    console.error('Error fetching batch rehearsal events:', eventsError);
+    return { data: null, error: eventsError };
+  }
+
+  if (!events || events.length === 0) {
+    return { data: {}, error: null };
+  }
+
+  // 2. Get all cast members
+  const { data: castMembers, error: castError } = await getCastMembers(auditionId);
+  
+  if (castError || !castMembers || castMembers.length === 0) {
+    return { data: {}, error: castError };
+  }
+
+  console.log(`Checking conflicts for ${events.length} events and ${castMembers.length} cast members`);
+
+  // 3. Fetch calendar data for all cast members (parallel)
+  const userDataMap = new Map();
+  
+  // Helper to fetch data for one user
+  const fetchUserData = async (member: any) => {
+    try {
+      // Pass the date range to getEvents to limit personal events
+      const results = await Promise.allSettled([
+        getUserSignupsWithDetails(member.user_id),
+        getUserAcceptedCallbacks(member.user_id),
+        getUserRehearsalAgendaItems(member.user_id),
+        getEvents(startDate, endDate, member.user_id)
+      ]);
+
+      const signups = results[0].status === 'fulfilled' ? results[0].value : [];
+      const callbacks = results[1].status === 'fulfilled' ? results[1].value : [];
+      const agendaItems = results[2].status === 'fulfilled' ? results[2].value : [];
+      const personalEvents = results[3].status === 'fulfilled' ? results[3].value : [];
+
+      userDataMap.set(member.user_id, {
+        member,
+        signups,
+        callbacks,
+        agendaItems,
+        personalEvents
+      });
+    } catch (error) {
+      console.error(`Error fetching data for user ${member.user_id}:`, error);
+    }
+  };
+
+  // Run in parallel (browser will limit concurrency)
+  await Promise.all(castMembers.map(fetchUserData));
+
+  // 4. Compute conflicts
+  const eventConflicts: Record<string, any[]> = {};
+
+  for (const event of events) {
+    const conflictingUsersMap = new Map(); // Use Map to track unique users and their conflict details
+
+    // For each agenda item in this event
+    for (const item of event.rehearsal_agenda_items) {
+      const itemStart = new Date(`${event.date}T${item.start_time}`);
+      const itemEnd = new Date(`${event.date}T${item.end_time}`);
+
+      // Check each user
+      for (const [userId, userData] of userDataMap.entries()) {
+        const { member, signups, callbacks, agendaItems, personalEvents } = userData;
+        const conflictingEvents = [];
+
+        // Check audition signups
+        for (const signupGroup of signups) {
+          for (const signup of signupGroup.signups) {
+            if (signup.audition_slots && doTimeRangesOverlap(
+              itemStart, itemEnd,
+              signup.audition_slots.start_time, signup.audition_slots.end_time
+            )) {
+              conflictingEvents.push({
+                type: 'Audition Signup',
+                title: (signupGroup.audition as any)?.shows?.title || 'Audition',
+                start_time: signup.audition_slots.start_time,
+                end_time: signup.audition_slots.end_time
+              });
+            }
+          }
+        }
+
+        // Check callbacks
+        for (const callback of callbacks) {
+          if (callback.callback_slots?.start_time && callback.callback_slots?.end_time && doTimeRangesOverlap(
+            itemStart, itemEnd,
+            callback.callback_slots.start_time, callback.callback_slots.end_time
+          )) {
+            conflictingEvents.push({
+              type: 'Callback',
+              title: callback.callback_slots?.auditions?.shows?.title || 'Callback',
+              start_time: callback.callback_slots.start_time,
+              end_time: callback.callback_slots.end_time
+            });
+          }
+        }
+
+        // Check other rehearsals
+        for (const otherItem of agendaItems) {
+          if (otherItem.rehearsal_agenda_items_id !== item.rehearsal_agenda_items_id &&
+              otherItem.rehearsal_events?.date) {
+            const otherStart = new Date(`${otherItem.rehearsal_events.date}T${otherItem.start_time}`);
+            const otherEnd = new Date(`${otherItem.rehearsal_events.date}T${otherItem.end_time}`);
+            if (doTimeRangesOverlap(itemStart, itemEnd, otherStart, otherEnd)) {
+              conflictingEvents.push({
+                type: 'Rehearsal',
+                title: otherItem.rehearsal_events?.auditions?.shows?.title || 'Rehearsal',
+                start_time: otherStart.toISOString(),
+                end_time: otherEnd.toISOString()
+              });
+            }
+          }
+        }
+
+        // Check personal events
+        for (const pEvent of personalEvents) {
+          if (pEvent.start && pEvent.end) {
+            const pStart = new Date(pEvent.start);
+            const pEnd = new Date(pEvent.end);
+            if (doTimeRangesOverlap(itemStart, itemEnd, pStart, pEnd)) {
+              conflictingEvents.push({
+                type: 'Personal Event',
+                title: pEvent.title,
+                start_time: pEvent.start,
+                end_time: pEvent.end
+              });
+            }
+          }
+        }
+
+        if (conflictingEvents.length > 0) {
+          // If user already has conflicts for this event, merge them
+          const existing = conflictingUsersMap.get(userId);
+          if (existing) {
+            // Add new conflicts avoiding duplicates
+            const existingTitles = new Set(existing.conflicts.map((c: any) => `${c.type}:${c.title}`));
+            conflictingEvents.forEach(c => {
+              if (!existingTitles.has(`${c.type}:${c.title}`)) {
+                existing.conflicts.push(c);
+              }
+            });
+          } else {
+            conflictingUsersMap.set(userId, {
+              user: {
+                id: member.profiles.id,
+                first_name: member.profiles.first_name,
+                last_name: member.profiles.last_name,
+                profile_photo_url: member.profiles.profile_photo_url
+              },
+              conflicts: conflictingEvents
+            });
+          }
+        }
+      }
+    }
+
+    if (conflictingUsersMap.size > 0) {
+      eventConflicts[event.rehearsal_events_id] = Array.from(conflictingUsersMap.values());
+    }
+  }
+
+  console.log(`[Batch Conflict Detection] Found conflicts for ${Object.keys(eventConflicts).length} events`);
+  return { data: eventConflicts, error: null };
 }

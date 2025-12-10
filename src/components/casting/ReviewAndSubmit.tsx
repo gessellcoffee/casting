@@ -59,6 +59,7 @@ export default function ReviewAndSubmit({
         pay_range: castingData.auditionDetails.payRange || null,
         pay_comments: castingData.auditionDetails.payComments || null,
         workflow_status: castingData.auditionDetails.workflowStatus,
+        show_cast_publicly: castingData.auditionDetails.showCastPublicly,
       });
 
       if (auditionError || !audition) {

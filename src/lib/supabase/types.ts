@@ -403,6 +403,8 @@ export interface Audition {
   additional_pay_info: string | null;
   workflow_status: string;
   submission_deadline: string | null;
+  show_filled_slots: boolean;
+  show_cast_publicly: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -429,6 +431,8 @@ export interface AuditionInsert {
   additional_pay_info?: string | null;
   workflow_status?: string;
   submission_deadline?: string | null;
+  show_filled_slots?: boolean;
+  show_cast_publicly?: boolean;
 }
 
 export interface AuditionUpdate {

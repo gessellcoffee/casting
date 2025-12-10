@@ -22,6 +22,18 @@ import UserProfileModal from '@/components/casting/UserProfileModal';
 // Helper function to format time string (HH:MM:SS) to 12-hour format
 function formatTimeString(timeString: string): string {
   if (!timeString) return '';
+  
+  // Handle ISO date strings (e.g. from personal events)
+  if (timeString.includes('T')) {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  }
+
+  // Handle simple time strings (HH:MM:SS)
   const [hours, minutes] = timeString.split(':');
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? 'PM' : 'AM';

@@ -57,6 +57,7 @@ export default function EditAuditionPage() {
     workflowStatus: 'auditioning' as WorkflowStatus,
     virtualAuditionsEnabled: false,
     virtualAuditionInstructions: '',
+    showCastPublicly: false,
   });
   const [slots, setSlots] = useState<any[]>([]);
 
@@ -135,6 +136,7 @@ export default function EditAuditionPage() {
       workflowStatus: (data.workflow_status || 'auditioning') as WorkflowStatus,
       virtualAuditionsEnabled: data.virtual_auditions_enabled || false,
       virtualAuditionInstructions: data.virtual_audition_instructions || '',
+      showCastPublicly: data.show_cast_publicly || false,
     };
     
     setAuditionDetails(parsedDetails);
@@ -164,6 +166,7 @@ export default function EditAuditionPage() {
         workflow_status: auditionDetails.workflowStatus,
         virtual_auditions_enabled: auditionDetails.virtualAuditionsEnabled,
         virtual_audition_instructions: auditionDetails.virtualAuditionInstructions,
+        show_cast_publicly: auditionDetails.showCastPublicly,
       };
 
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);
