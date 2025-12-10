@@ -230,7 +230,7 @@ export default function ResumeEntry({
                 <h3 className="text-lg font-semibold text-neu-text-primary mb-1">
                   {entry.show_name || 'Untitled Production'}
                 </h3>
-                {(entry.source === 'manual' && entry.company_approved) && (
+                {(entry.source === 'Manual' && entry.company_approved) && (
                   <svg
                     className="w-5 h-5 text-green-400 flex-shrink-0"
                     fill="none"
