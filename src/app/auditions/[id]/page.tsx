@@ -54,6 +54,23 @@ export default function AuditionDetailPage() {
     });
   };
 
+  const handleToggleCastVisibility = async (value: boolean) => {
+    if (!audition) return;
+
+    // Optimistic UI update
+    setAudition({ ...audition, show_cast_publicly: value });
+
+    const { error } = await updateAudition(audition.audition_id, {
+      show_cast_publicly: value,
+    });
+
+    if (error) {
+      console.error('Error updating show_cast_publicly:', error);
+      // revert on error
+      setAudition({ ...audition, show_cast_publicly: !value });
+    }
+  };
+
   const loadAudition = async () => {
     setLoading(true);
     const { data, error } = await getAuditionById(params.id as string);
@@ -153,6 +170,30 @@ export default function AuditionDetailPage() {
                     setAudition({ ...audition, workflow_status: newStatus });
                   }}
                 />
+              </div>
+
+              {/* Cast Visibility */}
+              <div className="mb-6">
+                <div className="flex items-center gap-3">
+                  <input
+                    id="show_cast_publicly"
+                    type="checkbox"
+                    checked={audition.show_cast_publicly}
+                    onChange={(e) => handleToggleCastVisibility(e.target.checked)}
+                    className="w-4 h-4 text-neu-accent-primary bg-neu-surface border-neu-border rounded focus:ring-2 focus:ring-neu-accent-primary/50"
+                  />
+                  <label
+                    htmlFor="show_cast_publicly"
+                    className="text-sm font-medium text-neu-text-primary cursor-pointer"
+                  >
+                    Publish cast list on audition page
+                  </label>
+                </div>
+                {!audition.show_cast_publicly && (
+                  <p className="text-xs text-neu-text-primary/70 mt-1 pl-7">
+                    Cast list is currently hidden from actors. Only the role list is visible on the audition page.
+                  </p>
+                )}
               </div>
 
               {/* Action Buttons */}

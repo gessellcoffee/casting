@@ -39,6 +39,7 @@ interface AuditionDetails {
   workflowStatus: WorkflowStatus;
   virtualAuditionsEnabled: boolean;
   virtualAuditionInstructions: string;
+  showCastPublicly: boolean;
 }
 
 interface AuditionDetailsFormProps {
@@ -229,6 +230,28 @@ export default function AuditionDetailsForm({
               Audition slots are not required for productions in {localDetails.workflowStatus} status.
             </Alert>
           )}
+
+          {/* Show Cast Publicly Toggle */}
+          <div className="mt-4 pt-4 border-t border-neu-border">
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="showCastPublicly"
+                checked={localDetails.showCastPublicly}
+                onChange={(e) => updateField('showCastPublicly', e.target.checked)}
+                className="mt-1 w-4 h-4 text-neu-accent-primary bg-neu-surface border-neu-border rounded focus:ring-2 focus:ring-neu-accent-primary/50"
+              />
+              <div>
+                <label htmlFor="showCastPublicly" className="block text-sm font-medium text-neu-text-primary cursor-pointer">
+                  Publish cast list on audition page
+                </label>
+                <p className="text-xs text-neu-text-primary/70 mt-1">
+                  When enabled, the cast list will be visible to everyone visiting the audition page. 
+                  When disabled, only you and your production team can see the cast list.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         {/* Audition Information - Only shown for auditioning status */}
         {localDetails.workflowStatus === 'auditioning' && (
