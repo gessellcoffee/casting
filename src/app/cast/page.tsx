@@ -275,6 +275,11 @@ function CastDashboardContent() {
                             <MdVisibility className="w-5 h-5" />
                           </button>
                         </Link>
+                        <Link href={`/productions/active-shows/${audition.audition_id}/rehearsals`}>
+                          <button className="neu-icon-btn" title="Rehearsal Schedule">
+                            <MdEventNote className="w-5 h-5" />
+                          </button>
+                        </Link>
 
                         {/* Casting phase buttons */}
                         {actions.showCallbacks && (
@@ -288,22 +293,6 @@ function CastDashboardContent() {
                           <Link href={`/auditions/${audition.audition_id}/cast-show`}>
                             <button className="neu-icon-btn" title="Cast Show">
                               <MdOutlinePersonAdd className="w-5 h-5" />
-                            </button>
-                          </Link>
-                        )}
-
-                        {/* Active show buttons */}
-                        {actions.showRehearsals && (
-                          <Link href={`/productions/active-shows/${audition.audition_id}/rehearsals`}>
-                            <button className="neu-icon-btn" title="Rehearsal Schedule">
-                              <MdEventNote className="w-5 h-5" />
-                            </button>
-                          </Link>
-                        )}
-                        {actions.showPerformances && (
-                          <Link href={`/productions/active-shows/${audition.audition_id}/performances`}>
-                            <button className="neu-icon-btn" title="Performance Schedule">
-                              <MdTheaterComedy className="w-5 h-5" />
                             </button>
                           </Link>
                         )}
