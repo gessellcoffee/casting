@@ -29,7 +29,6 @@ export interface Profile {
   preferences: UserPreferences | null;
   skills: string[] | null;
   created_at: string;
-  updated_at: string;
 }
 
 export interface ProfileUpdate {
