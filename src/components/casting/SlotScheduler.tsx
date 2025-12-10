@@ -678,18 +678,13 @@ export default function SlotScheduler({
             <label className="block text-sm font-medium text-neu-text-primary mb-2">
               Slot Duration
             </label>
-            <select
-              value={slotDuration}
-              onChange={(e) => setSlotDuration(parseInt(e.target.value))}
-              className="neu-input"
-            >
-              <option value={15}>15 minutes</option>
-              <option value={30}>30 minutes</option>
-              <option value={45}>45 minutes</option>
-              <option value={60}>1 hour</option>
-              <option value={90}>1.5 hours</option>
-              <option value={120}>2 hours</option>
-            </select>
+                          <input
+                  type="number"
+                  value={slotDuration}
+                  onChange={(e) => setSlotDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                  min="1"
+                  className="w-full px-4 py-2 rounded-xl bg-neu-surface border border-neu-border text-neu-text-primary focus:outline-none focus:border-neu-border-focus focus:ring-2 focus:ring-neu-accent-primary/20 transition-all"
+                />
           </div>
           <div>
             <label className="block text-sm font-medium text-neu-text-primary mb-2">

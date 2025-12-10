@@ -8,6 +8,8 @@ interface RolesListProps {
   roles: any[];
   showId: string;
   auditionId: string;
+  canManage?: boolean;
+  showCastPublicly?: boolean;
 }
 
 interface CastMemberWithProfile {
@@ -21,15 +23,22 @@ interface CastMemberWithProfile {
   profile_photo_url: string | null;
 }
 
-export default function RolesList({ roles, showId, auditionId }: RolesListProps) {
+export default function RolesList({ roles, showId, auditionId, canManage, showCastPublicly }: RolesListProps) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(true);
   const [castMembers, setCastMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If user cannot manage and cast list is not published, don't load cast at all
+    if (!canManage && !showCastPublicly) {
+      setCastMembers([]);
+      setLoading(false);
+      return;
+    }
+
     loadCastMembers();
-  }, [auditionId]);
+  }, [auditionId, canManage, showCastPublicly]);
 
   const loadCastMembers = async () => {
     try {
@@ -110,7 +119,7 @@ export default function RolesList({ roles, showId, auditionId }: RolesListProps)
               )}
 
               {/* Cast Members */}
-              {(principals.length > 0 || understudies.length > 0) && (
+              {(canManage || showCastPublicly) && (principals.length > 0 || understudies.length > 0) && (
                 <div className="mt-3 pt-3 border-t border-neu-border/30">
                   {/* Principals */}
                   {principals.length > 0 && (

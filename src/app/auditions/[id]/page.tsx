@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getAuditionById } from '@/lib/supabase/auditionQueries';
+import { getAuditionById, updateAudition } from '@/lib/supabase/auditionQueries';
 import { getUser } from '@/lib/supabase/auth';
 import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
@@ -193,6 +193,8 @@ export default function AuditionDetailPage() {
                 roles={roles} 
                 showId={audition.show_id}
                 auditionId={audition.audition_id} 
+                canManage={canManage}
+                showCastPublicly={audition.show_cast_publicly}
               />
 
               {/* Virtual Audition Submission (Only if enabled and user is logged in and not production team) */}

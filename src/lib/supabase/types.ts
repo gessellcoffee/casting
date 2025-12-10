@@ -445,6 +445,7 @@ export interface AuditionUpdate {
   workflow_status?: string;
   submission_deadline?: string | null;
   show_filled_slots?: boolean;
+  show_cast_publicly?: boolean;
 }
 
 // ============= AUDITION SLOT TYPES =============
@@ -949,7 +950,7 @@ export interface EventFormData {
 
 // ============= USER RESUME TYPES =============
 
-export type ResumeSource = 'manual' | 'imported' | 'company_approved' | 'application';
+export type ResumeSource = 'Manual' | 'Imported' | 'Company Approved' | 'Application';
 
 export interface UserResume {
   user_resume_id: string;

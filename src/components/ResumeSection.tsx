@@ -59,7 +59,7 @@ export default function ResumeSection({
   const [showImporter, setShowImporter] = useState(false);
   const [showPDFViewer, setShowPDFViewer] = useState(false);
 
-  const manualResumes = resumes.filter((resume) => resume.source !== 'application');
+  const manualResumes = resumes.filter((resume) => resume.source !== 'Application');
 
   useEffect(() => {
     loadResumes();

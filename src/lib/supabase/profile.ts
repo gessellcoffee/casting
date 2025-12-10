@@ -42,10 +42,18 @@ export async function updateProfile(
     return { data: null, error: unauthorizedError };
   }
 
+  // Perform upsert to handle cases where profile might not exist (e.g. OAuth signup race condition)
+  // Ensure we have the email from the auth user if not provided in updates
+  const profileData = {
+    id: userId,
+    email: user.email || '',
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from('profiles')
-    .update(updates)
-    .eq('id', userId)
+    .upsert(profileData)
     .select()
     .single();
 
