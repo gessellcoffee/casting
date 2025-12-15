@@ -1068,6 +1068,136 @@ export interface UserResumeUpdate {
   company_approved?: boolean | null;
 }
 
+export type CustomFormStatus = 'draft' | 'published' | 'archived';
+
+export type CustomFormTargetType = 'audition_slot' | 'callback_slot' | 'audition' | 'cast_member';
+
+export type CustomFormFilledOutBy = 'assignee' | 'production_team';
+
+export type CustomFormFieldType =
+  | 'text'
+  | 'textarea'
+  | 'integer'
+  | 'decimal'
+  | 'boolean'
+  | 'date'
+  | 'time'
+  | 'datetime'
+  | 'single_select'
+  | 'multi_select'
+  | 'color';
+
+export interface CustomForm {
+  form_id: string;
+  owner_user_id: string;
+  name: string;
+  description: string | null;
+  status: CustomFormStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomFormInsert {
+  owner_user_id: string;
+  name: string;
+  description?: string | null;
+  status?: CustomFormStatus;
+}
+
+export interface CustomFormUpdate {
+  name?: string;
+  description?: string | null;
+  status?: CustomFormStatus;
+}
+
+export interface CustomFormField {
+  field_id: string;
+  form_id: string;
+  field_key: string;
+  label: string;
+  field_type: CustomFormFieldType;
+  required: boolean;
+  help_text: string | null;
+  options: Json | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomFormFieldInsert {
+  form_id: string;
+  field_key: string;
+  label: string;
+  field_type: CustomFormFieldType;
+  required?: boolean;
+  help_text?: string | null;
+  options?: Json | null;
+  sort_order?: number;
+}
+
+export interface CustomFormFieldUpdate {
+  field_key?: string;
+  label?: string;
+  field_type?: CustomFormFieldType;
+  required?: boolean;
+  help_text?: string | null;
+  options?: Json | null;
+  sort_order?: number;
+}
+
+export interface CustomFormAssignment {
+  assignment_id: string;
+  form_id: string;
+  target_type: CustomFormTargetType;
+  target_id: string;
+  required: boolean;
+  filled_out_by: CustomFormFilledOutBy;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface CustomFormAssignmentInsert {
+  form_id: string;
+  target_type: CustomFormTargetType;
+  target_id: string;
+  required?: boolean;
+  filled_out_by?: CustomFormFilledOutBy;
+  created_by?: string | null;
+}
+
+export interface CustomFormAssignmentUpdate {
+  required?: boolean;
+  filled_out_by?: CustomFormFilledOutBy;
+}
+
+export interface CustomFormResponse {
+  response_id: string;
+  assignment_id: string;
+  form_id: string;
+  target_type: CustomFormTargetType;
+  target_id: string;
+  respondent_user_id: string;
+  answers: Json;
+  submitted_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomFormResponseInsert {
+  assignment_id: string;
+  form_id: string;
+  target_type: CustomFormTargetType;
+  target_id: string;
+  respondent_user_id: string;
+  answers: Json;
+  submitted_at?: string;
+}
+
+export interface CustomFormResponseUpdate {
+  answers?: Json;
+  submitted_at?: string;
+}
+
 // ============= DATABASE TYPE =============
 
 export interface Database {
@@ -1187,6 +1317,26 @@ export interface Database {
         Row: UserResume;
         Insert: UserResumeInsert;
         Update: UserResumeUpdate;
+      };
+      custom_forms: {
+        Row: CustomForm;
+        Insert: CustomFormInsert;
+        Update: CustomFormUpdate;
+      };
+      custom_form_fields: {
+        Row: CustomFormField;
+        Insert: CustomFormFieldInsert;
+        Update: CustomFormFieldUpdate;
+      };
+      custom_form_assignments: {
+        Row: CustomFormAssignment;
+        Insert: CustomFormAssignmentInsert;
+        Update: CustomFormAssignmentUpdate;
+      };
+      custom_form_responses: {
+        Row: CustomFormResponse;
+        Insert: CustomFormResponseInsert;
+        Update: CustomFormResponseUpdate;
       };
       virtual_auditions: {
         Row: VirtualAudition;

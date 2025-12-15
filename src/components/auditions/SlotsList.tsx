@@ -11,6 +11,7 @@ import { formatUSDateWithFullWeekday, formatUSTime } from '@/lib/utils/dateUtils
 import Avatar from '@/components/shared/Avatar';
 import UserProfileModal from '@/components/casting/UserProfileModal';
 import AuditionSignupModal from './AuditionSignupModal';
+import { getIncompleteRequiredAuditionForms } from '@/lib/supabase/customForms';
 
 interface SlotsListProps {
   slots: any[];
@@ -236,6 +237,20 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
     setSigningUp(slotId);
     setError(null);
     setSuccessMessage(null);
+
+    const { incompleteAssignmentIds, error: formsError } = await getIncompleteRequiredAuditionForms(auditionId);
+    if (formsError) {
+      setError(formsError.message || 'Unable to check required forms. Please try again.');
+      setSigningUp(null);
+      return;
+    }
+
+    if (incompleteAssignmentIds.length > 0) {
+      const returnTo = `/auditions/${auditionId}`;
+      router.push(`/my-forms?auditionId=${encodeURIComponent(auditionId)}&returnTo=${encodeURIComponent(returnTo)}`);
+      setSigningUp(null);
+      return;
+    }
 
     const { error: signupError } = await createAuditionSignup({
       slot_id: slotId,
