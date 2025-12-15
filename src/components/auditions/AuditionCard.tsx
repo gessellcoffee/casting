@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/feedback/Badge';
 import { formatUSDateWithWeekday, formatUSTime } from '@/lib/utils/dateUtils';
+import Avatar from '@/components/shared/Avatar';
 
 interface AuditionCardProps {
   audition: any;
@@ -11,6 +12,7 @@ interface AuditionCardProps {
 
 export default function AuditionCard({ audition }: AuditionCardProps) {
   const { show, company, slots, equity_status, audition_location, rehearsal_dates, performance_dates, productionTeam } = audition;
+  const owner = audition?.owner || audition?.profiles;
 
   // Format rehearsal dates as a date range
   const formatDateRange = (dates: string | null): string => {
@@ -21,25 +23,31 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
     return `${dateArray[0]} - ${dateArray[dateArray.length - 1]}`;
   };
 
-  // Get earliest available slot
-  const earliestSlot = slots?.length > 0 
-    ? slots.reduce((earliest: any, slot: any) => {
-        const slotDate = new Date(slot.start_time);
-        return !earliest || slotDate < new Date(earliest.start_time) ? slot : earliest;
-      }, null)
-    : null;
+  const now = new Date();
 
   // Count available slots (future slots that aren't full)
   const availableSlots = slots?.filter((slot: any) => {
     const slotDate = new Date(slot.start_time);
-    const isFuture = slotDate > new Date();
+    const isFuture = slotDate > now;
     const isNotFull = (slot.current_signups || 0) < (slot.max_signups || 1);
     return isFuture && isNotFull;
   }).length || 0;
 
+  // Get soonest upcoming slot that is not full
+  const nextAvailableSlot = slots?.length
+    ? slots
+        .filter((slot: any) => {
+          const slotDate = new Date(slot.start_time);
+          const isFuture = slotDate > now;
+          const isNotFull = (slot.current_signups || 0) < (slot.max_signups || 1);
+          return isFuture && isNotFull;
+        })
+        .sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0] || null
+    : null;
+
   return (
     <Link href={`/auditions/${audition.audition_id}`}>
-      <div className="h-full p-6 rounded-2xl neu-card-raised hover:shadow-neu-raised-lg hover:transform hover:translate-y-[-2px] transition-all duration-300 cursor-pointer group">
+      <div className="relative h-full p-6 rounded-2xl neu-card-raised hover:shadow-neu-raised-lg hover:transform hover:translate-y-[-2px] transition-all duration-300 cursor-pointer group">
         
         {/* Show Title */}
         <h3 className="text-xl font-bold text-neu-text-primary mb-2 group-hover:text-neu-accent-primary transition-colors">
@@ -51,6 +59,36 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
           <p className="text-sm text-neu-text-muted mb-3">
             by {show.author}
           </p>
+        )}
+
+        {/* Poster */}
+        {owner?.id && (
+          <div className="mb-3 flex items-center gap-2 text-sm text-neu-text-secondary md:mb-0 md:absolute md:top-6 md:right-6">
+            <Link
+              href={`/profile/${owner.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/profile/${owner.id}`;
+              }}
+              className="inline-flex items-center gap-2 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors"
+            >
+              <Avatar
+                src={owner.profile_photo_url}
+                alt={
+                  owner.first_name && owner.last_name
+                    ? `${owner.first_name} ${owner.last_name}`
+                    : owner.email || 'Poster'
+                }
+                size="sm"
+              />
+              <span className="leading-none">
+                {owner.first_name && owner.last_name
+                  ? `${owner.first_name} ${owner.last_name}`
+                  : owner.email || 'View poster'}
+              </span>
+            </Link>
+          </div>
         )}
 
         {/* Company */}
@@ -148,17 +186,17 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
 
         {/* Audition Slots Info */}
         <div className="pt-4 border-t border-neu-border">
-          {earliestSlot ? (
+          {nextAvailableSlot ? (
             <div className="space-y-1">
               <div className="text-sm text-neu-text-primary">
                 <span className="font-medium">Next Audition:</span>
               </div>
               <div className="text-sm text-neu-text-secondary">
-                {formatUSDateWithWeekday(earliestSlot.start_time)}, {formatUSTime(earliestSlot.start_time)}
+                {formatUSDateWithWeekday(nextAvailableSlot.start_time)}, {formatUSTime(nextAvailableSlot.start_time)}
               </div>
-              {earliestSlot.location && (
+              {nextAvailableSlot.location && (
                 <div className="text-xs text-neu-text-muted">
-                  📍 {earliestSlot.location}
+                  📍 {nextAvailableSlot.location}
                 </div>
               )}
               <div className="text-xs text-neu-accent-primary mt-2">
@@ -167,7 +205,7 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
             </div>
           ) : (
             <div className="text-sm text-neu-text-muted">
-              No audition slots scheduled
+              No upcoming open slots
             </div>
           )}
         </div>

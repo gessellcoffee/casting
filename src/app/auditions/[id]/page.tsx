@@ -131,6 +131,10 @@ export default function AuditionDetailPage() {
 
   const isOwner = user && audition.user_id === user.id;
   const canManage = isOwner || isProductionMember;
+  const now = new Date();
+  const slotsToShow = canManage
+    ? (audition.slots || [])
+    : (audition.slots || []).filter((slot: any) => new Date(slot.start_time) > now);
 
   return (
     <StarryContainer>
@@ -260,7 +264,7 @@ export default function AuditionDetailPage() {
               */}
               {(audition.workflow_status === 'auditioning' || canManage) && (
                 <SlotsList 
-                  slots={audition.slots || []} 
+                  slots={slotsToShow} 
                   auditionId={audition.audition_id}
                   auditionTitle={audition.show?.title || 'Audition'}
                   user={user}

@@ -26,6 +26,41 @@ export async function getRehearsalEvents(auditionId: string) {
 }
 
 /**
+ * Batch create rehearsal events (for multiple dates at once)
+ */
+export async function createRehearsalEvents(events: {
+  audition_id: string;
+  dates: string[]; // Array of YYYY-MM-DD strings
+  start_time: string; // HH:MM:SS
+  end_time: string; // HH:MM:SS
+  location?: string;
+  notes?: string;
+}) {
+  const { audition_id, dates, start_time, end_time, location, notes } = events;
+
+  const rehearsalEvents = dates.map(date => ({
+    audition_id,
+    date,
+    start_time,
+    end_time,
+    location,
+    notes,
+  }));
+
+  const { data, error } = await supabase
+    .from('rehearsal_events')
+    .insert(rehearsalEvents)
+    .select();
+
+  if (error) {
+    console.error('Error creating rehearsal events:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
+/**
  * Get a single rehearsal event by ID
  */
 export async function getRehearsalEvent(eventId: string) {

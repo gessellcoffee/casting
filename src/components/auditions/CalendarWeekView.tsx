@@ -411,6 +411,9 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   } else if (isRehearsalEvent) {
                     bgColor = 'bg-amber-600';
                     borderColor = 'border-amber-600';
+                  } else if (evt.type === 'production_event') {
+                    bgColor = 'bg-transparent';
+                    borderColor = 'border-transparent';
                   } else {
                     bgColor = 'bg-gray-600';
                     borderColor = 'border-gray-600';
@@ -420,6 +423,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                                evt.type === 'performance' ? 'Performance' :
                                evt.type === 'audition_slot' ? 'Audition Slot' :
                                isRehearsalEvent ? 'Rehearsal Event' :
+                               evt.type === 'production_event' ? ((evt as any).eventTypeName || 'Production Event') :
                                'Event';
 
                   const Component = isRehearsalEvent ? 'button' : 'div';
@@ -431,6 +435,12 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
+                        ...(evt.type === 'production_event'
+                          ? {
+                              backgroundColor: `${(evt as any).eventTypeColor || '#5a8ff5'}CC`,
+                              borderColor: `${(evt as any).eventTypeColor || '#5a8ff5'}CC`,
+                            }
+                          : {}),
                       }}
                       onClick={isRehearsalEvent ? (e: any) => {
                         e.stopPropagation();

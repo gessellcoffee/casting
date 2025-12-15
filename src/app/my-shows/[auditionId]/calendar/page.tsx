@@ -9,7 +9,8 @@ import { getCastMemberWithDetails } from '@/lib/supabase/castMembers';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import StarryContainer from '@/components/StarryContainer';
 import Button from '@/components/Button';
-import { generateProductionEvents, filterEventsByAuditionId, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { generateProductionEvents, filterEventsByAuditionId, mapProductionEventsToCalendarEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { getProductionEvents } from '@/lib/supabase/productionEvents';
 import { ArrowLeft, Download } from 'lucide-react';
 import DownloadShowPDFButton from '@/components/shows/DownloadShowPDFButton';
 
@@ -65,7 +66,8 @@ export default function ShowCalendarPage() {
         ownedRehearsalEvents,
         productionTeamRehearsalEvents,
         castRehearsalEvents,
-        userAgendaItems
+        userAgendaItems,
+        productionEventRows
       ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
@@ -78,7 +80,8 @@ export default function ShowCalendarPage() {
         getUserOwnedRehearsalEvents(currentUser.id),
         getUserProductionTeamRehearsalEvents(currentUser.id),
         getUserCastRehearsalEvents(currentUser.id),
-        getUserRehearsalAgendaItems(currentUser.id)
+        getUserRehearsalAgendaItems(currentUser.id),
+        getProductionEvents(auditionId)
       ]);
       
       console.log('DEBUG - Calendar data loaded:', {
@@ -132,7 +135,8 @@ export default function ShowCalendarPage() {
         ...castShowsEvents,
         ...castMemberEvents,
         ...ownedEvents,
-        ...teamEvents
+        ...teamEvents,
+        ...mapProductionEventsToCalendarEvents(productionEventRows, 'cast')
         // Removed: generateAgendaItemEvents(userAgendaItems) - agenda items shown in rehearsal event modals instead
       ];
       
@@ -145,7 +149,7 @@ export default function ShowCalendarPage() {
       
       filteredEvents.forEach((event: ProductionDateEvent) => {
         // For rehearsal events and audition slots, deduplicate by eventId/slotId
-        const uniqueKey = event.eventId || event.slotId || `${event.type}-${event.date.getTime()}-${event.title}`;
+        const uniqueKey = event.productionEventId || event.eventId || event.slotId || `${event.type}-${event.date.getTime()}-${event.title}`;
         
         if (!seenKeys.has(uniqueKey)) {
           seenKeys.add(uniqueKey);

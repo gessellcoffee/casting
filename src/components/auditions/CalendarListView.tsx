@@ -355,73 +355,81 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                 {formatUSMonthShort(startTime)}
                               </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className={`text-lg sm:text-xl font-semibold mb-1 flex items-start gap-2 break-words overflow-wrap-anywhere ${
-                                isCallback ? 'text-purple-400 dark:text-purple-300' : 
-                                isPersonal ? 'text-green-500 dark:text-green-400' : 
-                                isProduction ? (
+                            <div className="text-[10px] sm:text-xs text-neu-text-primary/70 uppercase">
+                              {formatUSMonthShort(startTime)}
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={`text-sm sm:text-base font-semibold flex items-center gap-2 mb-1 break-words overflow-wrap-anywhere ${
+                              isCallback ? 'text-purple-400 dark:text-purple-300' : 
+                              isPersonal ? 'text-green-500 dark:text-green-400' : 
+                              isProduction ? (
+                                event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 
+                                event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
+                                event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
+                                event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
+                                event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
+                                event.type === 'production_event' ? 'text-neu-text-primary' :
+                                'text-neu-accent-primary'
+                              ) : 'text-neu-accent-primary'
+                            }`}>
+                              {isCallback && <span className="flex-shrink-0">📋</span>}
+                              {isPersonal && <span className="flex-shrink-0">🗓️</span>}
+                              {isProduction && event.type === 'rehearsal' && <span className="flex-shrink-0">🎭</span>}
+                              {isProduction && event.type === 'performance' && <span className="flex-shrink-0">🎪</span>}
+                              {isProduction && event.type === 'audition_slot' && <span className="flex-shrink-0">📋</span>}
+                              {isProduction && event.type === 'rehearsal_event' && <span className="flex-shrink-0">🎬</span>}
+                              {isProduction && event.type === 'agenda_item' && <span className="flex-shrink-0">🎬</span>}
+                              {isProduction && event.type === 'production_event' && <span className="flex-shrink-0">📌</span>}
+                              <span className="break-words overflow-wrap-anywhere">{showTitle}</span>
+                            </h4>
+                            {showAuthor && (
+                              <p className="text-xs sm:text-sm text-neu-text-primary/60 break-words overflow-wrap-anywhere">
+                                by {showAuthor}
+                              </p>
+                            )}
+                            {roleName && (
+                              <p className="text-xs sm:text-sm text-neu-accent-primary font-medium mt-1 break-words overflow-wrap-anywhere">
+                                Role: {roleName}
+                              </p>
+                            )}
+                            {isCallback && (
+                              <p className="text-xs sm:text-sm text-purple-400 dark:text-purple-300 font-medium mt-1">
+                                Callback
+                              </p>
+                            )}
+                            {isPersonal && (
+                              <p className="text-xs sm:text-sm text-green-500 dark:text-green-400 font-medium mt-1">
+                                Personal
+                              </p>
+                            )}
+                            {isProduction && (
+                              <>
+                                <p className={`text-xs font-medium mb-1 ${isProduction ? (
                                   event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 
                                   event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
                                   event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
                                   event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
                                   event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
+                                  event.type === 'production_event' ? 'text-neu-text-primary' :
                                   'text-neu-accent-primary'
                                 ) : 'text-neu-accent-primary'
-                              }`}>
-                                {isCallback && <span className="flex-shrink-0">📋</span>}
-                                {isPersonal && <span className="flex-shrink-0">🗓️</span>}
-                                {isProduction && event.type === 'rehearsal' && <span className="flex-shrink-0">🎭</span>}
-                                {isProduction && event.type === 'performance' && <span className="flex-shrink-0">🎪</span>}
-                                {isProduction && event.type === 'audition_slot' && <span className="flex-shrink-0">📋</span>}
-                                {isProduction && event.type === 'rehearsal_event' && <span className="flex-shrink-0">🎬</span>}
-                                {isProduction && event.type === 'agenda_item' && <span className="flex-shrink-0">🎬</span>}
-                                <span className="break-words overflow-wrap-anywhere">{showTitle}</span>
-                              </h4>
-                              {showAuthor && (
-                                <p className="text-xs sm:text-sm text-neu-text-primary/60 break-words overflow-wrap-anywhere">
-                                  by {showAuthor}
+                                }`}>
+                                  {event.type === 'rehearsal' ? 'Rehearsal Period' : 
+                                   event.type === 'performance' ? 'Performance Run' :
+                                   event.type === 'audition_slot' ? 'Audition Slot' :
+                                   event.type === 'rehearsal_event' ? 'Rehearsal Event' :
+                                   event.type === 'agenda_item' ? 'Rehearsal' :
+                                   event.type === 'production_event' ? ((event as any).eventTypeName || 'Production Event') :
+                                   'Production Event'}
                                 </p>
-                              )}
-                              {roleName && (
-                                <p className="text-xs sm:text-sm text-neu-accent-primary font-medium mt-1 break-words overflow-wrap-anywhere">
-                                  Role: {roleName}
-                                </p>
-                              )}
-                              {isCallback && (
-                                <p className="text-xs sm:text-sm text-purple-400 dark:text-purple-300 font-medium mt-1">
-                                  Callback
-                                </p>
-                              )}
-                              {isPersonal && (
-                                <p className="text-xs sm:text-sm text-green-500 dark:text-green-400 font-medium mt-1">
-                                  Personal
-                                </p>
-                              )}
-                              {isProduction && (
-                                <>
-                                  <p className={`text-xs sm:text-sm font-medium mt-1 ${
-                                    event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 
-                                    event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
-                                    event.type === 'audition_slot' ? 'text-teal-500 dark:text-teal-400' :
-                                    event.type === 'rehearsal_event' ? 'text-amber-500 dark:text-amber-400' :
-                                    event.type === 'agenda_item' ? 'text-amber-500 dark:text-amber-400' :
-                                    'text-neu-accent-primary'
-                                  }`}>
-                                    {event.type === 'rehearsal' ? 'Rehearsal Period' : 
-                                     event.type === 'performance' ? 'Performance Run' :
-                                     event.type === 'audition_slot' ? 'Audition Slot' :
-                                     event.type === 'rehearsal_event' ? 'Rehearsal Event' :
-                                     event.type === 'agenda_item' ? 'Rehearsal' :
-                                     'Production Event'}
+                                {(event.eventId || event.slotId) && (
+                                  <p className="text-[10px] text-neu-text-primary/40 mt-0.5 font-mono">
+                                    ID: {event.eventId || event.slotId}
                                   </p>
-                                  {(event.eventId || event.slotId) && (
-                                    <p className="text-[10px] text-neu-text-primary/40 mt-0.5 font-mono">
-                                      ID: {event.eventId || event.slotId}
-                                    </p>
-                                  )}
-                                </>
-                              )}
-                            </div>
+                                )}
+                              </>
+                            )}
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neu-text-primary/70 ml-[54px] sm:ml-[72px]">

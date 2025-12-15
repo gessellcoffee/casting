@@ -60,6 +60,9 @@ const US_TIMEZONE = 'America/Chicago'; // CST/CDT
  * @returns Date object in local timezone
  */
 function parseLocalDate(dateString: string): Date {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return new Date(dateString);
+  }
   const [year, month, day] = dateString.split('-').map(Number);
   return new Date(year, month - 1, day);
 }

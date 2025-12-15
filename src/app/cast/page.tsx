@@ -275,8 +275,8 @@ function CastDashboardContent() {
                             <MdVisibility className="w-5 h-5" />
                           </button>
                         </Link>
-                        <Link href={`/productions/active-shows/${audition.audition_id}/rehearsals`}>
-                          <button className="neu-icon-btn" title="Rehearsal Schedule">
+                        <Link href={`/productions/active-shows/${audition.audition_id}/scheduling`}>
+                          <button className="neu-icon-btn" title="Production Schedule">
                             <MdEventNote className="w-5 h-5" />
                           </button>
                         </Link>

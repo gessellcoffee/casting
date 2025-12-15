@@ -66,7 +66,8 @@ export default function AuditionCalendar({
     rehearsalDates: true,
     performanceDates: true,
     auditionSlots: true,
-    rehearsalEvents: true
+    rehearsalEvents: true,
+    productionEvents: true
   });
   
   // Determine user role based on what events they have
@@ -112,6 +113,7 @@ export default function AuditionCalendar({
       if (evt.type === 'audition_slot' && !eventFilters.auditionSlots) return false;
       if (evt.type === 'rehearsal_event' && !eventFilters.rehearsalEvents) return false;
       if (evt.type === 'agenda_item' && !eventFilters.rehearsalEvents) return false; // Use same filter as rehearsal_event
+      if (evt.type === 'production_event' && !eventFilters.productionEvents) return false;
       return true;
     });
   }, [productionEvents, eventFilters]);

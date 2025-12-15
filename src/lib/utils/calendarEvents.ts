@@ -42,7 +42,7 @@ export function getDateRange(dateData: string | string[] | null | undefined): { 
  * Generate calendar events for all production-related activities
  */
 export interface ProductionDateEvent {
-  type: 'rehearsal' | 'performance' | 'audition_slot' | 'rehearsal_event' | 'agenda_item';
+  type: 'rehearsal' | 'performance' | 'audition_slot' | 'rehearsal_event' | 'agenda_item' | 'production_event';
   title: string;
   show: any;
   date: Date;
@@ -53,9 +53,62 @@ export interface ProductionDateEvent {
   role?: string;
   userRole?: 'cast' | 'owner' | 'production_team';
   eventId?: string; // For rehearsal events
+  productionEventId?: string;
+  eventTypeName?: string;
+  eventTypeColor?: string | null;
   slotId?: string;  // For audition slots
   agendaItemId?: string; // For agenda items
   description?: string; // For agenda items
+}
+
+export function mapProductionEventsToCalendarEvents(
+  productionEvents: any[],
+  userRole: 'cast' | 'owner' | 'production_team'
+): ProductionDateEvent[] {
+  const events: ProductionDateEvent[] = [];
+
+  productionEvents.forEach((event: any) => {
+    const audition = event.auditions;
+    if (!audition || !audition.shows) return;
+
+    const eventDate = parseLocalDate(event.date);
+
+    let startTime: Date | undefined;
+    let endTime: Date | undefined;
+
+    if (event.start_time) {
+      const [h, m] = String(event.start_time).split(':');
+      startTime = new Date(eventDate);
+      startTime.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+    }
+
+    if (event.end_time) {
+      const [h, m] = String(event.end_time).split(':');
+      endTime = new Date(eventDate);
+      endTime.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+    }
+
+    const typeName = event.production_event_types?.name || 'Production Event';
+    const showTitle = audition.shows.title || 'Production';
+
+    events.push({
+      type: 'production_event',
+      title: `${showTitle} - ${typeName}`,
+      show: audition.shows,
+      date: startTime || eventDate,
+      startTime,
+      endTime,
+      location: event.location || null,
+      auditionId: audition.audition_id,
+      userRole,
+      productionEventId: event.production_event_id,
+      eventTypeName: typeName,
+      eventTypeColor: event.production_event_types?.color || null,
+      notes: event.notes,
+    } as any);
+  });
+
+  return events;
 }
 
 export function generateProductionEvents(

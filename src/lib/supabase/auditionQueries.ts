@@ -15,6 +15,13 @@ export async function getAuditionsWithDetails() {
     .from('auditions')
     .select(`
       *,
+      profiles!auditions_user_id_fkey(
+        id,
+        email,
+        first_name,
+        last_name,
+        profile_photo_url
+      ),
       shows!auditions_show_id_fkey(*),
       companies!auditions_company_id_fkey(*),
       audition_slots(
@@ -68,6 +75,7 @@ export async function getAuditionsWithDetails() {
 
     return {
       ...audition,
+      owner: audition.profiles,
       show: audition.shows,
       company: audition.companies,
       slots: audition.audition_slots?.map((slot: AuditionSlotWithSignups) => ({

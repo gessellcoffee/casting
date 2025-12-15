@@ -9,7 +9,8 @@ import { getEvents } from '@/lib/supabase/events';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
 import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
-import { generateProductionEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { generateProductionEvents, mapProductionEventsToCalendarEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
+import { getProductionEventsByAuditionIds, getUserAssignedProductionEvents } from '@/lib/supabase/productionEventsCalendar';
 import { Check, X } from 'lucide-react';
 
 // Component that uses searchParams - must be wrapped in Suspense
@@ -125,7 +126,8 @@ function MyCalendarContent() {
         productionTeamRehearsalEvents,
         castRehearsalEvents,
         userAgendaItems,
-        userPersonalEvents
+        userPersonalEvents,
+        assignedProductionEvents
       ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
@@ -138,7 +140,8 @@ function MyCalendarContent() {
         getUserProductionTeamRehearsalEvents(currentUser.id),
         getUserCastRehearsalEvents(currentUser.id),
         getUserRehearsalAgendaItems(currentUser.id),
-        getEvents(sixMonthsAgo, sixMonthsFromNow, currentUser.id)
+        getEvents(sixMonthsAgo, sixMonthsFromNow, currentUser.id),
+        getUserAssignedProductionEvents(currentUser.id)
       ]);
       
       setSignups(userSignups);
@@ -168,10 +171,17 @@ function MyCalendarContent() {
       
       // Generate production events (rehearsal/performance dates, audition slots, rehearsal events)
       // Note: Agenda items are shown within rehearsal event modals, not as separate calendar events
+      const ownerAuditionIds = ownedAuditions.map((a: any) => a.audition_id).filter(Boolean);
+      const teamAuditionIds = productionTeamAuditions.map((a: any) => a.auditions?.audition_id).filter(Boolean);
+      const managedAuditionIds = Array.from(new Set([...ownerAuditionIds, ...teamAuditionIds]));
+      const managedProductionEventRows = await getProductionEventsByAuditionIds(managedAuditionIds);
+
       const allProductionEvents = [
         ...generateProductionEvents(castShows, 'cast', [], castRehearsalEvents),
         ...generateProductionEvents(ownedAuditions, 'owner', allSlots, ownedRehearsalEvents),
-        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents)
+        ...generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents),
+        ...mapProductionEventsToCalendarEvents(assignedProductionEvents, 'cast'),
+        ...mapProductionEventsToCalendarEvents(managedProductionEventRows, 'owner')
         // Removed: generateAgendaItemEvents(userAgendaItems) - agenda items shown in rehearsal event modals instead
       ];
       
@@ -183,7 +193,7 @@ function MyCalendarContent() {
       
       allProductionEvents.forEach((event: ProductionDateEvent) => {
         // For rehearsal events and audition slots, deduplicate by eventId/slotId
-        const uniqueKey = event.eventId || event.slotId || `${event.type}-${event.date.getTime()}-${event.title}`;
+        const uniqueKey = event.productionEventId || event.eventId || event.slotId || `${event.type}-${event.date.getTime()}-${event.title}`;
         
         if (!seenKeys.has(uniqueKey)) {
           seenKeys.add(uniqueKey);

@@ -318,13 +318,13 @@ export default function VirtualAuditionSubmission({
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={() => handleVideoSelection(video.media_file_id)}
-                  className="text-neu-danger hover:text-neu-danger/80 transition-colors"
+                  className=""
                   disabled={submitting}
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -336,12 +336,12 @@ export default function VirtualAuditionSubmission({
         <div className="neu-card-inset p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-neu-text-primary">Select Videos</h4>
-            <button
+            <Button
               onClick={() => setShowVideoSelector(false)}
-              className="text-neu-text-secondary hover:text-neu-text-primary"
+              variant="secondary"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
 
           {/* Upload New */}
@@ -381,7 +381,7 @@ export default function VirtualAuditionSubmission({
                 {userVideos.map((video) => {
                   const isSelected = selectedVideoIds.includes(video.media_file_id);
                   return (
-                    <button
+                    <Button
                       key={video.media_file_id}
                       onClick={() => handleVideoSelection(video.media_file_id)}
                       className={`w-full p-3 rounded-lg border transition-all text-left ${
@@ -396,7 +396,7 @@ export default function VirtualAuditionSubmission({
                             ? 'border-neu-accent-primary bg-neu-accent-primary'
                             : 'border-neu-border'
                         }`}>
-                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                          {isSelected && <Check className="w-3 h-3 text-neu-text-primary dark:text-white" />}
                         </div>
                         <Video className="w-5 h-5 text-neu-accent-primary" />
                         <div className="flex-1">
@@ -406,7 +406,7 @@ export default function VirtualAuditionSubmission({
                           </p>
                         </div>
                       </div>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -417,7 +417,7 @@ export default function VirtualAuditionSubmission({
         <Button
           onClick={() => setShowVideoSelector(true)}
           variant="secondary"
-          className="w-full"
+          className="w-full flex items-center justify-center gap-2"
           disabled={submitting}
         >
           <Video className="w-4 h-4" />

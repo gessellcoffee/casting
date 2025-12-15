@@ -11,6 +11,7 @@ export interface EventTypeFilter {
   performanceDates: boolean;
   auditionSlots: boolean;
   rehearsalEvents: boolean;
+  productionEvents: boolean;
 }
 
 interface CalendarLegendProps {
@@ -88,6 +89,15 @@ export default function CalendarLegend({ filters, onFilterChange, userRole }: Ca
         borderColor: 'border-amber-500/50',
         textColor: 'text-amber-400',
         description: 'Scheduled rehearsals'
+      },
+      {
+        key: 'productionEvents' as keyof EventTypeFilter,
+        label: 'Production Events',
+        icon: '📌',
+        color: 'bg-[#5a8ff5]/20',
+        borderColor: 'border-[#5a8ff5]/50',
+        textColor: 'text-[#5a8ff5]',
+        description: 'Custom production schedule events'
       }
     ] : []),
     // Personal events (everyone)
@@ -194,7 +204,8 @@ export default function CalendarLegend({ filters, onFilterChange, userRole }: Ca
                   rehearsalDates: true,
                   performanceDates: true,
                   auditionSlots: true,
-                  rehearsalEvents: true
+                  rehearsalEvents: true,
+                  productionEvents: true
                 };
                 onFilterChange(allEnabled);
               }}
@@ -211,7 +222,8 @@ export default function CalendarLegend({ filters, onFilterChange, userRole }: Ca
                   rehearsalDates: false,
                   performanceDates: false,
                   auditionSlots: false,
-                  rehearsalEvents: false
+                  rehearsalEvents: false,
+                  productionEvents: false
                 };
                 onFilterChange(allDisabled);
               }}

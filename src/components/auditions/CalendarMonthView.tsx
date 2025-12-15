@@ -651,6 +651,12 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                   textColor = 'text-[#d97706] dark:text-[#fbbf24]';
                   icon = '🎬';
                   label = 'Rehearsal Event';
+                } else if (evt.type === 'production_event') {
+                  bgColor = '';
+                  borderColor = '';
+                  textColor = '';
+                  icon = '📌';
+                  label = evt.eventTypeName || 'Production Event';
                 }
 
                 const Component = isRehearsalEvent ? 'button' : 'div';
@@ -659,6 +665,14 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                   <Component
                     key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
                     className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor} ${isRehearsalEvent ? 'hover:bg-amber-500/30 active:bg-amber-500/40 transition-colors cursor-pointer touch-manipulation' : ''}`}
+                    style={
+                      evt.type === 'production_event'
+                        ? {
+                            backgroundColor: `${evt.eventTypeColor || '#5a8ff5'}20`,
+                            borderColor: `${evt.eventTypeColor || '#5a8ff5'}80`,
+                          }
+                        : undefined
+                    }
                     onClick={isRehearsalEvent ? (e: any) => {
                       e.stopPropagation();
                       setSelectedRehearsalEvent(evt);
@@ -670,11 +684,19 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       <div className="flex-1">
                         <div className="font-semibold text-neu-text-primary mb-1">{evt.show.title}</div>
                         {evt.startTime && (
-                          <div className={`text-sm font-semibold ${textColor}`}>
+                          <div
+                            className={`text-sm font-semibold ${textColor}`}
+                            style={evt.type === 'production_event' ? { color: evt.eventTypeColor || '#5a8ff5' } : undefined}
+                          >
                             {evt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                           </div>
                         )}
-                        <div className={`text-sm font-semibold ${textColor} mt-1`}>{label}</div>
+                        <div
+                          className={`text-sm font-semibold ${textColor} mt-1`}
+                          style={evt.type === 'production_event' ? { color: evt.eventTypeColor || '#5a8ff5' } : undefined}
+                        >
+                          {label}
+                        </div>
                         {evt.role && <div className="text-sm text-neu-text-primary/70 mt-1">Role: {evt.role}</div>}
                       </div>
                     </div>

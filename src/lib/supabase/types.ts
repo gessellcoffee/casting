@@ -866,6 +866,79 @@ export interface PerformanceEventUpdate {
   notes?: string | null;
 }
 
+// ============= PRODUCTION EVENT TYPES =============
+
+export interface ProductionEventType {
+  production_event_type_id: string;
+  owner_user_id: string | null;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface ProductionEventTypeInsert {
+  owner_user_id?: string | null;
+  name: string;
+  color: string;
+}
+
+export interface ProductionEventTypeUpdate {
+  name?: string;
+  color?: string;
+}
+
+export interface ProductionEvent {
+  production_event_id: string;
+  audition_id: string;
+  production_event_type_id: string;
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+  location: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductionEventInsert {
+  audition_id: string;
+  production_event_type_id: string;
+  date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  location?: string | null;
+  notes?: string | null;
+  created_by?: string | null;
+}
+
+export interface ProductionEventUpdate {
+  production_event_type_id?: string;
+  date?: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  location?: string | null;
+  notes?: string | null;
+  created_by?: string | null;
+}
+
+export interface ProductionEventAssignment {
+  production_event_assignment_id: string;
+  production_event_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface ProductionEventAssignmentInsert {
+  production_event_id: string;
+  user_id: string;
+}
+
+export interface ProductionEventAssignmentUpdate {
+  production_event_id?: string;
+  user_id?: string;
+}
+
 // ============= CALENDAR EVENT TYPES =============
 
 export interface CalendarEvent {
@@ -1085,6 +1158,21 @@ export interface Database {
         Row: PerformanceEvent;
         Insert: PerformanceEventInsert;
         Update: PerformanceEventUpdate;
+      };
+      production_event_types: {
+        Row: ProductionEventType;
+        Insert: ProductionEventTypeInsert;
+        Update: ProductionEventTypeUpdate;
+      };
+      production_events: {
+        Row: ProductionEvent;
+        Insert: ProductionEventInsert;
+        Update: ProductionEventUpdate;
+      };
+      production_event_assignments: {
+        Row: ProductionEventAssignment;
+        Insert: ProductionEventAssignmentInsert;
+        Update: ProductionEventAssignmentUpdate;
       };
       events: {
         Row: CalendarEvent;
