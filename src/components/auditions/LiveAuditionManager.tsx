@@ -78,6 +78,15 @@ export default function LiveAuditionManager({
   const [showMobileDetails, setShowMobileDetails] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const getSlotDateKey = (startTime: string) => {
+    const date = new Date(startTime);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
   // Sort slots by start time
   const sortedSlots = [...slots].sort((a, b) => 
     new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
@@ -134,6 +143,31 @@ export default function LiveAuditionManager({
     
     return () => clearInterval(interval);
   }, [sortedSlots]);
+
+  useEffect(() => {
+    if (!activeSlotId || viewMode !== 'slots') return;
+
+    const activeSlot = sortedSlots.find(s => s.slot_id === activeSlotId);
+    if (!activeSlot) return;
+
+    const dateKey = getSlotDateKey(activeSlot.start_time);
+
+    setCollapsedDates(prev => {
+      if (!prev.has(dateKey)) return prev;
+      const next = new Set(prev);
+      next.delete(dateKey);
+      return next;
+    });
+
+    const timeout = setTimeout(() => {
+      const el = document.getElementById(`live-slot-${activeSlotId}`);
+      if (el) {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    }, 50);
+
+    return () => clearTimeout(timeout);
+  }, [activeSlotId, sortedSlots, viewMode]);
 
   // Load notes when selecting a signup
   useEffect(() => {
@@ -352,12 +386,7 @@ export default function LiveAuditionManager({
     const groups: { [date: string]: typeof sortedSlots } = {};
     
     sortedSlots.forEach(slot => {
-      const date = new Date(slot.start_time);
-      const dateKey = date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit' 
-      });
+      const dateKey = getSlotDateKey(slot.start_time);
       
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -572,18 +601,22 @@ export default function LiveAuditionManager({
                           <div className="space-y-3 sm:space-y-4 pl-1 sm:pl-2">
                             {dateSlots.map((slot) => {
                     const slotSignups = getSignupsForSlot(slot.slot_id);
-                    const isActive = activeSlotId === slot.slot_id;
                     const now = new Date();
                     const startTime = new Date(slot.start_time);
                     const endTime = new Date(slot.end_time);
                     const isPast = now > endTime;
+                    const isInProgress = now >= startTime && now <= endTime;
+                    const isHighlighted = activeSlotId === slot.slot_id;
+                    const isNext = isHighlighted && !isInProgress && !isPast;
 
                     return (
-                      <div key={slot.slot_id} className="space-y-2">
+                      <div key={slot.slot_id} id={`live-slot-${slot.slot_id}`} className="space-y-2">
                         {/* Slot Time Header */}
                         <div className={`p-3 sm:p-3 rounded-lg ${
-                          isActive 
+                          isInProgress 
                             ? 'bg-green-500/20 border-2 border-green-500'
+                            : isNext
+                            ? 'bg-neu-accent-primary/20 border-2 border-neu-accent-primary'
                             : isPast
                             ? 'neu-card-inset border border-neu-border opacity-60'
                             : 'neu-card-inset border border-neu-border'
@@ -594,10 +627,16 @@ export default function LiveAuditionManager({
                                 <span className="text-sm font-semibold text-neu-text-primary">
                                   {formatUSTime(slot.start_time)} - {formatUSTime(slot.end_time)}
                                 </span>
-                                {isActive && (
+                                {isInProgress && (
                                   <span className="flex items-center gap-1 text-xs text-green-400 font-medium">
                                     <MdPlayArrow className="w-3 h-3" />
                                     NOW
+                                  </span>
+                                )}
+                                {isNext && (
+                                  <span className="flex items-center gap-1 text-xs text-neu-accent-primary font-medium">
+                                    <MdChevronRight className="w-3 h-3" />
+                                    NEXT
                                   </span>
                                 )}
                                 {isPast && (
