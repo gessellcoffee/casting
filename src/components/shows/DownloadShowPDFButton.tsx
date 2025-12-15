@@ -34,8 +34,56 @@ export default function DownloadShowPDFButton({
         throw new Error('No events to export');
       }
 
+      const eventsForExport: ProductionDateEvent[] = (() => {
+        // For list view, we want agenda items displayed under their parent rehearsal event,
+        // not as separate cards.
+        if (layoutType !== 'list') return events;
+
+        const baseEvents = events.filter(e => e.type !== 'agenda_item');
+        const agendaItems = events.filter(e => e.type === 'agenda_item');
+
+        const agendaByRehearsalEventId = new Map<string, ProductionDateEvent[]>();
+        agendaItems.forEach((a: any) => {
+          if (!a?.eventId) return;
+          if (!agendaByRehearsalEventId.has(a.eventId)) {
+            agendaByRehearsalEventId.set(a.eventId, []);
+          }
+          agendaByRehearsalEventId.get(a.eventId)!.push(a);
+        });
+
+        return baseEvents.map((e: any) => {
+          if (e.type !== 'rehearsal_event' || !e.eventId) return e;
+
+          const agendaForThis = agendaByRehearsalEventId.get(e.eventId) || [];
+          if (agendaForThis.length === 0) return e;
+
+          const agendaLines = agendaForThis
+            .sort((a: any, b: any) => {
+              const aT = a?.startTime ? new Date(a.startTime).getTime() : 0;
+              const bT = b?.startTime ? new Date(b.startTime).getTime() : 0;
+              return aT - bT;
+            })
+            .map((a: any) => {
+              const time = a.startTime && a.endTime
+                ? `${formatUSTime(a.startTime.toTimeString().split(' ')[0])} - ${formatUSTime(a.endTime.toTimeString().split(' ')[0])}`
+                : a.startTime
+                  ? formatUSTime(a.startTime.toTimeString().split(' ')[0])
+                  : '';
+              const called = a.description ? ` — ${a.description}` : '';
+              return `${time} ${a.title}${called}`.trim();
+            });
+
+          const agendaBlock = `Agenda:\n${agendaLines.map(l => `- ${l}`).join('\n')}`;
+          const mergedDescription = e.description
+            ? `${e.description}\n\n${agendaBlock}`
+            : agendaBlock;
+
+          return { ...e, description: mergedDescription };
+        });
+      })();
+
       // Convert ProductionDateEvent to CalendarEvent format
-      const calendarEvents: CalendarEvent[] = events.map(event => ({
+      const calendarEvents: CalendarEvent[] = eventsForExport.map(event => ({
         date: event.date.toISOString().split('T')[0],
         title: event.title,
         type: getEventTypeLabel(event.type),
@@ -75,6 +123,7 @@ export default function DownloadShowPDFButton({
       'audition_slot': 'Audition',
       'rehearsal_event': 'Rehearsal',
       'agenda_item': 'Agenda Item',
+      'production_event': 'Production Event',
     };
     return labels[type] || type;
   };
@@ -86,6 +135,7 @@ export default function DownloadShowPDFButton({
       'audition_slot': '#14b8a6',
       'rehearsal_event': '#f59e0b',
       'agenda_item': '#f59e0b',
+      'production_event': '#5a8ff5',
     };
     return colors[type] || '#34d399';
   };

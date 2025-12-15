@@ -18,9 +18,19 @@ interface CalendarLegendProps {
   filters: EventTypeFilter;
   onFilterChange: (filters: EventTypeFilter) => void;
   userRole: 'actor' | 'creator' | 'both'; // Determines which event types to show
+  productionEventTypeOptions?: Array<{ key: string; label: string; color?: string | null }>;
+  productionEventTypeFilters?: Record<string, boolean>;
+  onProductionEventTypeFiltersChange?: (filters: Record<string, boolean>) => void;
 }
 
-export default function CalendarLegend({ filters, onFilterChange, userRole }: CalendarLegendProps) {
+export default function CalendarLegend({
+  filters,
+  onFilterChange,
+  userRole,
+  productionEventTypeOptions,
+  productionEventTypeFilters,
+  onProductionEventTypeFiltersChange,
+}: CalendarLegendProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleFilter = (key: keyof EventTypeFilter) => {
@@ -112,6 +122,12 @@ export default function CalendarLegend({ filters, onFilterChange, userRole }: Ca
     }
   ];
 
+  const hasProductionTypeFilters =
+    Array.isArray(productionEventTypeOptions) &&
+    productionEventTypeOptions.length > 0 &&
+    !!productionEventTypeFilters &&
+    !!onProductionEventTypeFiltersChange;
+
   return (
     <div className="mb-4 sm:mb-6">
       <div className="bg-neu-surface rounded-lg border border-neu-border shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] overflow-hidden">
@@ -189,6 +205,71 @@ export default function CalendarLegend({ filters, onFilterChange, userRole }: Ca
                 </div>
               </button>
             ))}
+
+            {hasProductionTypeFilters && (
+              <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
+                <div className="mt-2 mb-1 text-xs font-semibold text-neu-text-secondary uppercase">
+                  Production Event Types
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                  {productionEventTypeOptions!.map((opt) => {
+                    const isOn = productionEventTypeFilters![opt.key] !== false;
+                    const bg = opt.color ? `${opt.color}20` : 'var(--neu-surface)';
+                    const border = opt.color ? `${opt.color}80` : 'var(--neu-border)';
+                    const label = opt.label || opt.key;
+                    return (
+                      <button
+                        key={opt.key}
+                        onClick={() => {
+                          onProductionEventTypeFiltersChange!({
+                            ...productionEventTypeFilters!,
+                            [opt.key]: !isOn,
+                          });
+                        }}
+                        className={`flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border transition-all duration-200 hover:opacity-100 ${
+                          isOn ? '' : 'opacity-50'
+                        }`}
+                        style={{
+                          backgroundColor: isOn ? bg : 'var(--neu-surface)',
+                          borderColor: isOn ? border : 'var(--neu-border)',
+                        }}
+                        title={label}
+                      >
+                        <div
+                          className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200"
+                          style={{
+                            borderColor: isOn ? border : 'var(--neu-border)',
+                            backgroundColor: isOn ? bg : 'var(--neu-surface)',
+                          }}
+                        >
+                          {isOn && (
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              viewBox="0 0 24 24"
+                              stroke={opt.color || 'currentColor'}
+                            >
+                              <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <div className={`text-xs sm:text-sm font-medium truncate ${
+                            isOn ? 'text-neu-text-primary' : 'text-neu-text-primary/50'
+                          }`}
+                          >
+                            {label}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

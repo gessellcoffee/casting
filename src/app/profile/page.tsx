@@ -34,6 +34,7 @@ export default function ProfilePage() {
     middle_name: '',
     last_name: '',
     email: '',
+    phone: '',
     description: '',
     profile_photo_url: '',
     resume_url: '',
@@ -43,6 +44,7 @@ export default function ProfilePage() {
     location_lng: null as number | null,
   });
   const [showCastingHistory, setShowCastingHistory] = useState(true);
+  const [showPhoneOnProfile, setShowPhoneOnProfile] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +62,7 @@ export default function ProfilePage() {
               middle_name: profileData.middle_name || '',
               last_name: profileData.last_name || '',
               email: profileData.email || '',
+              phone: profileData.phone || '',
               description: profileData.description || '',
               profile_photo_url: profileData.profile_photo_url || '',
               resume_url: profileData.resume_url || '',
@@ -75,6 +78,7 @@ export default function ProfilePage() {
             setShowCastingHistory(
               prefs?.show_casting_history !== false
             );
+            setShowPhoneOnProfile(prefs?.show_phone === true);
           }
         }
       } catch (error) {
@@ -144,6 +148,7 @@ export default function ProfilePage() {
         middle_name: formData.middle_name,
         last_name: formData.last_name,
         email: formData.email,
+        phone: formData.phone || null,
         description: formData.description,
         profile_photo_url: formData.profile_photo_url,
         resume_url: formData.resume_url,
@@ -154,6 +159,7 @@ export default function ProfilePage() {
         preferences: {
           ...((profile?.preferences as UserPreferences) || {}),
           show_casting_history: showCastingHistory,
+          show_phone: showPhoneOnProfile,
         },
       });
 
@@ -180,6 +186,7 @@ export default function ProfilePage() {
         middle_name: profile.middle_name || '',
         last_name: profile.last_name || '',
         email: profile.email || '',
+        phone: profile.phone || '',
         description: profile.description || '',
         profile_photo_url: profile.profile_photo_url || '',
         resume_url: profile.resume_url || '',
@@ -190,6 +197,10 @@ export default function ProfilePage() {
         location_lat: profile.location_lat || null,
         location_lng: profile.location_lng || null,
       });
+
+      const prefs = profile.preferences as UserPreferences | null;
+      setShowCastingHistory(prefs?.show_casting_history !== false);
+      setShowPhoneOnProfile(prefs?.show_phone === true);
     }
     setIsEditing(false);
     setError(null);
@@ -358,6 +369,66 @@ export default function ProfilePage() {
                     ) : (
                       <p className="text-neu-text-primary">{formData.email || 'Not set'}</p>
                     )}
+                  </div>
+
+                  <div className="neu-card-raised w-full">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
+                          Phone Number
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            className="neu-input"
+                            placeholder="(555) 555-5555"
+                          />
+                        ) : (
+                          <p className="text-neu-text-primary">{formData.phone || 'Not set'}</p>
+                        )}
+
+                        {!isEditing && formData.phone && (
+                          <p className="text-xs text-neu-text-primary/60 mt-2">
+                            {showPhoneOnProfile ? 'Visible on your public profile' : 'Hidden from your public profile'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-4">
+                      <p className="text-xs text-neu-text-primary/70">
+                        Share phone on my public profile
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isEditing) return;
+                          setShowPhoneOnProfile(!showPhoneOnProfile);
+                        }}
+                        disabled={!isEditing}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
+                          showPhoneOnProfile
+                            ? 'bg-green-500 border-green-500'
+                            : 'bg-neu-surface-light border-neu-border'
+                        } disabled:opacity-60`}
+                        aria-label="Share phone number on public profile"
+                        title={
+                          isEditing
+                            ? 'Share phone number on your public profile'
+                            : 'Edit your profile to change this setting'
+                        }
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            showPhoneOnProfile ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

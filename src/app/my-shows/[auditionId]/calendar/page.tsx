@@ -13,6 +13,9 @@ import { generateProductionEvents, filterEventsByAuditionId, mapProductionEvents
 import { getProductionEvents } from '@/lib/supabase/productionEvents';
 import { ArrowLeft, Download } from 'lucide-react';
 import DownloadShowPDFButton from '@/components/shows/DownloadShowPDFButton';
+import { getAgendaItems, getCastMembers } from '@/lib/supabase/agendaItems';
+import { formatUSTime } from '@/lib/utils/dateUtils';
+import type { EventTypeFilter } from '@/components/auditions/CalendarLegend';
 
 export default function ShowCalendarPage() {
   const router = useRouter();
@@ -25,6 +28,9 @@ export default function ShowCalendarPage() {
   const [castMembership, setCastMembership] = useState<any>(null);
   const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<ProductionDateEvent[]>([]);
+  const [agendaItemEventsForPdf, setAgendaItemEventsForPdf] = useState<ProductionDateEvent[]>([]);
+  const [activeFilters, setActiveFilters] = useState<EventTypeFilter | null>(null);
+  const [activeProductionEventTypeFilters, setActiveProductionEventTypeFilters] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -172,7 +178,108 @@ export default function ShowCalendarPage() {
         seenKeys: Array.from(seenKeys)
       });
       
-      setProductionEvents(deduplicatedEvents);
+      // Enrich rehearsal events with agenda + called people summaries (for PDF export)
+      const rehearsalEventIds = Array.from(
+        new Set(
+          deduplicatedEvents
+            .filter(e => e.type === 'rehearsal_event' && !!e.eventId)
+            .map(e => e.eventId as string)
+        )
+      );
+
+      let rehearsalDescriptionByEventId = new Map<string, string>();
+      const agendaItemEvents: ProductionDateEvent[] = [];
+      if (rehearsalEventIds.length > 0) {
+        const { data: castData } = await getCastMembers(auditionId);
+        const roleByUserId = new Map<string, string>();
+
+        (castData || []).forEach((m: any) => {
+          const userId = m?.user_id;
+          if (!userId) return;
+          const roleName = m?.audition_roles?.role_name || m?.roles?.role_name;
+          if (roleName) roleByUserId.set(userId, roleName);
+        });
+
+        const agendaResults = await Promise.all(
+          rehearsalEventIds.map(async (rehearsalEventId) => {
+            const { data } = await getAgendaItems(rehearsalEventId);
+            return { rehearsalEventId, items: data || [] };
+          })
+        );
+
+        agendaResults.forEach(({ rehearsalEventId, items }) => {
+          if (!items || items.length === 0) return;
+
+          const rehearsalEvent = deduplicatedEvents.find(e => e.type === 'rehearsal_event' && e.eventId === rehearsalEventId);
+          const baseDate = rehearsalEvent?.date ? new Date(rehearsalEvent.date) : null;
+
+          const lines: string[] = [];
+          items.forEach((item: any) => {
+            const start = item?.start_time ? formatUSTime(item.start_time) : '';
+            const end = item?.end_time ? formatUSTime(item.end_time) : '';
+            const timeLabel = start && end ? `${start}-${end}` : start || end;
+
+            const assignments = Array.isArray(item?.agenda_assignments) ? item.agenda_assignments : [];
+            const called = assignments
+              .map((a: any) => {
+                const first = a?.profiles?.first_name || '';
+                const last = a?.profiles?.last_name || '';
+                const name = `${first} ${last}`.trim();
+                const role = a?.user_id ? roleByUserId.get(a.user_id) : undefined;
+                if (!name) return '';
+                return role ? `${name} (${role})` : name;
+              })
+              .filter(Boolean);
+
+            const calledLabel = called.length > 0 ? `Called: ${called.join(', ')}` : 'Called: (none)';
+            lines.push(`${timeLabel} ${item?.title || 'Agenda Item'} — ${calledLabel}`.trim());
+
+            // Also add agenda items as their own events for PDF export
+            if (baseDate) {
+              const startTime = item?.start_time ? new Date(baseDate) : undefined;
+              const endTime = item?.end_time ? new Date(baseDate) : undefined;
+
+              if (startTime && item?.start_time) {
+                const [h, m] = String(item.start_time).split(':');
+                startTime.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+              }
+              if (endTime && item?.end_time) {
+                const [h, m] = String(item.end_time).split(':');
+                endTime.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+              }
+
+              agendaItemEvents.push({
+                type: 'agenda_item',
+                title: item?.title || 'Agenda Item',
+                show: rehearsalEvent?.show,
+                date: startTime || new Date(baseDate),
+                startTime,
+                endTime,
+                location: rehearsalEvent?.location || null,
+                auditionId,
+                userRole: 'cast',
+                eventId: rehearsalEventId,
+                agendaItemId: item?.rehearsal_agenda_items_id,
+                description: calledLabel,
+              } as any);
+            }
+          });
+
+          if (lines.length > 0) {
+            rehearsalDescriptionByEventId.set(rehearsalEventId, `Agenda:\n${lines.map(l => `- ${l}`).join('\n')}`);
+          }
+        });
+      }
+
+      const deduplicatedEventsWithAgenda: ProductionDateEvent[] = deduplicatedEvents.map((e) => {
+        if (e.type !== 'rehearsal_event' || !e.eventId) return e;
+        const desc = rehearsalDescriptionByEventId.get(e.eventId);
+        if (!desc) return e;
+        return { ...e, description: desc };
+      });
+
+      setProductionEvents(deduplicatedEventsWithAgenda);
+      setAgendaItemEventsForPdf(agendaItemEvents);
       
       // Get show details from the first event OR from cast membership data
       if (filteredEvents.length > 0) {
@@ -234,6 +341,12 @@ export default function ShowCalendarPage() {
     );
   }
 
+  const exportAgendaItemsEnabled = activeFilters ? activeFilters.rehearsalEvents : true;
+  const exportEvents: ProductionDateEvent[] = [
+    ...filteredEvents,
+    ...(exportAgendaItemsEnabled ? agendaItemEventsForPdf : []),
+  ];
+
   return (
     <StarryContainer>
       <div className="min-h-screen py-8 px-4">
@@ -268,7 +381,7 @@ export default function ShowCalendarPage() {
               
               <div className="shrink-0">
                 <DownloadShowPDFButton
-                  events={filteredEvents.length > 0 ? filteredEvents : productionEvents}
+                  events={exportEvents}
                   showDetails={{
                     title: showDetails.title,
                     author: showDetails.author,
@@ -276,7 +389,7 @@ export default function ShowCalendarPage() {
                     isUnderstudy: castMembership?.is_understudy,
                   }}
                   actorName={`${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim()}
-                  format="actor"
+                  format="production"
                 />
               </div>
             </div>
@@ -293,6 +406,10 @@ export default function ShowCalendarPage() {
               hasOwnedAuditions={false}
               hasProductionTeamAuditions={false}
               onFilteredEventsChange={setFilteredEvents}
+              onFilterStateChange={(filters, productionEventTypeFilters) => {
+                setActiveFilters(filters);
+                setActiveProductionEventTypeFilters(productionEventTypeFilters);
+              }}
             />
           ) : (
             <div className="p-12 text-center rounded-xl border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>

@@ -19,6 +19,7 @@ interface AuditionCalendarProps {
   hasOwnedAuditions?: boolean;
   hasProductionTeamAuditions?: boolean;
   onFilteredEventsChange?: (events: ProductionDateEvent[]) => void;
+  onFilterStateChange?: (filters: EventTypeFilter, productionEventTypeFilters: Record<string, boolean>) => void;
 }
 
 export default function AuditionCalendar({ 
@@ -29,7 +30,8 @@ export default function AuditionCalendar({
   onRefresh,
   hasOwnedAuditions = false,
   hasProductionTeamAuditions = false,
-  onFilteredEventsChange
+  onFilteredEventsChange,
+  onFilterStateChange
 }: AuditionCalendarProps) {
   // Start with safe defaults - will be updated after mount
   const [isMobile, setIsMobile] = useState(false);
@@ -69,6 +71,38 @@ export default function AuditionCalendar({
     rehearsalEvents: true,
     productionEvents: true
   });
+
+  const productionEventTypeOptions = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; color?: string | null }>();
+    productionEvents
+      .filter(e => e.type === 'production_event')
+      .forEach((e: any) => {
+        const key = e?.eventTypeName || 'Production Event';
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            label: key,
+            color: e?.eventTypeColor || undefined,
+          });
+        }
+      });
+    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [productionEvents]);
+
+  const [productionEventTypeFilters, setProductionEventTypeFilters] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!Array.isArray(productionEventTypeOptions) || productionEventTypeOptions.length === 0) return;
+    setProductionEventTypeFilters(prev => {
+      const next = { ...prev };
+      productionEventTypeOptions.forEach(opt => {
+        if (!(opt.key in next)) {
+          next[opt.key] = true;
+        }
+      });
+      return next;
+    });
+  }, [productionEventTypeOptions]);
   
   // Determine user role based on what events they have
   const userRole = useMemo(() => {
@@ -113,10 +147,14 @@ export default function AuditionCalendar({
       if (evt.type === 'audition_slot' && !eventFilters.auditionSlots) return false;
       if (evt.type === 'rehearsal_event' && !eventFilters.rehearsalEvents) return false;
       if (evt.type === 'agenda_item' && !eventFilters.rehearsalEvents) return false; // Use same filter as rehearsal_event
-      if (evt.type === 'production_event' && !eventFilters.productionEvents) return false;
+      if (evt.type === 'production_event') {
+        if (!eventFilters.productionEvents) return false;
+        const key = (evt as any)?.eventTypeName || 'Production Event';
+        if (productionEventTypeFilters[key] === false) return false;
+      }
       return true;
     });
-  }, [productionEvents, eventFilters]);
+  }, [productionEvents, eventFilters, productionEventTypeFilters]);
 
   // Notify parent of filtered events change (after render)
   useEffect(() => {
@@ -124,6 +162,12 @@ export default function AuditionCalendar({
       onFilteredEventsChange(filteredProductionEvents);
     }
   }, [filteredProductionEvents, onFilteredEventsChange]);
+
+  useEffect(() => {
+    if (onFilterStateChange) {
+      onFilterStateChange(eventFilters, productionEventTypeFilters);
+    }
+  }, [eventFilters, productionEventTypeFilters, onFilterStateChange]);
 
   // Navigate to previous period
   const handlePrevious = () => {
@@ -269,6 +313,9 @@ export default function AuditionCalendar({
           filters={eventFilters}
           onFilterChange={setEventFilters}
           userRole={userRole}
+          productionEventTypeOptions={productionEventTypeOptions}
+          productionEventTypeFilters={productionEventTypeFilters}
+          onProductionEventTypeFiltersChange={setProductionEventTypeFilters}
         />
         
         {viewMode === 'month' && (

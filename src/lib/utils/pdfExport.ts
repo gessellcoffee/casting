@@ -114,6 +114,7 @@ export function generateCalendarGridPDF(
       head: [columns],
       body: tableData,
       theme: 'grid',
+      rowPageBreak: 'avoid',
       styles: {
         fontSize: 9,
         cellPadding: 3,
@@ -238,8 +239,20 @@ export function generateCalendarListPDF(
   );
   
   sortedEvents.forEach((event, index) => {
+    const pageWidth = doc.internal.pageSize.width;
+    const cardWidth = pageWidth - 30;
+    const baseCardHeight = 35;
+
+    const descriptionLines =
+      format === 'production' && event.description
+        ? doc.splitTextToSize(event.description, pageWidth - 45)
+        : null;
+
+    const descriptionHeight = descriptionLines ? descriptionLines.length * 4 + 2 : 0;
+    const cardHeight = baseCardHeight + descriptionHeight;
+
     // Check if we need a new page
-    if (yPosition > 250) {
+    if (yPosition + cardHeight > 260) {
       doc.addPage();
       yPosition = 20;
     }
@@ -247,7 +260,7 @@ export function generateCalendarListPDF(
     // Event box
     doc.setDrawColor(200, 200, 200);
     doc.setFillColor(250, 250, 250);
-    doc.roundedRect(15, yPosition, doc.internal.pageSize.width - 30, 35, 3, 3, 'FD');
+    doc.roundedRect(15, yPosition, cardWidth, cardHeight, 3, 3, 'FD');
     
     // Event type badge
     const typeColors: Record<string, [number, number, number]> = {
@@ -275,24 +288,23 @@ export function generateCalendarListPDF(
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`📅 ${formatUSDate(event.date)}`, 20, yPosition + 18);
+    doc.text(`Date: ${formatUSDate(event.date)}`, 20, yPosition + 18);
     
     if (event.time) {
-      doc.text(`🕐 ${event.time}`, 20, yPosition + 23);
+      doc.text(`Time: ${event.time}`, 20, yPosition + 23);
     }
     
     if (event.location) {
-      doc.text(`📍 ${event.location}`, 20, yPosition + 28);
+      doc.text(`Location: ${event.location}`, 20, yPosition + 28);
     }
     
-    if (format === 'production' && event.description) {
+    if (descriptionLines) {
       doc.setFontSize(8);
       doc.setTextColor(80, 80, 80);
-      const lines = doc.splitTextToSize(event.description, doc.internal.pageSize.width - 45);
-      doc.text(lines, 20, yPosition + 33);
+      doc.text(descriptionLines, 20, yPosition + 33);
     }
-    
-    yPosition += 40;
+
+    yPosition += cardHeight + 5;
   });
   
   // Footer
@@ -340,8 +352,7 @@ export function generateCallSheetPDF(
       last_name: string;
       email: string;
       phone?: string;
-      role_name?: string;
-      status: string;
+        role_name?: string;
     }>;
   }>
 ): jsPDF {
@@ -438,12 +449,11 @@ export function generateCallSheetPDF(
         cast.role_name || 'Ensemble',
         cast.email,
         cast.phone || 'N/A',
-        cast.status
       ]);
       
       autoTable(doc, {
         startY: yPosition,
-        head: [['Name', 'Role', 'Email', 'Phone', 'Status']],
+        head: [['Name', 'Role', 'Email', 'Phone']],
         body: castData,
         theme: 'plain',
         styles: {

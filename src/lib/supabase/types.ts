@@ -3,6 +3,7 @@
 export interface UserPreferences {
   dark_mode?: boolean;
   show_casting_history?: boolean;
+  show_phone?: boolean;
   tooltips?: {
     dismissed?: string[];
   };
@@ -15,6 +16,7 @@ export interface TooltipPreferences {
 export interface Profile {
   id: string;
   email: string;
+  phone: string | null;
   first_name: string | null;
   middle_name: string | null;
   last_name: string | null;
@@ -33,6 +35,7 @@ export interface Profile {
 
 export interface ProfileUpdate {
   email?: string;
+  phone?: string | null;
   first_name?: string;
   middle_name?: string;
   last_name?: string;
@@ -51,6 +54,7 @@ export interface ProfileUpdate {
 export interface ProfileInsert {
   id: string;
   email: string;
+  phone?: string | null;
   first_name?: string;
   middle_name?: string;
   last_name?: string;

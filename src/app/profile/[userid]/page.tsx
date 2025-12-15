@@ -76,6 +76,9 @@ export default function UserProfilePage() {
     .filter(Boolean)
     .join(' ') || profile.email || 'Anonymous User';
 
+  const prefs = profile.preferences as UserPreferences | null;
+  const canShowPhone = prefs?.show_phone === true;
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <StarryContainer starCount={15} className="card w-full max-w-4xl">
@@ -117,6 +120,16 @@ export default function UserProfilePage() {
                   <p className="text-neu-text-primary">{profile.email}</p>
                 </div>
               )}
+
+              {canShowPhone && profile.phone && (
+                <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
+                  <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">
+                    Phone
+                  </label>
+                  <p className="text-neu-text-primary">{profile.phone}</p>
+                </div>
+              )}
+
               {profile.location && (
                 <div className="p-4 rounded-xl bg-gradient-to-br from-neu-surface/50 to-neu-surface-dark/50 border border-neu-border">
                   <label className="block text-sm font-medium text-neu-text-primary/70 mb-2">

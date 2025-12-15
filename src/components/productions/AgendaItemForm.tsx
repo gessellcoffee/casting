@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { createAgendaItem, updateAgendaItem } from '@/lib/supabase/agendaItems';
 import Button from '@/components/Button';
 import TimeInput from '@/components/ui/TimeInput';
@@ -156,32 +157,52 @@ export default function AgendaItemForm({
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={onCancel}
-    >
-      <div
-        className="neu-card-raised max-w-lg w-full p-6"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--neu-surface)',
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-neu-text-primary">
-            {existingItem ? 'Edit Agenda Item' : 'Add Agenda Item'}
-          </h2>
-          <button
-            onClick={onCancel}
-            className="p-2 rounded-lg hover:bg-neu-surface-light transition-colors"
-          >
-            <MdClose className="w-6 h-6 text-neu-text-secondary" />
-          </button>
-        </div>
+    <Transition appear show as={Fragment}>
+      <Dialog as="div" className="relative z-[10000]" onClose={onCancel}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0" style={{ backgroundColor: 'rgba(10, 14, 39, 0.85)' }} />
+        </Transition.Child>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel
+                className="neu-card-raised max-w-lg w-full p-6 text-left"
+                style={{
+                  background: 'var(--neu-surface)',
+                }}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <Dialog.Title as="h2" className="text-2xl font-bold text-neu-text-primary">
+                    {existingItem ? 'Edit Agenda Item' : 'Add Agenda Item'}
+                  </Dialog.Title>
+                  <button
+                    onClick={onCancel}
+                    className="p-2 rounded-lg hover:bg-neu-surface-light transition-colors"
+                  >
+                    <MdClose className="w-6 h-6 text-neu-text-secondary" />
+                  </button>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-neu-text-secondary mb-2">
@@ -258,8 +279,12 @@ export default function AgendaItemForm({
               text={saving ? 'Saving...' : existingItem ? 'Update Item' : 'Add Item'}
             />
           </div>
-        </form>
-      </div>
-    </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }

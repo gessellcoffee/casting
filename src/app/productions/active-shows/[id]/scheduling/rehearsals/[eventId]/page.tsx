@@ -44,6 +44,7 @@ export default function RehearsalEventDetailPage() {
   const searchParams = useSearchParams();
   const [event, setEvent] = useState<any>(null);
   const [agendaItems, setAgendaItems] = useState<any[]>([]);
+  const [castMembers, setCastMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -119,6 +120,13 @@ export default function RehearsalEventDetailPage() {
 
     const { data: itemsData } = await getAgendaItems(params.eventId as string);
     setAgendaItems(itemsData || []);
+
+    if (eventData?.audition_id) {
+      const { data: castData } = await getCastMembers(eventData.audition_id);
+      setCastMembers(castData || []);
+    } else {
+      setCastMembers([]);
+    }
 
     const { data: conflictsData } = await getConflictSummary(params.eventId as string);
     if (conflictsData) {
@@ -366,13 +374,54 @@ export default function RehearsalEventDetailPage() {
                             author: event.auditions?.shows?.author,
                           }}
                           agendaItems={
-                            agendaItems.map((item: any) => ({
+                            (() => {
+                              const castByUserId = new Map<string, any>();
+                              (castMembers || []).forEach((m: any) => {
+                                if (m?.user_id) castByUserId.set(m.user_id, m);
+                              });
+
+                              const getRoleNameForUser = (userId: string): string | undefined => {
+                                const m = castByUserId.get(userId);
+                                if (!m) return undefined;
+
+                                const fromAuditionRole = m?.audition_roles?.role_name;
+                                const fromRole = Array.isArray(m?.roles) ? m.roles?.[0]?.role_name : m?.roles?.role_name;
+                                return fromAuditionRole || fromRole || undefined;
+                              };
+
+                              const getEmailForUser = (userId: string): string | undefined => {
+                                const m = castByUserId.get(userId);
+                                return m?.profiles?.email || undefined;
+                              };
+
+                              const getPhoneForUser = (userId: string): string | undefined => {
+                                const m = castByUserId.get(userId);
+                                return m?.profiles?.phone || undefined;
+                              };
+
+                              const getNameForUser = (userId: string): { first: string; last: string } => {
+                                const m = castByUserId.get(userId);
+                                return {
+                                  first: m?.profiles?.first_name || '',
+                                  last: m?.profiles?.last_name || '',
+                                };
+                              };
+
+                              return agendaItems.map((item: any) => ({
                               title: item.title,
                               description: item.description,
                               start_time: item.start_time,
                               end_time: item.end_time,
-                              assignments: item.assignments || [],
-                            }))
+                              assignments: (item.agenda_assignments || []).map((a: any) => ({
+                                user_id: a.user_id,
+                                first_name: getNameForUser(a.user_id).first || a.profiles?.first_name || '',
+                                last_name: getNameForUser(a.user_id).last || a.profiles?.last_name || '',
+                                email: getEmailForUser(a.user_id) || a.profiles?.email || '',
+                                phone: getPhoneForUser(a.user_id) || a.profiles?.phone || undefined,
+                                role_name: getRoleNameForUser(a.user_id) || undefined,
+                              })),
+                            }));
+                            })()
                           }
                         />
                         <button onClick={() => setIsEditingEvent(true)} className="neu-icon-btn" title="Edit Event">

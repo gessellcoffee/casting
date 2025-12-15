@@ -55,9 +55,11 @@ export async function getAgendaItems(rehearsalEventId: string) {
       *,
       profiles (
         id,
+        email,
         first_name,
         last_name,
-        profile_photo_url
+        profile_photo_url,
+        phone
       )
     `)
     .in('agenda_item_id', itemIds);
@@ -284,9 +286,11 @@ export async function getCastMembers(auditionId: string) {
       *,
       profiles (
         id,
+        email,
         first_name,
         last_name,
-        profile_photo_url
+        profile_photo_url,
+        phone
       ),
       audition_roles ( role_name ),
       roles ( role_name )
