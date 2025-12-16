@@ -77,9 +77,6 @@ export default function LiveAuditionManager({
   const [loading, setLoading] = useState(true);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
   const [showMobileDetails, setShowMobileDetails] = useState(false);
-  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
-  const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
-  const [profileModalSignupId, setProfileModalSignupId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getSlotDateKey = (startTime: string) => {
@@ -420,10 +417,6 @@ export default function LiveAuditionManager({
     setSelectedSignup(signup);
     setSelectedVirtualAudition(null);
     setShowMobileDetails(true);
-
-    setProfileModalUserId(signup.user_id);
-    setProfileModalSignupId(signup.signup_id);
-    setShowUserProfileModal(true);
   };
 
   const handleSelectVirtualAudition = (va: VirtualAuditionWithDetails) => {
@@ -757,33 +750,11 @@ export default function LiveAuditionManager({
             <div className="flex-1 overflow-y-auto">
             {selectedVirtualAudition ? (
               <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-                {/* Actor Info */}
-                <div className="neu-card-raised p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar
-                      src={selectedVirtualAudition.profiles.profile_photo_url}
-                      alt={`${selectedVirtualAudition.profiles.first_name} ${selectedVirtualAudition.profiles.last_name}`}
-                      size="lg"
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-neu-text-primary">
-                        {selectedVirtualAudition.profiles.first_name && selectedVirtualAudition.profiles.last_name
-                          ? `${selectedVirtualAudition.profiles.first_name} ${selectedVirtualAudition.profiles.last_name}`
-                          : selectedVirtualAudition.profiles.email}
-                      </h3>
-                      <p className="text-sm text-neu-text-primary/60">{selectedVirtualAudition.profiles.email}</p>
-                      <p className="text-sm text-neu-text-primary/60 mt-1">
-                        Submitted: {new Date(selectedVirtualAudition.created_at).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <UserProfileModal
+                  userId={selectedVirtualAudition.user_id}
+                  auditionId={auditionId}
+                  mode="embedded"
+                />
 
                 {/* Submission Notes */}
                 {selectedVirtualAudition.submission_notes && (
@@ -836,27 +807,12 @@ export default function LiveAuditionManager({
               </div>
             ) : selectedSignup ? (
               <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-                {/* Actor Info */}
-                <div className="neu-card-raised p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar
-                      src={selectedSignup.profiles.profile_photo_url}
-                      alt={`${selectedSignup.profiles.first_name} ${selectedSignup.profiles.last_name}`}
-                      size="lg"
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-neu-text-primary">
-                        {selectedSignup.profiles.first_name && selectedSignup.profiles.last_name
-                          ? `${selectedSignup.profiles.first_name} ${selectedSignup.profiles.last_name}`
-                          : selectedSignup.profiles.email}
-                      </h3>
-                      <p className="text-sm text-neu-text-primary/60">{selectedSignup.profiles.email}</p>
-                      <p className="text-sm text-neu-text-primary/60 mt-1">
-                        {formatUSTime(selectedSignup.audition_slots.start_time)} - {formatUSTime(selectedSignup.audition_slots.end_time)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <UserProfileModal
+                  userId={selectedSignup.user_id}
+                  auditionId={auditionId}
+                  signupId={selectedSignup.signup_id}
+                  mode="embedded"
+                />
 
                 {/* Notes Section */}
                 <div className="neu-card-raised p-4">
@@ -1069,15 +1025,6 @@ export default function LiveAuditionManager({
           </div>
         </div>
       </div>
-
-      {showUserProfileModal && profileModalUserId && (
-        <UserProfileModal
-          userId={profileModalUserId}
-          auditionId={auditionId}
-          signupId={profileModalSignupId || undefined}
-          onClose={() => setShowUserProfileModal(false)}
-        />
-      )}
     </div>
   );
 }

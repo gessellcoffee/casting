@@ -16,11 +16,12 @@ interface UserProfileModalProps {
   userId: string;
   auditionId?: string;
   signupId?: string;
-  onClose: () => void;
+  onClose?: () => void;
   onActionComplete?: () => void;
+  mode?: 'modal' | 'embedded';
 }
 
-export default function UserProfileModal({ userId, auditionId, signupId, onClose, onActionComplete }: UserProfileModalProps) {
+export default function UserProfileModal({ userId, auditionId, signupId, onClose, onActionComplete, mode = 'modal' }: UserProfileModalProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [resumes, setResumes] = useState<UserResume[]>([]);
   const [castingHistory, setCastingHistory] = useState<any[]>([]);
@@ -198,73 +199,54 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       .sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [calendarDays]);
 
-  return (
-    <>
-    <Transition appear show={true} as={Fragment}>
-      <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0" style={{ backgroundColor: 'rgba(10, 14, 39, 0.85)' }} />
-        </Transition.Child>
+  const isEmbedded = mode === 'embedded';
+  const handleClose = onClose || (() => {});
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="rounded-3xl shadow-[20px_20px_60px_var(--neu-shadow-dark),-20px_-20px_60px_var(--neu-shadow-light)] max-w-5xl w-full max-h-[90vh] overflow-hidden border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
-        {/* Header */}
-        <div className="sticky top-0 p-6 border-b border-neu-border shadow-[inset_0_-2px_4px_var(--neu-shadow-dark)]" style={{ backgroundColor: 'var(--neu-surface)' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-neu-text-primary mb-1">User Profile</h2>
-              <p className="text-neu-text-secondary neu-text-mobile-truncate">{fullName}</p>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="neu-modal-header-actions">
-              {auditionId && (
-                <Button
-                  text="Callback"
-                  onClick={() => setShowCallbackModal(true)}
-                  variant="primary"
-                />
-              )}
-              
+  const content = (
+    <>
+      {/* Header */}
+      <div
+        className={`${isEmbedded ? 'p-4' : 'sticky top-0 p-6'} border-b border-neu-border `}
+        style={{ backgroundColor: 'var(--neu-surface)' }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-neu-text-primary mb-1">User Profile</h2>
+            <p className="text-neu-text-secondary neu-text-mobile-truncate">{fullName}</p>
+          </div>
+
+          <div className="neu-modal-header-actions">
+            {auditionId && signupId && (
+              <Button
+                text="Callback"
+                onClick={() => setShowCallbackModal(true)}
+                variant="primary"
+              />
+            )}
+
+            {!isEmbedded && (
               <button
-                onClick={onClose}
-                className="p-2 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
+                onClick={handleClose}
+                className="p-2 rounded-xl text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
                 style={{ backgroundColor: 'var(--neu-surface)' }}
               >
                 <MdClose className="w-5 h-5" />
               </button>
-            </div>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-          {loading ? (
-            <div className="text-center py-12 text-neu-text-secondary">Loading profile...</div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-neu-accent-danger mb-4">{error}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Content */}
+      <div className={`${isEmbedded ? 'p-4' : 'p-6 overflow-y-auto max-h-[calc(90vh-100px)]'}`}>
+        {loading ? (
+          <div className="text-center py-12 text-neu-text-secondary">Loading profile...</div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-neu-accent-danger mb-4">{error}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column - Profile Info */}
               <div className="space-y-6">
                 {/* Profile Photo */}
@@ -831,14 +813,56 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                 )}
               </div>
             </div>
-          )}
+        )}
+      </div>
+    </>
+  );
+
+  const panelClassName = `rounded-3xl shadow-[20px_20px_60px_var(--neu-shadow-dark),-20px_-20px_60px_var(--neu-shadow-light)] ${
+    isEmbedded ? 'w-full' : 'max-w-5xl w-full max-h-[90vh]'
+  } overflow-hidden border border-neu-border`;
+
+  return (
+    <>
+      {isEmbedded ? (
+        <div className={panelClassName} style={{ backgroundColor: 'var(--neu-surface)' }}>
+          {content}
         </div>
-              </Dialog.Panel>
+      ) : (
+        <Transition appear show={true} as={Fragment}>
+          <Dialog as="div" className="relative z-[10000]" onClose={handleClose}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0" style={{ backgroundColor: 'rgba(10, 14, 39, 0.85)' }} />
             </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className={panelClassName} style={{ backgroundColor: 'var(--neu-surface)' }}>
+                    {content}
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
+      )}
     
       {/* Callback Modal */}
       {showCallbackModal && auditionId && (
