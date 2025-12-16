@@ -59,7 +59,16 @@ export default function ResumeSection({
   const [showImporter, setShowImporter] = useState(false);
   const [showPDFViewer, setShowPDFViewer] = useState(false);
 
-  const manualResumes = resumes.filter((resume) => resume.source !== 'Application');
+  const manualResumes = resumes.filter((resume) => {
+    if (resume.source === 'Application') return false;
+
+    const showName = typeof resume.show_name === 'string' ? resume.show_name.trim() : '';
+    const role = typeof resume.role === 'string' ? resume.role.trim() : '';
+    const companyName = typeof resume.company_name === 'string' ? resume.company_name.trim() : '';
+    const dateOfProduction = typeof resume.date_of_production === 'string' ? resume.date_of_production.trim() : '';
+
+    return Boolean(showName || role || companyName || dateOfProduction);
+  });
 
   useEffect(() => {
     loadResumes();

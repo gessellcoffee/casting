@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MdClose, MdUpload, MdDelete, MdPlayArrow, MdImage, MdVideocam, MdSave, MdPerson, MdArrowBack, MdExpandMore, MdChevronRight, MdEdit, MdCheck } from 'react-icons/md';
 import Avatar from '@/components/shared/Avatar';
 import { formatUSTime, formatUSDateWithFullWeekday } from '@/lib/utils/dateUtils';
+import UserProfileModal from '@/components/casting/UserProfileModal';
 import { 
   getSignupsWithDetailsForSlots, 
   addSignupMedia, 
@@ -76,6 +77,9 @@ export default function LiveAuditionManager({
   const [loading, setLoading] = useState(true);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
   const [showMobileDetails, setShowMobileDetails] = useState(false);
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+  const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
+  const [profileModalSignupId, setProfileModalSignupId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getSlotDateKey = (startTime: string) => {
@@ -416,6 +420,10 @@ export default function LiveAuditionManager({
     setSelectedSignup(signup);
     setSelectedVirtualAudition(null);
     setShowMobileDetails(true);
+
+    setProfileModalUserId(signup.user_id);
+    setProfileModalSignupId(signup.signup_id);
+    setShowUserProfileModal(true);
   };
 
   const handleSelectVirtualAudition = (va: VirtualAuditionWithDetails) => {
@@ -1061,6 +1069,15 @@ export default function LiveAuditionManager({
           </div>
         </div>
       </div>
+
+      {showUserProfileModal && profileModalUserId && (
+        <UserProfileModal
+          userId={profileModalUserId}
+          auditionId={auditionId}
+          signupId={profileModalSignupId || undefined}
+          onClose={() => setShowUserProfileModal(false)}
+        />
+      )}
     </div>
   );
 }
