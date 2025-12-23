@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { MdChevronLeft, MdChevronRight, MdCalendarToday, MdList } from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight, MdCalendarToday, MdList, MdViewWeek } from 'react-icons/md';
 import CalendarMonthView from './CalendarMonthView';
 import CalendarWeekView from './CalendarWeekView';
 import CalendarListView from './CalendarListView';
@@ -289,7 +289,7 @@ export default function AuditionCalendar({
                   : 'bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary'
               }`}
             >
-              <MdCalendarToday className="w-4 h-4" />
+              <MdViewWeek className="w-4 h-4" />
               <span className="hidden xs:inline">Week</span>
             </button>
             <button
