@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
 import { getRehearsalEvents, canManageRehearsalEvents, deleteRehearsalEvent } from '@/lib/supabase/rehearsalEvents';
 import { getBatchConflictSummary } from '@/lib/supabase/agendaItems';
+import { getDailyConflictsForAudition } from '@/lib/supabase/dailyConflicts';
 import { getUser } from '@/lib/supabase';
 import StarryContainer from '@/components/StarryContainer';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -12,7 +13,8 @@ import WorkflowStatusBadge from '@/components/productions/WorkflowStatusBadge';
 import Button from '@/components/Button';
 import Avatar from '@/components/shared/Avatar';
 import ConflictsModal from '@/components/productions/ConflictsModal';
-import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAccessTime, MdCalendarToday, MdArrowBack, MdChevronLeft, MdChevronRight, MdWarning } from 'react-icons/md';
+import DailyConflictsDisplay from '@/components/productions/DailyConflictsDisplay';
+import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAccessTime, MdCalendarToday, MdArrowBack, MdChevronLeft, MdChevronRight, MdWarning, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import { formatUSDate, isToday } from '@/lib/utils/dateUtils';
 import type { RehearsalEvent } from '@/lib/supabase/types';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
@@ -52,7 +54,10 @@ export default function SchedulingPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showSchedulingModal, setShowSchedulingModal] = useState(false);
   const [conflicts, setConflicts] = useState<Record<string, any[]>>({});
+  const [dailyConflicts, setDailyConflicts] = useState<Record<string, any>>({});
   const [loadingConflicts, setLoadingConflicts] = useState(false);
+  const [loadingDailyConflicts, setLoadingDailyConflicts] = useState(false);
+  const [showConflicts, setShowConflicts] = useState(true);
   const [selectedConflictEvent, setSelectedConflictEvent] = useState<string | null>(null);
   const [selectedProductionConflictEvent, setSelectedProductionConflictEvent] = useState<string | null>(null);
   const [productionConflictAgendaItems, setProductionConflictAgendaItems] = useState<any[]>([]);
@@ -194,6 +199,7 @@ export default function SchedulingPage() {
   useEffect(() => {
     if (calendarDays.length > 0 && params.id) {
       loadConflicts();
+      loadDailyConflicts();
     }
   }, [calendarDays, params.id]);
 
@@ -210,6 +216,21 @@ export default function SchedulingPage() {
       setConflicts(prev => ({ ...prev, ...data }));
     }
     setLoadingConflicts(false);
+  };
+
+  const loadDailyConflicts = async () => {
+    if (!calendarDays.length) return;
+
+    setLoadingDailyConflicts(true);
+    const startDate = calendarDays[0].fullDate;
+    const endDate = calendarDays[calendarDays.length - 1].fullDate;
+
+    const { data } = await getDailyConflictsForAudition(params.id as string, startDate, endDate);
+
+    if (data) {
+      setDailyConflicts(data);
+    }
+    setLoadingDailyConflicts(false);
   };
 
   const parseLocalDate = (dateString: string): Date => {
@@ -265,6 +286,11 @@ export default function SchedulingPage() {
   const getProductionEventsForDate = (date: Date) => {
     const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
     return productionEventsByDate[dateKey] || [];
+  };
+
+  const getDailyConflictsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    return dailyConflicts[dateStr] || null;
   };
 
   const getProductionEventStartTimeLabel = (event: any): string => {
@@ -337,27 +363,48 @@ export default function SchedulingPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 justify-center sm:justify-start">
-                  <button
-                    onClick={handlePrevious}
-                    className="p-2 rounded-lg bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200"
-                    aria-label="Previous"
-                  >
-                    <MdChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={handleToday}
-                    className="px-3 sm:px-4 py-2 rounded-lg bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200 font-medium text-sm sm:text-base"
-                  >
-                    Today
-                  </button>
-                  <button
-                    onClick={handleNext}
-                    className="p-2 rounded-lg bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200"
-                    aria-label="Next"
-                  >
-                    <MdChevronRight className="w-5 h-5" />
-                  </button>
+                <div className="flex items-center gap-2 justify-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePrevious}
+                      className="p-2 rounded-lg bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200"
+                      aria-label="Previous"
+                    >
+                      <MdChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleToday}
+                      className="px-3 sm:px-4 py-2 rounded-lg bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200 font-medium text-sm sm:text-base"
+                    >
+                      Today
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      className="p-2 rounded-lg bg-neu-surface border border-neu-border-focus text-neu-text-primary shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] hover:text-neu-accent-primary transition-all duration-200"
+                      aria-label="Next"
+                    >
+                      <MdChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Conflicts Toggle */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowConflicts(!showConflicts)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm font-medium ${
+                        showConflicts
+                          ? 'bg-neu-accent-primary border-neu-accent-primary shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1)]'
+                          : 'bg-white dark:bg-neu-surface border-gray-300 dark:border-neu-border-focus text-gray-700 dark:text-neu-text-primary shadow-md hover:shadow-lg hover:bg-gray-50 dark:hover:bg-neu-surface/80'
+                      }`}
+                      title={showConflicts ? 'Hide conflicts' : 'Show conflicts'}
+                    >
+                      {showConflicts ? <MdVisibility className="w-4 h-4" /> : <MdVisibilityOff className="w-4 h-4" />}
+                      <span className="hidden sm:inline">All Conflicts</span>
+                    </button>
+                    {loadingDailyConflicts && (
+                      <span className="text-xs text-neu-text-secondary animate-pulse">Loading conflicts...</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -393,6 +440,7 @@ export default function SchedulingPage() {
                       {calendarDays.map((day, index) => {
                         const dayRehearsals = getRehearsalsForDate(day.fullDate);
                         const dayProductionEvents = getProductionEventsForDate(day.fullDate);
+                        const dayConflicts = getDailyConflictsForDate(day.fullDate);
                         const today = isToday(day.fullDate);
 
                         return (
@@ -412,6 +460,12 @@ export default function SchedulingPage() {
                             >
                               {day.date}
                             </div>
+
+                            {/* Daily Conflicts Display */}
+                            <DailyConflictsDisplay 
+                              conflicts={dayConflicts} 
+                              showConflicts={showConflicts} 
+                            />
 
                             <div className="space-y-1">
                               {dayRehearsals.map(event => {

@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { getRehearsalEvent, updateRehearsalEvent } from '@/lib/supabase/rehearsalEvents';
-import { getAgendaItems, deleteAgendaItem, removeAssignment, getCastMembers, assignMultipleCastMembers, getConflictSummary } from '@/lib/supabase/agendaItems';
+import { getAgendaItems, deleteAgendaItem, removeAssignment, getCastMembers, assignMultipleCastMembers, getConflictSummary, getBatchConflictSummary } from '@/lib/supabase/agendaItems';
 import { canManageRehearsalEvents } from '@/lib/supabase/rehearsalEvents';
 import StarryContainer from '@/components/StarryContainer';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -18,6 +18,7 @@ import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import DownloadCallSheetButton from '@/components/productions/DownloadCallSheetButton';
 import ConflictsModal from '@/components/productions/ConflictsModal';
 import UserProfileModal from '@/components/casting/UserProfileModal';
+import DailyConflictsDisplay from '@/components/productions/DailyConflictsDisplay';
 
 function formatTimeString(timeString: string): string {
   if (!timeString) return '';
@@ -72,6 +73,8 @@ function RehearsalEventDetailPageContent() {
   const [conflictData, setConflictData] = useState<any[]>([]);
   const [conflictCount, setConflictCount] = useState(0);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [eventConflicts, setEventConflicts] = useState<any[]>([]);
+  const [showEventConflicts, setShowEventConflicts] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -135,6 +138,22 @@ function RehearsalEventDetailPageContent() {
       setConflictData(conflictsData);
       const totalConflicts = conflictsData.reduce((sum: number, item: any) => sum + item.conflicts.length, 0);
       setConflictCount(totalConflicts);
+    }
+
+    // Load event conflicts using the working batch conflict system
+    if (eventData && eventData.audition_id) {
+      const eventDate = new Date(eventData.date);
+      const { data: batchConflictsData } = await getBatchConflictSummary(
+        eventData.audition_id,
+        eventDate,
+        eventDate
+      );
+      
+      // Extract conflicts for this specific event
+      const thisEventConflicts = (batchConflictsData && typeof batchConflictsData === 'object') 
+        ? (batchConflictsData as Record<string, any[]>)[params.eventId as string] || []
+        : [];
+      setEventConflicts(thisEventConflicts);
     }
 
     if (eventData && eventData.audition_id) {
@@ -364,19 +383,6 @@ function RehearsalEventDetailPageContent() {
                     </div>
                     {canManage && (
                       <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setShowConflictsModal(true)}
-                          className="neu-button-secondary flex items-center gap-2 relative"
-                          title="View Conflicts"
-                        >
-                          <MdWarning className="w-5 h-5" />
-                          View Conflicts
-                          {conflictCount > 0 && (
-                            <span className="ml-1 px-2 py-0.5 rounded-full bg-yellow-500 text-white text-xs font-semibold">
-                              {conflictCount}
-                            </span>
-                          )}
-                        </button>
                         <DownloadCallSheetButton
                           rehearsalEvent={{
                             date: event.date,
@@ -465,6 +471,33 @@ function RehearsalEventDetailPageContent() {
                   {event.notes && (
                     <div className="mt-4 p-4 rounded-lg bg-neu-surface-light">
                       <p className="text-sm text-neu-text-primary">{event.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Event Time Conflicts Display */}
+                  {eventConflicts && eventConflicts.length > 0 && (
+                    <div className="mt-4 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MdWarning className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                        <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                          Event Time Conflicts ({eventConflicts.length})
+                        </h3>
+                      </div>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-3">
+                        The following cast members have conflicts during this rehearsal time:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {eventConflicts.map((conflict, index) => (
+                          <div key={index} className="text-sm text-yellow-800 dark:text-yellow-200">
+                            <strong>{conflict.user?.full_name || 'Unknown User'}</strong>
+                            {conflict.conflicts && conflict.conflicts.length > 0 && (
+                              <span className="ml-2 text-xs">
+                                ({conflict.conflicts.map((c: any) => c.event_title || c.title).join(', ')})
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </>
