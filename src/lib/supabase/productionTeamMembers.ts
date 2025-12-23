@@ -42,6 +42,40 @@ export async function getProductionTeamMembers(
 }
 
 /**
+ * Get all production team memberships for a user
+ */
+export async function getUserProductionMemberships(userId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('production_team_members')
+    .select(`
+      *,
+      auditions!inner (
+        audition_id,
+        workflow_status,
+        created_at,
+        shows!inner (
+          title,
+          author,
+          description
+        ),
+        companies (
+          name
+        )
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching user production memberships:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Get a single production team member by ID
  */
 export async function getProductionTeamMember(

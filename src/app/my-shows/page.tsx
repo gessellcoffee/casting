@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
 import { getUserCastMemberships } from '@/lib/supabase/castMembers';
+import { getUserProductionMemberships } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
 import ActorShowCard from '@/components/shows/ActorShowCard';
 import Button from '@/components/Button';
@@ -42,11 +43,14 @@ export default function MyShowsPage() {
     }
     setUser(currentUser);
 
-    // Get all cast memberships
-    const memberships = await getUserCastMemberships(currentUser.id);
+    // Get both cast memberships and production team memberships
+    const [castMemberships, productionMemberships] = await Promise.all([
+      getUserCastMemberships(currentUser.id),
+      getUserProductionMemberships(currentUser.id)
+    ]);
     
-    // Transform data to include workflow status and show info
-    const showsData = memberships
+    // Transform cast memberships
+    const castShowsData = castMemberships
       .filter(m => m.auditions && m.auditions.shows) // Only include valid shows
       .map(membership => ({
         ...membership,
@@ -58,9 +62,36 @@ export default function MyShowsPage() {
         role_name: membership.role_info?.role_name || 'Ensemble',
         role_type: membership.role_info?.role_type,
         role_description: membership.role_info?.description,
+        membership_type: 'cast',
+      }));
+
+    // Transform production team memberships
+    const productionShowsData = productionMemberships
+      .filter(m => m.auditions && m.auditions.shows) // Only include valid shows
+      .map(membership => ({
+        ...membership,
+        show_title: membership.auditions?.shows?.title || 'Untitled Show',
+        show_author: membership.auditions?.shows?.author,
+        company_name: membership.auditions?.companies?.name,
+        audition_id: membership.auditions?.audition_id,
+        workflow_status: membership.auditions?.workflow_status || 'auditioning',
+        role_name: membership.role_title || 'Production Team',
+        role_type: 'production',
+        role_description: `Production team member - ${membership.role_title}`,
+        status: 'Accepted', // Production team members are always accepted
+        membership_type: 'production',
       }));
     
-    setAllShows(showsData);
+    // Combine both types of memberships, avoiding duplicates by audition_id
+    const allMemberships = [...castShowsData];
+    productionShowsData.forEach(prodShow => {
+      // Only add if we don't already have a cast membership for this audition
+      if (!allMemberships.some(show => show.audition_id === prodShow.audition_id)) {
+        allMemberships.push(prodShow);
+      }
+    });
+    
+    setAllShows(allMemberships);
     setLoading(false);
   };
 
