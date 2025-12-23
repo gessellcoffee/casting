@@ -1,5 +1,5 @@
 import { RRule, Frequency } from 'rrule';
-import type { CalendarEvent } from './calendarUtils';
+import type { CalendarEvent } from '@/lib/supabase/types';
 
 /**
  * Expands a recurring event into individual instances within a date range
@@ -16,8 +16,8 @@ export function expandRecurringEvent(
 
   const { recurrenceRule } = event;
   // Use ISO string if available, otherwise use Date object
-  const eventStart = event.start && typeof event.start === 'string' ? new Date(event.start) : event.startDate;
-  const eventEnd = event.end && typeof event.end === 'string' ? new Date(event.end) : event.endDate;
+  const eventStart = event.start ? new Date(event.start) : new Date(event.start_time);
+  const eventEnd = event.end ? new Date(event.end) : new Date(event.end_time);
   const duration = eventEnd.getTime() - eventStart.getTime();
 
   try {
@@ -78,16 +78,23 @@ export function expandRecurringEvent(
     const rule = new RRule(rruleOptions);
     const occurrences = rule.between(startDate, endDate, true);
 
+    // Filter out exception dates (deleted occurrences)
+    const exceptionDates = new Set(recurrenceRule.exdate || []);
+    const filteredOccurrences = occurrences.filter((occurrenceDate) => {
+      const dateStr = occurrenceDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      return !exceptionDates.has(dateStr);
+    });
+
     // Map occurrences to event instances
-    return occurrences.map((occurrenceDate) => {
+    return filteredOccurrences.map((occurrenceDate) => {
       const instanceStart = new Date(occurrenceDate);
       const instanceEnd = new Date(instanceStart.getTime() + duration);
 
       return {
         ...event,
         id: `${event.id || 'event'}_${instanceStart.getTime()}`, // Unique ID for each instance
-        startDate: instanceStart,
-        endDate: instanceEnd,
+        start_time: instanceStart.toISOString(),
+        end_time: instanceEnd.toISOString(),
         start: instanceStart.toISOString(),
         end: instanceEnd.toISOString(),
         // Add metadata to identify this as an instance
@@ -119,8 +126,8 @@ export function expandRecurringEvents(
 
   // Sort by start time
   return expandedEvents.sort((a, b) => {
-    const aDate = a.start && typeof a.start === 'string' ? new Date(a.start) : a.startDate;
-    const bDate = b.start && typeof b.start === 'string' ? new Date(b.start) : b.startDate;
+    const aDate = a.start ? new Date(a.start) : new Date(a.start_time);
+    const bDate = b.start ? new Date(b.start) : new Date(b.start_time);
     return aDate.getTime() - bDate.getTime();
   });
 }

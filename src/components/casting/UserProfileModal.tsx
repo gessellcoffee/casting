@@ -6,7 +6,8 @@ import { MdClose, MdChevronLeft, MdChevronRight, MdExpandMore, MdExpandLess } fr
 import { getProfile } from '@/lib/supabase/profile';
 import { getUserResumes } from '@/lib/supabase/resume';
 import { getUserAvailability } from '@/lib/supabase/userEvents';
-import type { Profile, UserResume, CalendarEvent } from '@/lib/supabase/types';
+import { getUserCastingHistory } from '@/lib/supabase/castingHistory';
+import type { Profile, UserResume, CalendarEvent, UserPreferences } from '@/lib/supabase/types';
 import CallbackSlotSelectorModal from './CallbackSlotSelectorModal';
 import Button from '@/components/Button';
 import PDFViewer from '@/components/PDFViewer';
@@ -15,13 +16,15 @@ interface UserProfileModalProps {
   userId: string;
   auditionId?: string;
   signupId?: string;
-  onClose: () => void;
+  onClose?: () => void;
   onActionComplete?: () => void;
+  mode?: 'modal' | 'embedded';
 }
 
-export default function UserProfileModal({ userId, auditionId, signupId, onClose, onActionComplete }: UserProfileModalProps) {
+export default function UserProfileModal({ userId, auditionId, signupId, onClose, onActionComplete, mode = 'modal' }: UserProfileModalProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [resumes, setResumes] = useState<UserResume[]>([]);
+  const [castingHistory, setCastingHistory] = useState<any[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
     videoGallery: false,
     resumePdf: false,
     resume: false,
+    castingHistory: false,
     calendar: false,
     busyTimes: false,
   });
@@ -72,6 +76,10 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       // Fetch resume entries
       const resumeData = await getUserResumes(userId);
       setResumes(resumeData);
+
+      // Fetch casting history
+      const history = await getUserCastingHistory(userId);
+      setCastingHistory(history);
 
       // Fetch user availability for the current month
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0, 0);
@@ -149,6 +157,24 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       'Anonymous User'
     : 'Loading...';
 
+  const manualResumes = useMemo(() => {
+    return resumes.filter((resume) => {
+      if (resume.source === 'Application') return false;
+
+      const showName = typeof resume.show_name === 'string' ? resume.show_name.trim() : '';
+      const role = typeof resume.role === 'string' ? resume.role.trim() : '';
+      const companyName = typeof resume.company_name === 'string' ? resume.company_name.trim() : '';
+      const dateOfProduction = typeof resume.date_of_production === 'string' ? resume.date_of_production.trim() : '';
+
+      return Boolean(showName || role || companyName || dateOfProduction);
+    });
+  }, [resumes]);
+
+  const canShowCastingHistory = useMemo(() => {
+    const prefs = profile?.preferences as UserPreferences | null;
+    return prefs?.show_casting_history !== false;
+  }, [profile]);
+
   const monthDisplay = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   // Format time for display
@@ -173,73 +199,54 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       .sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [calendarDays]);
 
-  return (
-    <>
-    <Transition appear show={true} as={Fragment}>
-      <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0" style={{ backgroundColor: 'rgba(10, 14, 39, 0.85)' }} />
-        </Transition.Child>
+  const isEmbedded = mode === 'embedded';
+  const handleClose = onClose || (() => {});
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="rounded-3xl shadow-[20px_20px_60px_var(--neu-shadow-dark),-20px_-20px_60px_var(--neu-shadow-light)] max-w-5xl w-full max-h-[90vh] overflow-hidden border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
-        {/* Header */}
-        <div className="sticky top-0 p-6 border-b border-neu-border shadow-[inset_0_-2px_4px_var(--neu-shadow-dark)]" style={{ backgroundColor: 'var(--neu-surface)' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-neu-text-primary mb-1">User Profile</h2>
-              <p className="text-neu-text-secondary neu-text-mobile-truncate">{fullName}</p>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="neu-modal-header-actions">
-              {auditionId && (
-                <Button
-                  text="Callback"
-                  onClick={() => setShowCallbackModal(true)}
-                  variant="primary"
-                />
-              )}
-              
+  const content = (
+    <>
+      {/* Header */}
+      <div
+        className={`${isEmbedded ? 'p-4' : 'sticky top-0 p-6'} border-b border-neu-border `}
+        style={{ backgroundColor: 'var(--neu-surface)' }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-neu-text-primary mb-1">User Profile</h2>
+            <p className="text-neu-text-secondary neu-text-mobile-truncate">{fullName}</p>
+          </div>
+
+          <div className="neu-modal-header-actions">
+            {auditionId && signupId && (
+              <Button
+                text="Callback"
+                onClick={() => setShowCallbackModal(true)}
+                variant="primary"
+              />
+            )}
+
+            {!isEmbedded && (
               <button
-                onClick={onClose}
-                className="p-2 rounded-xl shadow-[5px_5px_10px_var(--neu-shadow-dark),-5px_-5px_10px_var(--neu-shadow-light)] hover:shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
+                onClick={handleClose}
+                className="p-2 rounded-xl text-neu-text-primary hover:text-neu-accent-primary transition-all duration-200 border border-neu-border"
                 style={{ backgroundColor: 'var(--neu-surface)' }}
               >
                 <MdClose className="w-5 h-5" />
               </button>
-            </div>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-          {loading ? (
-            <div className="text-center py-12 text-neu-text-secondary">Loading profile...</div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-neu-accent-danger mb-4">{error}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Content */}
+      <div className={`${isEmbedded ? 'p-4' : 'p-6 overflow-y-auto max-h-[calc(90vh-100px)]'}`}>
+        {loading ? (
+          <div className="text-center py-12 text-neu-text-secondary">Loading profile...</div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-neu-accent-danger mb-4">{error}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column - Profile Info */}
               <div className="space-y-6">
                 {/* Profile Photo */}
@@ -477,8 +484,66 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                   </div>
                 )}
 
+                {/* Casting History Section */}
+                {castingHistory.length > 0 && canShowCastingHistory && (
+                  <div className="rounded-2xl shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+                    <button
+                      onClick={() => toggleSection('castingHistory')}
+                      className="w-full p-4 flex items-center justify-between text-left hover:bg-neu-surface/50 transition-colors rounded-2xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold text-neu-accent-primary cursor-pointer">Casting History</h3>
+                        <span className="text-xs text-neu-text-primary/60 bg-green-500/10 border border-green-500/30 px-2 py-1 rounded-full">
+                          ✓ Verified
+                        </span>
+                      </div>
+                      {expandedSections.castingHistory ? (
+                        <MdExpandLess className="w-5 h-5 text-neu-accent-primary" />
+                      ) : (
+                        <MdExpandMore className="w-5 h-5 text-neu-accent-primary" />
+                      )}
+                    </button>
+                    {expandedSections.castingHistory && (
+                      <div className="px-4 pb-4 space-y-3">
+                        {castingHistory.map((cast) => (
+                          <div
+                            key={cast.id}
+                            className="p-4 rounded-xl shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border"
+                            style={{ backgroundColor: 'var(--neu-surface)' }}
+                          >
+                            <div className="space-y-2">
+                              <div>
+                                <h4 className="font-semibold text-neu-text-primary text-base">
+                                  {cast.show_name}
+                                </h4>
+                                <p className="text-neu-accent-primary text-sm font-medium">
+                                  {cast.role}{cast.is_understudy && ' (Understudy)'}
+                                </p>
+                              </div>
+
+                              {cast.company_name && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-neu-text-secondary">Company:</span>
+                                  <span className="text-sm text-neu-text-primary">{cast.company_name}</span>
+                                </div>
+                              )}
+
+                              {cast.date_of_production && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-neu-text-secondary">Performance Dates:</span>
+                                  <span className="text-sm text-neu-text-primary">{cast.date_of_production}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Resume Section */}
-                {resumes.length > 0 && (
+                {manualResumes.length > 0 && (
                   <div className="rounded-2xl shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
                     <button
                       onClick={() => toggleSection('resume')}
@@ -493,55 +558,60 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                     </button>
                     {expandedSections.resume && (
                       <div className="px-4 pb-4 space-y-3">
-                        {resumes.map((resume) => (
-                          <div
-                            key={resume.resume_entry_id}
-                            className="p-4 rounded-xl shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border"
-                            style={{ backgroundColor: 'var(--neu-surface)' }}
-                          >
-                            <div className="space-y-2">
-                              <div>
-                                <h4 className="font-semibold text-neu-text-primary text-base">
-                                  {resume.show_name || 'Untitled Production'}
-                                </h4>
-                                <p className="text-neu-accent-primary text-sm font-medium">
-                                  {resume.role || 'Role not specified'}
-                                </p>
-                              </div>
-                              
-                              {resume.company_name && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-neu-text-secondary">Company:</span>
-                                  <span className="text-sm text-neu-text-primary">{resume.company_name}</span>
-                                  {resume.company_approved && (
-                                    <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-600 text-xs font-medium">
-                                      ✓ Verified
-                                    </span>
+                        {manualResumes.map((resume) => {
+                          const showName = typeof resume.show_name === 'string' ? resume.show_name.trim() : '';
+                          const role = typeof resume.role === 'string' ? resume.role.trim() : '';
+                          const companyName = typeof resume.company_name === 'string' ? resume.company_name.trim() : '';
+                          const dateOfProduction = typeof resume.date_of_production === 'string' ? resume.date_of_production.trim() : '';
+
+                          const title = showName || role;
+                          const subtitle = showName ? role : '';
+
+                          return (
+                            <div
+                              key={resume.resume_entry_id}
+                              className="p-4 rounded-xl shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border"
+                              style={{ backgroundColor: 'var(--neu-surface)' }}
+                            >
+                              <div className="space-y-2">
+                                <div>
+                                  <h4 className="font-semibold text-neu-text-primary text-base">
+                                    {title}
+                                  </h4>
+                                  {subtitle && (
+                                    <p className="text-neu-accent-primary text-sm font-medium">
+                                      {subtitle}
+                                    </p>
                                   )}
                                 </div>
-                              )}
-                              
-                              {resume.date_of_production && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-neu-text-secondary">Date:</span>
-                                  <span className="text-sm text-neu-text-primary">
-                                    {new Date(resume.date_of_production).toLocaleDateString('en-US', { 
-                                      month: 'long', 
-                                      year: 'numeric' 
-                                    })}
-                                  </span>
-                                </div>
-                              )}
-                              
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-neu-text-secondary">Source:</span>
-                                <span className="px-2 py-0.5 rounded-full bg-neu-accent-primary/20 text-neu-accent-primary text-xs font-medium capitalize">
-                                  {resume.source}
-                                </span>
+
+                                {companyName && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-neu-text-secondary">Company:</span>
+                                    <span className="text-sm text-neu-text-primary">{companyName}</span>
+                                    {resume.company_approved && (
+                                      <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-600 text-xs font-medium">
+                                        ✓ Verified
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+
+                                {dateOfProduction && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-neu-text-secondary">Date:</span>
+                                    <span className="text-sm text-neu-text-primary">
+                                      {new Date(dateOfProduction).toLocaleDateString('en-US', { 
+                                        month: 'long', 
+                                        year: 'numeric' 
+                                      })}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -743,14 +813,56 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                 )}
               </div>
             </div>
-          )}
+        )}
+      </div>
+    </>
+  );
+
+  const panelClassName = `rounded-3xl shadow-[20px_20px_60px_var(--neu-shadow-dark),-20px_-20px_60px_var(--neu-shadow-light)] ${
+    isEmbedded ? 'w-full' : 'max-w-5xl w-full max-h-[90vh]'
+  } overflow-hidden border border-neu-border`;
+
+  return (
+    <>
+      {isEmbedded ? (
+        <div className={panelClassName} style={{ backgroundColor: 'var(--neu-surface)' }}>
+          {content}
         </div>
-              </Dialog.Panel>
+      ) : (
+        <Transition appear show={true} as={Fragment}>
+          <Dialog as="div" className="relative z-[10000]" onClose={handleClose}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0" style={{ backgroundColor: 'rgba(10, 14, 39, 0.85)' }} />
             </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className={panelClassName} style={{ backgroundColor: 'var(--neu-surface)' }}>
+                    {content}
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
+      )}
     
       {/* Callback Modal */}
       {showCallbackModal && auditionId && (

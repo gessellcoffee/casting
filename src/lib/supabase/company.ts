@@ -72,6 +72,64 @@ export async function createCompany(
   return { data, error: null };
 }
 
+export async function updateCompanyPdfBranding(
+  companyId: string,
+  pdfBranding: CompanyUpdate['pdf_branding']
+): Promise<{ data: Company | null; error: any }> {
+  const { user, error: authError } = await getAuthenticatedUser();
+  if (authError || !user) {
+    console.error('Error getting authenticated user:', authError);
+    return { data: null, error: authError || new Error('Not authenticated') };
+  }
+
+  const company = await getCompany(companyId);
+  if (!company) {
+    const notFoundError = new Error('Company not found');
+    console.error('Company not found:', companyId);
+    return { data: null, error: notFoundError };
+  }
+
+  // Allow company creator, or active company member role owner/admin
+  let canUpdate = company.creator_user_id === user.id;
+  if (!canUpdate) {
+    const { data: membership, error: membershipError } = await supabase
+      .from('company_members')
+      .select('role')
+      .eq('company_id', companyId)
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (membershipError && membershipError.code !== 'PGRST116') {
+      console.error('Error checking company membership:', membershipError);
+      return { data: null, error: membershipError };
+    }
+
+    const role = String(membership?.role || '').toLowerCase();
+    canUpdate = role === 'owner' || role === 'admin';
+  }
+
+  if (!canUpdate) {
+    const unauthorizedError = new Error('Unauthorized: Only company owners/admins can update PDF branding');
+    console.error('Authorization failed');
+    return { data: null, error: unauthorizedError };
+  }
+
+  const { data, error } = await supabase
+    .from('companies')
+    .update({ pdf_branding: pdfBranding })
+    .eq('company_id', companyId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating company pdf_branding:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
 /**
  * Update a company
  */

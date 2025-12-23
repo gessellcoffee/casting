@@ -6,11 +6,14 @@ import { getUser } from '@/lib/supabase/auth';
 import { getUserSignupsWithDetails, getUserCastShows, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserCastRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import { getEvents } from '@/lib/supabase/events';
+import { getProfile } from '@/lib/supabase/profile';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
 import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
 import { generateProductionEvents, mapProductionEventsToCalendarEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { getProductionEventsByAuditionIds, getUserAssignedProductionEvents } from '@/lib/supabase/productionEventsCalendar';
+import { getEffectiveTimeZone } from '@/lib/utils/dateUtils';
+import type { UserPreferences } from '@/lib/supabase/types';
 import { Check, X } from 'lucide-react';
 
 // Component that uses searchParams - must be wrapped in Suspense
@@ -88,6 +91,7 @@ function MyCalendarContent() {
   const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
   const [loading, setLoading] = useState(true);
   const [calendarKey, setCalendarKey] = useState(0); // Force calendar refresh
+  const [effectiveTimeZone, setEffectiveTimeZone] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -106,6 +110,12 @@ function MyCalendarContent() {
       }
 
       setUser(currentUser);
+      
+      // Load user profile to get timezone preference
+      const userProfile = await getProfile(currentUser.id);
+      const userPreferences = userProfile?.preferences as UserPreferences | null;
+      const timeZone = getEffectiveTimeZone(userPreferences?.time_zone);
+      setEffectiveTimeZone(timeZone);
       
       // Calculate date range for personal events (6 months back and forward)
       const now = new Date();
@@ -277,6 +287,7 @@ function MyCalendarContent() {
           callbacks={callbacks} 
           productionEvents={productionEvents}
           userId={user.id} 
+          timeZone={effectiveTimeZone}
           onRefresh={loadData}
           hasOwnedAuditions={hasOwnedAuditions}
           hasProductionTeamAuditions={hasProductionTeamAuditions}

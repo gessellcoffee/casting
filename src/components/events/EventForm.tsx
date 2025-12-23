@@ -10,6 +10,7 @@ import DateArrayInput from '../ui/DateArrayInput';
 import AddressInput from '../ui/AddressInput';
 import { FormSelect } from '../ui/forms';
 import Button from '../Button';
+import { dateInputValueToUtcIso, dateTimeLocalInputValueToUtcIso, formatDateInputValueFromUtc, formatDateTimeLocalInputValueFromUtc } from '@/lib/utils/dateUtils';
 
 const frequencyOptions = [
   { value: 'NONE', label: 'Does not repeat' },
@@ -48,6 +49,7 @@ interface EventFormProps {
   selectedDate?: Date;
   event?: CalendarEvent | null;
   userId: string;
+  timeZone?: string;
 }
 
 export default function EventForm({
@@ -57,6 +59,7 @@ export default function EventForm({
   selectedDate,
   event: initialEvent,
   userId,
+  timeZone,
 }: EventFormProps) {
   const isEdit = !!initialEvent?.id;
   
@@ -87,6 +90,10 @@ export default function EventForm({
   // Initialize form with event data when in edit mode
   useEffect(() => {
     if (initialEvent) {
+      const allDay = (initialEvent.allDay ?? (initialEvent as any).all_day ?? false) as boolean;
+      const startValue = initialEvent.start || (initialEvent as any).start_time;
+      const endValue = initialEvent.end || (initialEvent as any).end_time;
+
       const actualFrequency = initialEvent.recurrenceRule?.frequency || 'WEEKLY';
       // Determine if this was a custom recurrence (has byDay selections and interval > 1 or specific pattern)
       const hasCustomPattern = initialEvent.recurrenceRule?.byDay && initialEvent.recurrenceRule.byDay.length > 0;
@@ -95,13 +102,13 @@ export default function EventForm({
       setFormData({
         title: initialEvent.title,
         description: initialEvent.description || '',
-        date: initialEvent.date || new Date().toISOString().slice(0, 10),
-        start: initialEvent.start,
-        end: initialEvent.end,
-        allDay: initialEvent.allDay || false,
+        date: initialEvent.date || (startValue ? formatDateInputValueFromUtc(startValue, timeZone) : new Date().toISOString().slice(0, 10)),
+        start: startValue ? (allDay ? formatDateInputValueFromUtc(startValue, timeZone) : formatDateTimeLocalInputValueFromUtc(startValue, timeZone)) : '',
+        end: endValue ? (allDay ? formatDateInputValueFromUtc(endValue, timeZone) : formatDateTimeLocalInputValueFromUtc(endValue, timeZone)) : '',
+        allDay,
         location: initialEvent.location || '',
         color: initialEvent.color || '#3b82f6',
-        isRecurring: initialEvent.isRecurring || false,
+        isRecurring: initialEvent.isRecurring || (initialEvent as any).is_recurring || false,
         recurrence: {
           enabled: true,
           frequency: isCustom ? 'CUSTOM' : actualFrequency,
@@ -118,13 +125,15 @@ export default function EventForm({
       });
     } else if (selectedDate) {
       // Reset form with selected date for new events
+      const startIso = selectedDate.toISOString();
+      const endIso = new Date(selectedDate.getTime() + 60 * 60 * 1000).toISOString();
       setFormData(prev => ({
         ...prev,
-        start: selectedDate.toISOString().slice(0, 16),
-        end: new Date(selectedDate.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16),
+        start: formatDateTimeLocalInputValueFromUtc(startIso, timeZone),
+        end: formatDateTimeLocalInputValueFromUtc(endIso, timeZone),
       }));
     }
-  }, [initialEvent, selectedDate]);
+  }, [initialEvent, selectedDate, timeZone]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -182,11 +191,25 @@ export default function EventForm({
     
     try {
       let result: CalendarEvent | null = null;
+
+      const start = formData.allDay
+        ? (formData.start ? dateInputValueToUtcIso(String(formData.start), timeZone) : undefined)
+        : (formData.start ? dateTimeLocalInputValueToUtcIso(String(formData.start), timeZone) : undefined);
+
+      const end = formData.allDay
+        ? (formData.end ? dateInputValueToUtcIso(String(formData.end), timeZone) : undefined)
+        : (formData.end ? dateTimeLocalInputValueToUtcIso(String(formData.end), timeZone) : undefined);
+
+      const payload: EventFormData = {
+        ...formData,
+        start: start ?? formData.start,
+        end: end ?? formData.end,
+      };
       
       if (isEdit && initialEvent?.id) {
-        result = await updateEvent(initialEvent.id, formData, userId);
+        result = await updateEvent(initialEvent.id, payload, userId);
       } else {
-        result = await createEvent(formData, userId);
+        result = await createEvent(payload, userId);
       }
       
       if (result) {
@@ -400,7 +423,7 @@ export default function EventForm({
                       id="title"
                       name="title"
                       required
-                      className="neu-input"
+                      className="neu-input w-full"
                       value={formData.title}
                       onChange={handleInputChange}
                     />
@@ -414,7 +437,7 @@ export default function EventForm({
                       id="description"
                       name="description"
                       rows={3}
-                      className="neu-input"
+                      className="neu-input w-full"
                       value={formData.description ?? ''}
                       onChange={handleInputChange}
                     />
@@ -430,7 +453,7 @@ export default function EventForm({
                         id="start"
                         name="start"
                         required
-                        className="neu-input w-auto"
+                        className="neu-input"
                         value={formData.start ?? ''}
                         onChange={handleInputChange}
                       />
@@ -445,7 +468,7 @@ export default function EventForm({
                         id="end"
                         name="end"
                         required
-                        className="neu-input w-auto"
+                        className="neu-input"
                         value={formData.end ?? ''}
                         onChange={handleInputChange}
                         min={formData.start ?? ''}

@@ -55,6 +55,7 @@ export default function RehearsalEventDetailPage() {
     date: '',
     start_time: '',
     end_time: '',
+    is_tech_rehearsal: false,
     location: '',
     notes: '',
   });
@@ -113,6 +114,7 @@ export default function RehearsalEventDetailPage() {
         date: eventData.date || '',
         start_time: eventData.start_time?.substring(0, 5) || '',
         end_time: eventData.end_time?.substring(0, 5) || '',
+        is_tech_rehearsal: !!eventData.is_tech_rehearsal,
         location: eventData.location || '',
         notes: eventData.notes || '',
       });
@@ -195,6 +197,7 @@ export default function RehearsalEventDetailPage() {
       date: editFormData.date,
       start_time: editFormData.start_time + ':00',
       end_time: editFormData.end_time + ':00',
+      is_tech_rehearsal: editFormData.is_tech_rehearsal,
       location: editFormData.location || undefined,
       notes: editFormData.notes || undefined,
     });
@@ -338,6 +341,19 @@ export default function RehearsalEventDetailPage() {
                       placeholder="Any additional information about this rehearsal..."
                     />
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="isTechRehearsal"
+                      type="checkbox"
+                      checked={editFormData.is_tech_rehearsal}
+                      onChange={(e) => setEditFormData({ ...editFormData, is_tech_rehearsal: e.target.checked })}
+                      className="neu-checkbox"
+                    />
+                    <label htmlFor="isTechRehearsal" className="text-sm text-neu-text-secondary">
+                      Tech rehearsal
+                    </label>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -373,6 +389,7 @@ export default function RehearsalEventDetailPage() {
                             title: event.auditions?.shows?.title || 'Production',
                             author: event.auditions?.shows?.author,
                           }}
+                          companyId={event.auditions?.company_id || null}
                           agendaItems={
                             (() => {
                               const castByUserId = new Map<string, any>();

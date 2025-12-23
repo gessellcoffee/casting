@@ -8,7 +8,7 @@ import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
 import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
-import { isToday } from '@/lib/utils/dateUtils';
+import { getDateKeyInTimeZone, isToday } from '@/lib/utils/dateUtils';
 import { useRouter } from 'next/navigation';
 import { MdAdd } from 'react-icons/md';
 import { Dialog, Transition } from '@headlessui/react';
@@ -17,6 +17,7 @@ import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import type { EventTypeFilter } from './CalendarLegend';
 import RehearsalEventModal from './RehearsalEventModal';
+import ProductionEventModal from './ProductionEventModal';
 
 
 interface CalendarMonthViewProps {
@@ -25,11 +26,12 @@ interface CalendarMonthViewProps {
   productionEvents?: ProductionDateEvent[];
   currentDate: Date;
   userId: string;
+  timeZone?: string;
   onRefresh?: () => void;
   eventFilters?: EventTypeFilter;
 }
 
-export default function CalendarMonthView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh, eventFilters }: CalendarMonthViewProps) {
+export default function CalendarMonthView({ signups, callbacks = [], productionEvents = [], currentDate, userId, timeZone, onRefresh, eventFilters }: CalendarMonthViewProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
@@ -40,6 +42,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   const [showDayView, setShowDayView] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<any>({ date: null, signups: [], callbacks: [], personal: [], production: [] });
   const [selectedRehearsalEvent, setSelectedRehearsalEvent] = useState<ProductionDateEvent | null>(null);
+  const [selectedProductionEvent, setSelectedProductionEvent] = useState<ProductionDateEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Detect mobile for vertical scrolling layout - runs only on client
@@ -173,7 +176,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   }, [currentDate]);
 
   // Group signups by date
-  const signupsByDate = useGroupedSignups(signups);
+  const signupsByDate = useGroupedSignups(signups, timeZone);
 
   // Group callbacks by date
   const callbacksByDate = useMemo(() => {
@@ -181,23 +184,23 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     callbacks.forEach(callback => {
       if (callback.callback_slots?.start_time) {
         const date = new Date(callback.callback_slots.start_time);
-        const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        const key = getDateKeyInTimeZone(date, timeZone);
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(callback);
       }
     });
     return grouped;
-  }, [callbacks]);
+  }, [callbacks, timeZone]);
 
   // Get signups for a specific date
   const getSignupsForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return signupsByDate[dateKey] || [];
   };
 
   // Get callbacks for a specific date
   const getCallbacksForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return callbacksByDate[dateKey] || [];
   };
 
@@ -218,19 +221,15 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     events.forEach(evt => {
       // Create Date from ISO string - this will be in local time
       const dt = new Date((evt as any).start);
-      // Use local date components to avoid UTC conversion issues
-      const year = dt.getFullYear();
-      const month = dt.getMonth();
-      const date = dt.getDate();
-      const key = `${year}-${month}-${date}`;
+      const key = getDateKeyInTimeZone(dt, timeZone);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
     return grouped;
-  }, [events]);
+  }, [events, timeZone]);
 
   const getPersonalForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     const personalEvents = personalByDate[dateKey] || [];
     // Filter based on eventFilters if provided
     return eventFilters?.personalEvents === false ? [] : personalEvents;
@@ -242,15 +241,15 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     productionEvents.forEach(evt => {
       // evt.date is already a Date object from calendarEvents.ts, use it directly
       const eventDate = evt.date;
-      const key = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+      const key = getDateKeyInTimeZone(eventDate, timeZone);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
     return grouped;
-  }, [productionEvents]);
+  }, [productionEvents, timeZone]);
 
   const getProductionForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return productionByDate[dateKey] || [];
   };
 
@@ -274,6 +273,32 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     const today = isToday(day.fullDate);
     const totalEvents = daySignups.length + dayCallbacks.length + dayPersonal.length + dayProduction.length;
 
+    // Helper function to get production event color
+    const getProductionEventColor = (type: string, events?: any[]) => {
+      // For production_event type, check if any events have a custom eventTypeColor
+      if (type === 'production_event' && events) {
+        const productionEvent = events.find(e => e.type === 'production_event');
+        if (productionEvent && productionEvent.eventTypeColor) {
+          return productionEvent.eventTypeColor;
+        }
+      }
+      
+      switch (type) {
+        case 'rehearsal':
+        case 'rehearsal_event':
+        case 'agenda_item':
+          return '#f59e0b'; // amber-500
+        case 'performance':
+          return '#ef4444'; // red-500
+        case 'audition_slot':
+          return '#14b8a6'; // teal-500
+        case 'production_event':
+          return '#5a8ff5'; // blue-500 (matching audition signups)
+        default:
+          return '#6b7280'; // gray-500
+      }
+    };
+
     // Count events by type for dot indicators
     const hasAuditions = daySignups.length > 0;
     const hasCallbacks = dayCallbacks.length > 0;
@@ -281,6 +306,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     const hasRehearsals = dayProduction.some(e => e.type === 'rehearsal' || e.type === 'rehearsal_event' || e.type === 'agenda_item');
     const hasPerformances = dayProduction.some(e => e.type === 'performance');
     const hasAuditionSlots = dayProduction.some(e => e.type === 'audition_slot');
+    const hasProductionEvents = dayProduction.some(e => e.type === 'production_event');
 
     return (
       <div
@@ -333,20 +359,30 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
               )}
               {hasRehearsals && (
                 <div 
-                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shadow-sm" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('rehearsal_event', dayProduction) }}
                   title="Rehearsals"
                 />
               )}
               {hasPerformances && (
                 <div 
-                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-red-500 shadow-sm" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('performance', dayProduction) }}
                   title="Performances"
                 />
               )}
               {hasAuditionSlots && (
                 <div 
-                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-teal-500 shadow-sm" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('audition_slot', dayProduction) }}
                   title="Audition Slots"
+                />
+              )}
+              {hasProductionEvents && (
+                <div 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('production_event', dayProduction) }}
+                  title="Production Events"
                 />
               )}
             </div>
@@ -433,6 +469,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           }}
           selectedDate={selectedDate || undefined}
           userId={userId}
+          timeZone={timeZone}
         />
       )}
       {editingPersonalEvent && (
@@ -451,6 +488,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           }}
           event={editingPersonalEvent}
           userId={userId}
+          timeZone={timeZone}
         />
       )}
       {selectedPersonalEvent && !editingPersonalEvent && (
@@ -467,6 +505,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           onEdit={(event) => {
             setEditingPersonalEvent(event);
           }}
+          timeZone={timeZone}
         />
       )}
 
@@ -517,7 +556,8 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                           weekday: 'long', 
                           month: 'long', 
                           day: 'numeric',
-                          year: 'numeric'
+                          year: 'numeric',
+                          timeZone,
                         })}
                       </Dialog.Title>
                       <button
@@ -556,7 +596,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       <div className="flex-1">
                         <div className="font-semibold text-neu-text-primary mb-1">{showTitle}</div>
                         <div className="text-sm font-semibold text-[#3d6cb5] dark:text-[#6b9eff]">
-                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                         </div>
                         {signup.roles?.role_name && (
                           <div className="text-sm text-neu-text-primary/70 mt-1">Role: {signup.roles.role_name}</div>
@@ -586,7 +626,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       <div className="flex-1">
                         <div className="font-semibold text-neu-text-primary mb-1">{showTitle}</div>
                         <div className="text-sm font-semibold text-[#7c3aed] dark:text-[#a78bfa]">
-                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                         </div>
                         <div className="text-sm font-semibold text-[#7c3aed] dark:text-[#a78bfa] mt-1">Callback</div>
                       </div>
@@ -606,16 +646,31 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       setSelectedPersonalEvent(evt);
                       setShowDayView(false);
                     }}
-                    className="w-full text-left p-4 rounded-lg bg-green-500/20 border border-green-500/50 hover:bg-green-500/30 transition-all"
+                    className="w-full text-left p-4 rounded-lg transition-all"
+                    style={{
+                      backgroundColor: `${evt.color || '#34d399'}20`,
+                      borderColor: `${evt.color || '#34d399'}80`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = `${evt.color || '#34d399'}30`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = `${evt.color || '#34d399'}20`;
+                    }}
                   >
                     <div className="flex items-start gap-3">
                       <div className="text-2xl">🗓️</div>
                       <div className="flex-1">
-                        <div className="font-semibold text-neu-text-primary mb-1">{evt.title}</div>
-                        <div className="text-sm font-semibold text-[#059669] dark:text-[#34d399]">
-                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        <div className="font-semibold text-neu-text-primary mb-1 flex items-center gap-2">
+                          {(evt.isRecurring || evt._isInstance) && (
+                            <span className="text-sm opacity-70">🔁</span>
+                          )}
+                          <span>{evt.title}</span>
                         </div>
-                        <div className="text-sm font-semibold text-[#059669] dark:text-[#34d399] mt-1">Personal Event</div>
+                        <div className="text-sm font-semibold" style={{ color: evt.color || '#34d399' }}>
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
+                        </div>
+                        <div className="text-sm font-semibold mt-1" style={{ color: evt.color || '#34d399' }}>Personal Event</div>
                       </div>
                     </div>
                   </button>
@@ -626,6 +681,8 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
               {selectedDayEvents.production.map((evt: any) => {
                 let bgColor, borderColor, textColor, icon, label;
                 const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
+                const isProductionEvent = evt.type === 'production_event';
+                const isClickable = isRehearsalEvent || isProductionEvent;
                 
                 if (evt.type === 'rehearsal') {
                   bgColor = 'bg-orange-500/20';
@@ -659,12 +716,12 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                   label = evt.eventTypeName || 'Production Event';
                 }
 
-                const Component = isRehearsalEvent ? 'button' : 'div';
+                const Component = isClickable ? 'button' : 'div';
                 
                 return (
                   <Component
                     key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                    className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor} ${isRehearsalEvent ? 'hover:bg-amber-500/30 active:bg-amber-500/40 transition-colors cursor-pointer touch-manipulation' : ''}`}
+                    className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor} ${isClickable ? 'transition-colors cursor-pointer touch-manipulation' : ''} ${isRehearsalEvent ? 'hover:bg-amber-500/30 active:bg-amber-500/40' : isProductionEvent ? 'hover:opacity-80 active:opacity-90' : ''}`}
                     style={
                       evt.type === 'production_event'
                         ? {
@@ -673,9 +730,13 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                           }
                         : undefined
                     }
-                    onClick={isRehearsalEvent ? (e: any) => {
+                    onClick={isClickable ? (e: any) => {
                       e.stopPropagation();
-                      setSelectedRehearsalEvent(evt);
+                      if (isRehearsalEvent) {
+                        setSelectedRehearsalEvent(evt);
+                      } else if (isProductionEvent) {
+                        setSelectedProductionEvent(evt);
+                      }
                       setShowDayView(false);
                     } : undefined}
                   >
@@ -688,7 +749,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                             className={`text-sm font-semibold ${textColor}`}
                             style={evt.type === 'production_event' ? { color: evt.eventTypeColor || '#5a8ff5' } : undefined}
                           >
-                            {evt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            {evt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                           </div>
                         )}
                         <div
@@ -747,6 +808,14 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
             agendaItems: (selectedRehearsalEvent as any).agendaItems,
           }}
           onClose={() => setSelectedRehearsalEvent(null)}
+        />
+      )}
+
+      {/* Production Event Modal */}
+      {selectedProductionEvent && (
+        <ProductionEventModal
+          event={selectedProductionEvent}
+          onClose={() => setSelectedProductionEvent(null)}
         />
       )}
       

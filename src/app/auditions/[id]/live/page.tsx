@@ -113,32 +113,11 @@ export default function LiveAuditionPage() {
     );
   }
 
-  // Filter slots - show today's slots if available, otherwise show all upcoming slots
-  const now = new Date();
-  const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
-
-  // Get today's slots
-  const todaySlots = slots.filter((slot: any) => {
-    const slotTime = new Date(slot.start_time);
-    return slotTime >= todayStart && slotTime < todayEnd;
-  });
-
-  // If no slots today, show all future slots
-  const upcomingSlots = slots.filter((slot: any) => {
-    const slotTime = new Date(slot.start_time);
-    return slotTime >= now;
-  });
-
-  const slotsToShow = todaySlots.length > 0 ? todaySlots : upcomingSlots;
-
   return (
     <LiveAuditionManager
       auditionId={auditionId}
       auditionTitle={audition.shows?.title || 'Audition'}
-      slots={slotsToShow}
+      slots={slots}
       userId={user.id}
       onClose={() => router.push(`/auditions/${auditionId}`)}
     />

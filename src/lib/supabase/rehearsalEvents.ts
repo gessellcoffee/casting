@@ -33,16 +33,18 @@ export async function createRehearsalEvents(events: {
   dates: string[]; // Array of YYYY-MM-DD strings
   start_time: string; // HH:MM:SS
   end_time: string; // HH:MM:SS
+  is_tech_rehearsal?: boolean;
   location?: string;
   notes?: string;
 }) {
-  const { audition_id, dates, start_time, end_time, location, notes } = events;
+  const { audition_id, dates, start_time, end_time, is_tech_rehearsal, location, notes } = events;
 
   const rehearsalEvents = dates.map(date => ({
     audition_id,
     date,
     start_time,
     end_time,
+    is_tech_rehearsal: is_tech_rehearsal ?? false,
     location,
     notes,
   }));
@@ -86,6 +88,7 @@ export async function createRehearsalEvent(event: {
   date: string; // YYYY-MM-DD
   start_time: string; // HH:MM:SS
   end_time: string; // HH:MM:SS
+  is_tech_rehearsal?: boolean;
   location?: string;
   notes?: string;
 }) {
@@ -112,6 +115,7 @@ export async function updateRehearsalEvent(
     date?: string;
     start_time?: string;
     end_time?: string;
+    is_tech_rehearsal?: boolean;
     location?: string;
     notes?: string;
   }

@@ -5,13 +5,14 @@ import { MdAdd } from 'react-icons/md';
 import AuditionEventModal from './AuditionEventModal';
 import CallbackDetailsModal from '@/components/callbacks/CallbackDetailsModal';
 import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
-import { isToday } from '@/lib/utils/dateUtils';
+import { getDateKeyInTimeZone, isToday } from '@/lib/utils/dateUtils';
 import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import RehearsalEventModal from './RehearsalEventModal';
+import ProductionEventModal from './ProductionEventModal';
 import type { EventTypeFilter } from './CalendarLegend';
 
 interface CalendarWeekViewProps {
@@ -20,17 +21,19 @@ interface CalendarWeekViewProps {
   productionEvents?: ProductionDateEvent[];
   currentDate: Date;
   userId: string;
+  timeZone?: string;
   onRefresh?: () => void;
   eventFilters?: EventTypeFilter;
 }
 
-export default function CalendarWeekView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh, eventFilters }: CalendarWeekViewProps) {
+export default function CalendarWeekView({ signups, callbacks = [], productionEvents = [], currentDate, userId, timeZone, onRefresh, eventFilters }: CalendarWeekViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
   const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
   const [selectedRehearsalEvent, setSelectedRehearsalEvent] = useState<ProductionDateEvent | null>(null);
+  const [selectedProductionEvent, setSelectedProductionEvent] = useState<ProductionDateEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Generate week days
@@ -64,19 +67,15 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
     events.forEach(evt => {
       // Create Date from ISO string - this will be in local time
       const dt = new Date((evt as any).start);
-      // Use local date components to avoid UTC conversion issues
-      const year = dt.getFullYear();
-      const month = dt.getMonth();
-      const date = dt.getDate();
-      const key = `${year}-${month}-${date}`;
+      const key = getDateKeyInTimeZone(dt, timeZone);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
     return grouped;
-  }, [events]);
+  }, [events, timeZone]);
 
   // Group signups by date
-  const signupsByDate = useGroupedSignups(signups);
+  const signupsByDate = useGroupedSignups(signups, timeZone);
 
   // Group callbacks by date
   const callbacksByDate = useMemo(() => {
@@ -84,17 +83,17 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
     callbacks.forEach(callback => {
       if (callback.callback_slots?.start_time) {
         const date = new Date(callback.callback_slots.start_time);
-        const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        const key = getDateKeyInTimeZone(date, timeZone);
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(callback);
       }
     });
     return grouped;
-  }, [callbacks]);
+  }, [callbacks, timeZone]);
 
   // Get signups for a specific date
   const getSignupsForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return (signupsByDate[dateKey] || []).sort((a, b) => {
       const timeA = new Date(a.audition_slots.start_time).getTime();
       const timeB = new Date(b.audition_slots.start_time).getTime();
@@ -104,7 +103,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
 
   // Get callbacks for a specific date
   const getCallbacksForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return (callbacksByDate[dateKey] || []).sort((a, b) => {
       const timeA = new Date(a.callback_slots.start_time).getTime();
       const timeB = new Date(b.callback_slots.start_time).getTime();
@@ -113,7 +112,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
   };
 
   const getPersonalForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     const personalEvents = (personalByDate[dateKey] || []).sort((a: any, b: any) => {
       const timeA = new Date(a.start).getTime();
       const timeB = new Date(b.start).getTime();
@@ -128,15 +127,15 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
     const grouped: Record<string, ProductionDateEvent[]> = {};
     productionEvents.forEach(evt => {
       const eventDate = new Date(evt.date);
-      const key = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+      const key = getDateKeyInTimeZone(eventDate, timeZone);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
     return grouped;
-  }, [productionEvents]);
+  }, [productionEvents, timeZone]);
 
   const getProductionForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return (productionByDate[dateKey] || []).sort((a, b) => {
       const timeA = new Date(a.date).getTime();
       const timeB = new Date(b.date).getTime();
@@ -304,6 +303,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                         {startTime.toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
+                          timeZone,
                         })}
                       </div>
                       <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
@@ -336,14 +336,17 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                         e.stopPropagation();
                         setSelectedPersonalEvent(evt);
                       }}
-                      className="absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md bg-green-600 backdrop-blur-sm border border-green-600 hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation"
+                      className="absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation"
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
+                        backgroundColor: evt.color || '#34d399',
+                        borderColor: evt.color || '#34d399',
+                        border: `1px solid ${evt.color || '#34d399'}`,
                       }}
                     >
                       <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
-                        {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                       </div>
                       <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         {evt.title}
@@ -378,7 +381,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                       }}
                     >
                       <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
-                        {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                       </div>
                       <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         📋 {showTitle}
@@ -397,6 +400,8 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   const top = getEventPosition(startTime);
                   const height = getEventHeight(startTime, endTime);
                   const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
+                  const isProductionEvent = evt.type === 'production_event';
+                  const isClickable = isRehearsalEvent || isProductionEvent;
 
                   let bgColor, borderColor;
                   if (evt.type === 'rehearsal') {
@@ -411,7 +416,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   } else if (isRehearsalEvent) {
                     bgColor = 'bg-amber-600';
                     borderColor = 'border-amber-600';
-                  } else if (evt.type === 'production_event') {
+                  } else if (isProductionEvent) {
                     bgColor = 'bg-transparent';
                     borderColor = 'border-transparent';
                   } else {
@@ -423,15 +428,15 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                                evt.type === 'performance' ? 'Performance' :
                                evt.type === 'audition_slot' ? 'Audition Slot' :
                                isRehearsalEvent ? 'Rehearsal Event' :
-                               evt.type === 'production_event' ? ((evt as any).eventTypeName || 'Production Event') :
+                               isProductionEvent ? ((evt as any).eventTypeName || 'Production Event') :
                                'Event';
 
-                  const Component = isRehearsalEvent ? 'button' : 'div';
+                  const Component = isClickable ? 'button' : 'div';
 
                   return (
                     <Component
                       key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                      className={`absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation ${bgColor} ${borderColor} ${isRehearsalEvent ? 'cursor-pointer' : 'cursor-default'}`}
+                      className={`absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation ${bgColor} ${borderColor} ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
@@ -442,13 +447,17 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                             }
                           : {}),
                       }}
-                      onClick={isRehearsalEvent ? (e: any) => {
+                      onClick={isClickable ? (e: any) => {
                         e.stopPropagation();
-                        setSelectedRehearsalEvent(evt);
+                        if (isRehearsalEvent) {
+                          setSelectedRehearsalEvent(evt);
+                        } else if (isProductionEvent) {
+                          setSelectedProductionEvent(evt);
+                        }
                       } : undefined}
                     >
                       <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
-                        {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                       </div>
                       <div className="text-[11px] md:text-xs font-semibold text-white truncate leading-tight">
                         {evt.show.title}
@@ -500,6 +509,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
           onSave={() => loadEvents(weekRange.start, weekRange.end)}
           selectedDate={selectedDate || undefined}
           userId={userId}
+          timeZone={timeZone}
         />
       )}
       {editingPersonalEvent && (
@@ -516,6 +526,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
           }}
           event={editingPersonalEvent}
           userId={userId}
+          timeZone={timeZone}
         />
       )}
       {selectedPersonalEvent && !editingPersonalEvent && (
@@ -530,6 +541,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
           onEdit={(event) => {
             setEditingPersonalEvent(event);
           }}
+          timeZone={timeZone}
         />
       )}
 
@@ -558,6 +570,14 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
             agendaItems: (selectedRehearsalEvent as any).agendaItems,
           }}
           onClose={() => setSelectedRehearsalEvent(null)}
+        />
+      )}
+
+      {/* Production Event Modal */}
+      {selectedProductionEvent && (
+        <ProductionEventModal
+          event={selectedProductionEvent}
+          onClose={() => setSelectedProductionEvent(null)}
         />
       )}
     </>

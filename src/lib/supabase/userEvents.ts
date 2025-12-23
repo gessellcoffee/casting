@@ -62,6 +62,7 @@ export async function getUserAvailability(
         byMonth: row.recurrence_rules.by_month || [],
         until: row.recurrence_rules.until,
         count: row.recurrence_rules.count,
+        exdate: row.recurrence_rules.exdate || [],
       };
     }
 
