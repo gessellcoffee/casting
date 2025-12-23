@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { getAuditionById, updateAudition } from '@/lib/supabase/auditionQueries';
 import { getUser } from '@/lib/supabase/auth';
 import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';

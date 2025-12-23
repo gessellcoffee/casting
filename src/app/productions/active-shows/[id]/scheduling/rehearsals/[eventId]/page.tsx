@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { getRehearsalEvent, updateRehearsalEvent } from '@/lib/supabase/rehearsalEvents';
 import { getAgendaItems, deleteAgendaItem, removeAssignment, getCastMembers, assignMultipleCastMembers, getConflictSummary } from '@/lib/supabase/agendaItems';
@@ -38,7 +38,7 @@ function formatTimeString(timeString: string): string {
   return `${displayHour}:${minutes} ${ampm}`;
 }
 
-export default function RehearsalEventDetailPage() {
+function RehearsalEventDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -566,5 +566,19 @@ export default function RehearsalEventDetailPage() {
         </div>
       </StarryContainer>
     </ProtectedRoute>
+  );
+}
+
+export default function RehearsalEventDetailPage() {
+  return (
+    <Suspense fallback={
+      <StarryContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-neu-text-primary/70">Loading rehearsal details...</div>
+        </div>
+      </StarryContainer>
+    }>
+      <RehearsalEventDetailPageContent />
+    </Suspense>
   );
 }

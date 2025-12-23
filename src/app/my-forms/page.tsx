@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StarryContainer from '@/components/StarryContainer';
 import { getUser } from '@/lib/supabase/auth';
 import { getMyAuditionSignupFormAssignments, getMyFormAssignments } from '@/lib/supabase/customForms';
 
-export default function MyFormsPage() {
+function MyFormsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -108,5 +108,19 @@ export default function MyFormsPage() {
         </div>
       </div>
     </StarryContainer>
+  );
+}
+
+export default function MyFormsPage() {
+  return (
+    <Suspense fallback={
+      <StarryContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-neu-text-primary/70">Loading your forms...</div>
+        </div>
+      </StarryContainer>
+    }>
+      <MyFormsPageContent />
+    </Suspense>
   );
 }

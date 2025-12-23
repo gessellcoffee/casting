@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import StarryContainer from '@/components/StarryContainer';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -45,7 +45,7 @@ function formatTimeString(timeString: string): string {
   return `${displayHour}:${minutes} ${ampm}`;
 }
 
-export default function ProductionEventDetailPage() {
+function ProductionEventDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -714,5 +714,19 @@ export default function ProductionEventDetailPage() {
         )}
       </StarryContainer>
     </ProtectedRoute>
+  );
+}
+
+export default function ProductionEventDetailPage() {
+  return (
+    <Suspense fallback={
+      <StarryContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-neu-text-primary/70">Loading event details...</div>
+        </div>
+      </StarryContainer>
+    }>
+      <ProductionEventDetailPageContent />
+    </Suspense>
   );
 }
