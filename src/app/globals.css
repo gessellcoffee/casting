@@ -448,7 +448,7 @@ select.neu-input {
   font-size: 0.95rem;
   transition: all 0.3s ease;
   outline: none;
-
+  width: 100%;
 }
 
 .neu-input:focus {

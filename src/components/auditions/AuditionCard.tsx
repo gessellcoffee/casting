@@ -64,14 +64,13 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
         {/* Poster */}
         {owner?.id && (
           <div className="mb-3 flex items-center gap-2 text-sm text-neu-text-secondary md:mb-0 md:absolute md:top-6 md:right-6">
-            <Link
-              href={`/profile/${owner.id}`}
+            <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 window.location.href = `/profile/${owner.id}`;
               }}
-              className="inline-flex items-center gap-2 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors"
+              className="inline-flex items-center gap-2 text-neu-accent-primary hover:text-neu-accent-secondary transition-colors bg-transparent border-none cursor-pointer"
             >
               <Avatar
                 src={owner.profile_photo_url}
@@ -87,7 +86,7 @@ export default function AuditionCard({ audition }: AuditionCardProps) {
                   ? `${owner.first_name} ${owner.last_name}`
                   : owner.email || 'View poster'}
               </span>
-            </Link>
+            </button>
           </div>
         )}
 

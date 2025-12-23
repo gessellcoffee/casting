@@ -460,6 +460,8 @@ export interface AuditionInsert {
   submission_deadline?: string | null;
   show_filled_slots?: boolean;
   show_cast_publicly?: boolean;
+  required_signup_forms?: string[] | null;
+  required_callback_forms?: string[] | null;
 }
 
 export interface AuditionUpdate {
@@ -477,6 +479,8 @@ export interface AuditionUpdate {
   submission_deadline?: string | null;
   show_filled_slots?: boolean;
   show_cast_publicly?: boolean;
+  required_signup_forms?: string[] | null;
+  required_callback_forms?: string[] | null;
 }
 
 // ============= AUDITION SLOT TYPES =============

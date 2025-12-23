@@ -7,6 +7,7 @@ import { getProfile } from '@/lib/supabase/profile';
 import { getUserResumes } from '@/lib/supabase/resume';
 import { getUserAvailability } from '@/lib/supabase/userEvents';
 import { getUserCastingHistory } from '@/lib/supabase/castingHistory';
+import { getUserFormResponsesForAudition } from '@/lib/supabase/customForms';
 import type { Profile, UserResume, CalendarEvent, UserPreferences } from '@/lib/supabase/types';
 import CallbackSlotSelectorModal from './CallbackSlotSelectorModal';
 import Button from '@/components/Button';
@@ -26,6 +27,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
   const [resumes, setResumes] = useState<UserResume[]>([]);
   const [castingHistory, setCastingHistory] = useState<any[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [formResponses, setFormResponses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -46,6 +48,7 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
     castingHistory: false,
     calendar: false,
     busyTimes: false,
+    formResponses: false,
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -80,6 +83,16 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
       // Fetch casting history
       const history = await getUserCastingHistory(userId);
       setCastingHistory(history);
+
+      // Fetch form responses if auditionId is provided
+      if (auditionId) {
+        const { data: responses, error: formError } = await getUserFormResponsesForAudition(auditionId, userId);
+        if (formError) {
+          console.error('Error fetching form responses:', formError);
+        } else {
+          setFormResponses(responses || []);
+        }
+      }
 
       // Fetch user availability for the current month
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0, 0);
@@ -812,6 +825,87 @@ export default function UserProfileModal({ userId, auditionId, signupId, onClose
                   </div>
                 )}
               </div>
+
+              {/* Form Responses Section */}
+              {auditionId && formResponses.length > 0 && (
+                <div className="rounded-2xl shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+                  <button
+                    onClick={() => toggleSection('formResponses')}
+                    className="w-full p-4 flex items-center justify-between text-left hover:bg-neu-surface/50 transition-colors rounded-t-2xl"
+                  >
+                    <h3 className="text-lg font-semibold text-neu-accent-primary cursor-pointer">
+                      Form Responses ({formResponses.length})
+                    </h3>
+                    {expandedSections.formResponses ? (
+                      <MdExpandLess className="w-5 h-5 text-neu-accent-primary" />
+                    ) : (
+                      <MdExpandMore className="w-5 h-5 text-neu-accent-primary" />
+                    )}
+                  </button>
+                  {expandedSections.formResponses && (
+                    <div className="px-4 pb-4 space-y-4">
+                      {formResponses.map((response: any, index: number) => {
+                        const form = response.custom_form_assignments?.custom_forms;
+                        const answers = response.answers || {};
+                        
+                        return (
+                          <div key={index} className="p-4 rounded-xl shadow-[3px_3px_6px_var(--neu-shadow-dark),-3px_-3px_6px_var(--neu-shadow-light)] border border-neu-border" style={{ backgroundColor: 'var(--neu-surface)' }}>
+                            <h4 className="text-base font-semibold text-neu-text-primary mb-3">
+                              {form?.name || 'Form Response'}
+                            </h4>
+                            {form?.description && (
+                              <p className="text-sm text-neu-text-secondary mb-3">{form.description}</p>
+                            )}
+                            
+                            <div className="space-y-3">
+                              {Object.entries(answers).map(([fieldKey, value]: [string, any]) => (
+                                <div key={fieldKey} className="border-b border-neu-border/30 pb-2 last:border-b-0">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-neu-text-primary capitalize">
+                                      {fieldKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                    </span>
+                                    <div className="text-sm text-neu-text-secondary">
+                                      {Array.isArray(value) ? (
+                                        <div className="flex flex-wrap gap-1">
+                                          {value.map((item: string, idx: number) => (
+                                            <span key={idx} className="px-2 py-1 bg-neu-accent-primary/10 text-neu-accent-primary rounded-lg text-xs">
+                                              {item}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      ) : typeof value === 'boolean' ? (
+                                        <span className={`px-2 py-1 rounded-lg text-xs ${value ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-600'}`}>
+                                          {value ? 'Yes' : 'No'}
+                                        </span>
+                                      ) : (
+                                        <span>{value || 'No response'}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {response.submitted_at && (
+                              <div className="mt-3 pt-3 border-t border-neu-border/30">
+                                <span className="text-xs text-neu-text-secondary">
+                                  Submitted: {new Date(response.submitted_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
         )}
       </div>

@@ -548,7 +548,15 @@ export async function deleteCustomFormField(fieldId: string): Promise<{ error: a
 export async function getCustomFormAssignmentsForTarget(targetType: CustomFormTargetType, targetId: string): Promise<CustomFormAssignment[]> {
   const { data, error } = await supabase
     .from('custom_form_assignments')
-    .select('*')
+    .select(`
+      *,
+      custom_forms (
+        form_id,
+        name,
+        description,
+        status
+      )
+    `)
     .eq('target_type', targetType)
     .eq('target_id', targetId);
 
@@ -611,6 +619,11 @@ export async function deleteCustomFormAssignment(assignmentId: string): Promise<
 }
 
 export async function getCustomFormResponseForAssignment(assignmentId: string): Promise<CustomFormResponse | null> {
+  // Return null if assignmentId is undefined/null
+  if (!assignmentId) {
+    return null;
+  }
+
   const { user, error: authError } = await getAuthenticatedUser();
   if (authError || !user) {
     return null;
@@ -634,24 +647,41 @@ export async function submitCustomFormResponse(input: {
   assignmentId: string;
   answers: Record<string, any>;
 }): Promise<{ data: CustomFormResponse | null; error: any }> {
+  console.log('🔧 submitCustomFormResponse called with:', input);
+  
+  // Return error if assignmentId is undefined/null
+  if (!input.assignmentId) {
+    console.error('❌ Assignment ID is missing');
+    return { data: null, error: new Error('Assignment ID is required') };
+  }
+
   const { user, error: authError } = await getAuthenticatedUser();
+  console.log('👤 Auth check result:', { user: user?.id, authError });
   if (authError || !user) {
     return { data: null, error: authError || new Error('Not authenticated') };
   }
 
+  console.log('🔍 Fetching assignment details...');
   const { data: assignment, error: assignmentError } = await supabase
     .from('custom_form_assignments')
     .select('assignment_id, form_id, target_type, target_id')
     .eq('assignment_id', input.assignmentId)
     .single();
 
+  console.log('📋 Assignment fetch result:', { assignment, assignmentError });
+
   if (assignmentError || !assignment) {
     return { data: null, error: assignmentError || new Error('Assignment not found') };
   }
 
+  console.log('📋 Validating form fields...');
   const fields = await getCustomFormFields((assignment as any).form_id);
+  console.log('📝 Form fields:', fields);
+  
   const validation = validateRequiredFields(fields, input.answers);
+  console.log('✅ Validation result:', validation);
   if (!validation.ok) {
+    console.error('❌ Validation failed:', validation.message);
     return { data: null, error: new Error(validation.message) };
   }
 
@@ -664,6 +694,8 @@ export async function submitCustomFormResponse(input: {
     answers: input.answers as unknown as Json,
     submitted_at: new Date().toISOString(),
   };
+  
+  console.log('📤 Payload to insert:', payload);
 
   const { data, error } = await supabase
     .from('custom_form_responses')
@@ -671,10 +703,358 @@ export async function submitCustomFormResponse(input: {
     .select('*')
     .single();
 
+  console.log('💾 Database upsert result:', { data, error });
+
   if (error) {
-    console.error('Error submitting custom form response:', error);
+    console.error('❌ Error submitting custom form response:', error);
     return { data: null, error };
   }
 
+  console.log('✅ Form response submitted successfully!');
   return { data: data as any, error: null };
+}
+
+// Function to get user's form responses for a specific audition
+export async function getUserFormResponsesForAudition(auditionId: string, userId: string): Promise<{ data: any[] | null; error: any }> {
+  try {
+    const { data: responses, error } = await supabase
+      .from('custom_form_responses')
+      .select(`
+        *,
+        custom_form_assignments!inner(
+          assignment_id,
+          form_id,
+          target_type,
+          target_id,
+          required,
+          custom_forms(
+            form_id,
+            name,
+            description
+          )
+        )
+      `)
+      .eq('respondent_user_id', userId)
+      .eq('custom_form_assignments.target_type', 'audition')
+      .eq('custom_form_assignments.target_id', auditionId);
+
+    if (error) {
+      console.error('Error fetching user form responses:', error);
+      return { data: null, error };
+    }
+
+    return { data: responses || [], error: null };
+  } catch (err) {
+    console.error('Error in getUserFormResponsesForAudition:', err);
+    return { data: null, error: err };
+  }
+}
+
+// Enhanced form assignment functions for workflow integration
+
+export async function assignFormsOnAuditionSignup(auditionId: string, userId: string): Promise<{ error: any }> {
+  try {
+    // Get audition's required signup forms
+    const { data: audition, error: auditionError } = await supabase
+      .from('auditions')
+      .select('required_signup_forms')
+      .eq('audition_id', auditionId)
+      .single();
+
+    if (auditionError || !audition) {
+      return { error: auditionError || new Error('Audition not found') };
+    }
+
+    const requiredFormIds = audition.required_signup_forms || [];
+    if (requiredFormIds.length === 0) {
+      return { error: null }; // No forms required
+    }
+
+    // Check if user already has these forms assigned
+    const { data: existingAssignments } = await supabase
+      .from('custom_form_assignments')
+      .select('form_id')
+      .eq('target_type', 'audition')
+      .eq('target_id', auditionId)
+      .eq('filled_out_by', 'assignee');
+
+    const existingFormIds = new Set((existingAssignments || []).map((a: any) => a.form_id));
+    const newFormIds = requiredFormIds.filter((formId: string) => !existingFormIds.has(formId));
+
+    if (newFormIds.length === 0) {
+      return { error: null }; // All forms already assigned
+    }
+
+    // Assign new forms to user for this audition
+    const assignments = newFormIds.map((formId: string) => ({
+      form_id: formId,
+      target_type: 'audition' as CustomFormTargetType,
+      target_id: auditionId,
+      required: true,
+      filled_out_by: 'assignee' as CustomFormFilledOutBy,
+      created_by: userId,
+    }));
+
+    const { error: assignError } = await supabase
+      .from('custom_form_assignments')
+      .upsert(assignments, { onConflict: 'form_id,target_type,target_id' });
+
+    if (assignError) {
+      return { error: assignError };
+    }
+
+    // Send notifications for new form assignments
+    await Promise.all(
+      newFormIds.map(async (formId: string) => {
+        const { data: form } = await supabase
+          .from('custom_forms')
+          .select('name')
+          .eq('form_id', formId)
+          .single();
+
+        const { data: auditionData } = await supabase
+          .from('auditions')
+          .select('shows(title)')
+          .eq('audition_id', auditionId)
+          .single();
+
+        const formName = form?.name || 'Form';
+        const showTitle = (auditionData as any)?.shows?.title || 'Production';
+
+        await createNotification({
+          recipient_id: userId,
+          sender_id: userId, // System assignment
+          type: 'general',
+          title: 'Required form for audition',
+          message: `Please complete the "${formName}" form for ${showTitle} before your audition.`,
+          action_url: `/my-forms?auditionId=${auditionId}`,
+          link_url: `/my-forms?auditionId=${auditionId}`,
+          reference_id: auditionId,
+          reference_type: 'audition',
+          is_actionable: true,
+        });
+      })
+    );
+
+    return { error: null };
+  } catch (error) {
+    console.error('Error assigning forms on audition signup:', error);
+    return { error };
+  }
+}
+
+export async function assignFormsOnCallbackInvitation(auditionId: string, userId: string): Promise<{ error: any }> {
+  try {
+    // Get audition's required callback forms
+    const { data: audition, error: auditionError } = await supabase
+      .from('auditions')
+      .select('required_callback_forms')
+      .eq('audition_id', auditionId)
+      .single();
+
+    if (auditionError || !audition) {
+      return { error: auditionError || new Error('Audition not found') };
+    }
+
+    const requiredFormIds = audition.required_callback_forms || [];
+    if (requiredFormIds.length === 0) {
+      return { error: null }; // No forms required
+    }
+
+    // Check if user already has these forms assigned
+    const { data: existingAssignments } = await supabase
+      .from('custom_form_assignments')
+      .select('form_id')
+      .eq('target_type', 'audition')
+      .eq('target_id', auditionId)
+      .eq('filled_out_by', 'assignee');
+
+    const existingFormIds = new Set((existingAssignments || []).map((a: any) => a.form_id));
+    const newFormIds = requiredFormIds.filter((formId: string) => !existingFormIds.has(formId));
+
+    if (newFormIds.length === 0) {
+      return { error: null }; // All forms already assigned
+    }
+
+    // Assign new forms to user for this audition
+    const assignments = newFormIds.map((formId: string) => ({
+      form_id: formId,
+      target_type: 'audition' as CustomFormTargetType,
+      target_id: auditionId,
+      required: true,
+      filled_out_by: 'assignee' as CustomFormFilledOutBy,
+      created_by: userId,
+    }));
+
+    const { error: assignError } = await supabase
+      .from('custom_form_assignments')
+      .upsert(assignments, { onConflict: 'form_id,target_type,target_id' });
+
+    if (assignError) {
+      return { error: assignError };
+    }
+
+    // Send notifications for new form assignments
+    await Promise.all(
+      newFormIds.map(async (formId: string) => {
+        const { data: form } = await supabase
+          .from('custom_forms')
+          .select('name')
+          .eq('form_id', formId)
+          .single();
+
+        const { data: auditionData } = await supabase
+          .from('auditions')
+          .select('shows(title)')
+          .eq('audition_id', auditionId)
+          .single();
+
+        const formName = form?.name || 'Form';
+        const showTitle = (auditionData as any)?.shows?.title || 'Production';
+
+        await createNotification({
+          recipient_id: userId,
+          sender_id: userId, // System assignment
+          type: 'general',
+          title: 'Required form for callback',
+          message: `Please complete the "${formName}" form for your ${showTitle} callback.`,
+          action_url: `/my-forms?auditionId=${auditionId}`,
+          link_url: `/my-forms?auditionId=${auditionId}`,
+          reference_id: auditionId,
+          reference_type: 'audition',
+          is_actionable: true,
+        });
+      })
+    );
+
+    return { error: null };
+  } catch (error) {
+    console.error('Error assigning forms on callback invitation:', error);
+    return { error };
+  }
+}
+
+export async function getIncompleteRequiredCallbackForms(auditionId: string): Promise<{ incompleteAssignmentIds: string[]; error: any }> {
+  const { user, error: authError } = await getAuthenticatedUser();
+  if (authError || !user) {
+    return { incompleteAssignmentIds: [], error: authError || new Error('Not authenticated') };
+  }
+
+  // Get audition's required callback forms
+  const { data: audition, error: auditionError } = await supabase
+    .from('auditions')
+    .select('required_callback_forms')
+    .eq('audition_id', auditionId)
+    .single();
+
+  if (auditionError || !audition) {
+    return { incompleteAssignmentIds: [], error: auditionError || new Error('Audition not found') };
+  }
+
+  const requiredFormIds = audition.required_callback_forms || [];
+  if (requiredFormIds.length === 0) {
+    return { incompleteAssignmentIds: [], error: null };
+  }
+
+  // Get assignments for these forms
+  const { data: assignments, error: assignmentsError } = await supabase
+    .from('custom_form_assignments')
+    .select('assignment_id, form_id')
+    .eq('target_type', 'audition')
+    .eq('target_id', auditionId)
+    .eq('required', true)
+    .eq('filled_out_by', 'assignee')
+    .in('form_id', requiredFormIds);
+
+  if (assignmentsError) {
+    return { incompleteAssignmentIds: [], error: assignmentsError };
+  }
+
+  const assignmentIds = (assignments || []).map((a: any) => a.assignment_id);
+  if (assignmentIds.length === 0) {
+    return { incompleteAssignmentIds: [], error: null };
+  }
+
+  // Check which forms are completed
+  const { data: responses, error: responsesError } = await supabase
+    .from('custom_form_responses')
+    .select('assignment_id')
+    .in('assignment_id', assignmentIds)
+    .eq('respondent_user_id', user.id);
+
+  if (responsesError) {
+    return { incompleteAssignmentIds: [], error: responsesError };
+  }
+
+  const completed = new Set((responses || []).map((r: any) => r.assignment_id));
+  const incomplete = assignmentIds.filter(id => !completed.has(id));
+  return { incompleteAssignmentIds: incomplete, error: null };
+}
+
+export async function sendFormToUsers(input: {
+  formId: string;
+  userIds: string[];
+  auditionId?: string;
+  message?: string;
+}): Promise<{ error: any }> {
+  const { user, error: authError } = await getAuthenticatedUser();
+  if (authError || !user) {
+    return { error: authError || new Error('Not authenticated') };
+  }
+
+  try {
+    // Get form details
+    const { data: form, error: formError } = await supabase
+      .from('custom_forms')
+      .select('name, description')
+      .eq('form_id', input.formId)
+      .single();
+
+    if (formError || !form) {
+      return { error: formError || new Error('Form not found') };
+    }
+
+    // Create assignments for each user
+    const assignments = input.userIds.map(userId => ({
+      form_id: input.formId,
+      target_type: 'audition' as CustomFormTargetType,
+      target_id: input.auditionId || 'manual',
+      required: false, // Manual assignments are not required by default
+      filled_out_by: 'assignee' as CustomFormFilledOutBy,
+      created_by: user.id,
+    }));
+
+    const { error: assignError } = await supabase
+      .from('custom_form_assignments')
+      .upsert(assignments, { onConflict: 'form_id,target_type,target_id' });
+
+    if (assignError) {
+      return { error: assignError };
+    }
+
+    // Send notifications to each user
+    await Promise.all(
+      input.userIds.map(async (userId) => {
+        const customMessage = input.message || `You have been assigned the form "${form.name}". Please complete it at your earliest convenience.`;
+        
+        await createNotification({
+          recipient_id: userId,
+          sender_id: user.id,
+          type: 'general',
+          title: 'New form assigned',
+          message: customMessage,
+          action_url: `/my-forms`,
+          link_url: `/my-forms`,
+          reference_id: input.formId,
+          reference_type: 'custom_form',
+          is_actionable: true,
+        });
+      })
+    );
+
+    return { error: null };
+  } catch (error) {
+    console.error('Error sending form to users:', error);
+    return { error };
+  }
 }

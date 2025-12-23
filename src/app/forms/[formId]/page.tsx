@@ -541,8 +541,109 @@ export default function FormEditorPage() {
               </div>
             </div>
           </div>
+          
+          <div className="neu-card-raised p-6 rounded-xl mt-6">
+            <h2 className="text-xl font-semibold text-neu-text-primary mb-2">Assign form</h2>
+            <p className="text-sm text-neu-text-primary/70 mb-4">
+              Assign this form to a production or a cast member.
+            </p>
 
-          <div className="neu-card-raised p-6 rounded-xl mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormSelect
+                label="Assign to"
+                value={assignmentTargetType}
+                onChange={(e) => {
+                  const next = e.target.value as CustomFormTargetType;
+                  setAssignmentTargetType(next);
+                  setCurrentTargetAssignments([]);
+                  setSelectedCastMemberId('');
+                }}
+              >
+                <option value="cast_member">Cast Member</option>
+                <option value="audition">Production</option>
+              </FormSelect>
+
+              <FormSelect
+                label="Production"
+                value={selectedAuditionId}
+                onChange={(e) => {
+                  setSelectedAuditionId(e.target.value);
+                  setSelectedCastMemberId('');
+                  setCurrentTargetAssignments([]);
+                }}
+                disabled={auditionsLoading}
+              >
+                <option value="">Select a production...</option>
+                {auditions.map((a: any) => (
+                  <option key={a.audition_id} value={a.audition_id}>
+                    {a.show?.title || a.shows?.title || 'Untitled Production'}
+                  </option>
+                ))}
+              </FormSelect>
+
+              {assignmentTargetType === 'cast_member' && (
+                <FormSelect
+                  label="Cast member"
+                  value={selectedCastMemberId}
+                  onChange={(e) => setSelectedCastMemberId(e.target.value)}
+                  disabled={!selectedAuditionId || castMembersLoading}
+                >
+                  <option value="">Select a cast member...</option>
+                  {castMembers.map((m: any) => (
+                    <option key={m.cast_member_id} value={m.cast_member_id}>
+                      {m.full_name || 'Unknown User'}
+                    </option>
+                  ))}
+                </FormSelect>
+              )}
+
+              <FormSelect
+                label="Filled out by"
+                value={assignmentFilledOutBy}
+                onChange={(e) => setAssignmentFilledOutBy(e.target.value as CustomFormFilledOutBy)}
+              >
+                <option value="assignee">Assigned person</option>
+                <option value="production_team">Production team</option>
+              </FormSelect>
+
+              <div className="flex items-end">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={assignmentRequired}
+                    onChange={(e) => setAssignmentRequired(e.target.checked)}
+                    className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                  />
+                  <span className="text-sm font-medium text-neu-text-primary">Required</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <Button
+                text={assigning ? 'Assigning...' : 'Assign Form'}
+                onClick={handleAssign}
+                disabled={assigning}
+              />
+              {assignmentTargetType === 'cast_member' && (
+                <Button
+                  text={assigningCast ? 'Assigning...' : 'Assign to Entire Cast'}
+                  onClick={handleAssignToWholeCast}
+                  disabled={assigningCast || !selectedAuditionId}
+                  variant="secondary"
+                />
+              )}
+              <div className="text-sm text-neu-text-primary/70">
+                {currentTargetAssignments.some((a) => a.form_id === formId) ? (
+                  <span className="text-neu-accent-primary">This form is assigned to the selected target.</span>
+                ) : (
+                  <span>Not assigned to the selected target yet.</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="neu-card-raised p-6 rounded-xl mb-6 mt-6">
             <h2 className="text-xl font-semibold text-neu-text-primary mb-4">Add field</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
@@ -752,106 +853,6 @@ export default function FormEditorPage() {
             )}
           </div>
 
-          <div className="neu-card-raised p-6 rounded-xl mt-6">
-            <h2 className="text-xl font-semibold text-neu-text-primary mb-2">Assign form</h2>
-            <p className="text-sm text-neu-text-primary/70 mb-4">
-              Assign this form to a production or a cast member.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormSelect
-                label="Assign to"
-                value={assignmentTargetType}
-                onChange={(e) => {
-                  const next = e.target.value as CustomFormTargetType;
-                  setAssignmentTargetType(next);
-                  setCurrentTargetAssignments([]);
-                  setSelectedCastMemberId('');
-                }}
-              >
-                <option value="cast_member">Cast Member</option>
-                <option value="audition">Production</option>
-              </FormSelect>
-
-              <FormSelect
-                label="Production"
-                value={selectedAuditionId}
-                onChange={(e) => {
-                  setSelectedAuditionId(e.target.value);
-                  setSelectedCastMemberId('');
-                  setCurrentTargetAssignments([]);
-                }}
-                disabled={auditionsLoading}
-              >
-                <option value="">Select a production...</option>
-                {auditions.map((a: any) => (
-                  <option key={a.audition_id} value={a.audition_id}>
-                    {a.show?.title || a.shows?.title || 'Untitled Production'}
-                  </option>
-                ))}
-              </FormSelect>
-
-              {assignmentTargetType === 'cast_member' && (
-                <FormSelect
-                  label="Cast member"
-                  value={selectedCastMemberId}
-                  onChange={(e) => setSelectedCastMemberId(e.target.value)}
-                  disabled={!selectedAuditionId || castMembersLoading}
-                >
-                  <option value="">Select a cast member...</option>
-                  {castMembers.map((m: any) => (
-                    <option key={m.cast_member_id} value={m.cast_member_id}>
-                      {m.full_name || 'Unknown User'}
-                    </option>
-                  ))}
-                </FormSelect>
-              )}
-
-              <FormSelect
-                label="Filled out by"
-                value={assignmentFilledOutBy}
-                onChange={(e) => setAssignmentFilledOutBy(e.target.value as CustomFormFilledOutBy)}
-              >
-                <option value="assignee">Assigned person</option>
-                <option value="production_team">Production team</option>
-              </FormSelect>
-
-              <div className="flex items-end">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={assignmentRequired}
-                    onChange={(e) => setAssignmentRequired(e.target.checked)}
-                    className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
-                  />
-                  <span className="text-sm font-medium text-neu-text-primary">Required</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
-              <Button
-                text={assigning ? 'Assigning...' : 'Assign Form'}
-                onClick={handleAssign}
-                disabled={assigning}
-              />
-              {assignmentTargetType === 'cast_member' && (
-                <Button
-                  text={assigningCast ? 'Assigning...' : 'Assign to Entire Cast'}
-                  onClick={handleAssignToWholeCast}
-                  disabled={assigningCast || !selectedAuditionId}
-                  variant="secondary"
-                />
-              )}
-              <div className="text-sm text-neu-text-primary/70">
-                {currentTargetAssignments.some((a) => a.form_id === formId) ? (
-                  <span className="text-neu-accent-primary">This form is assigned to the selected target.</span>
-                ) : (
-                  <span>Not assigned to the selected target yet.</span>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </StarryContainer>
