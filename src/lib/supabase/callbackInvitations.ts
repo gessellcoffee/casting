@@ -392,7 +392,7 @@ export async function respondToCallbackInvitation(
   invitationId: string,
   status: 'accepted' | 'rejected',
   actorComment?: string
-): Promise<{ data: CallbackInvitation | null; error: any }> {
+): Promise<{ data: CallbackInvitation | null; error: any; requiresFormCompletion?: boolean; auditionId?: string }> {
   // Verify the authenticated user
   const { user, error: authError } = await getAuthenticatedUser();
   
@@ -410,6 +410,32 @@ export async function respondToCallbackInvitation(
 
   if (invitation.user_id !== user.id) {
     return { data: null, error: new Error('Unauthorized: You can only respond to your own invitations') };
+  }
+
+  // If accepting, check for required callback forms
+  if (status === 'accepted') {
+    const { getIncompleteRequiredCallbackForms } = await import('./customForms');
+    const { incompleteAssignmentIds, error: formsError } = await getIncompleteRequiredCallbackForms(invitation.audition_id);
+    
+    console.log('Callback form check:', {
+      auditionId: invitation.audition_id,
+      incompleteAssignmentIds,
+      formsError,
+      status
+    });
+    
+    if (formsError) {
+      console.error('Error checking callback forms:', formsError);
+      // Don't block acceptance if there's an error checking forms
+    } else if (incompleteAssignmentIds.length > 0) {
+      console.log('Blocking callback acceptance due to incomplete forms:', incompleteAssignmentIds);
+      return { 
+        data: null, 
+        error: new Error('Please complete all required forms before accepting this callback'), 
+        requiresFormCompletion: true,
+        auditionId: invitation.audition_id
+      };
+    }
   }
 
   // Update the invitation

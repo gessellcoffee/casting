@@ -12,6 +12,7 @@ import SlotsList from '@/components/auditions/SlotsList';
 import AuditionInfo from '@/components/auditions/AuditionInfo';
 import ProductionTeamModal from '@/components/auditions/ProductionTeamModal';
 import VirtualAuditionSubmission from '@/components/auditions/VirtualAuditionSubmission';
+import AuditionFormManagement from '@/components/auditions/AuditionFormManagement';
 import Button from '@/components/Button';
 import { getAuditionRoles } from '@/lib/supabase/auditionRoles';
 import WorkflowTransition from '@/components/productions/WorkflowTransition';
@@ -257,6 +258,14 @@ export default function AuditionDetailPage() {
                   />
                 ) : null;
               })()}
+
+              {/* Form Management (Only for logged in users) */}
+              {user && !canManage && (
+                <AuditionFormManagement
+                  auditionId={audition.audition_id}
+                  auditionTitle={audition.show?.title || 'Audition'}
+                />
+              )}
 
               {/* Audition Slots
                 - Visible to all users while workflow_status is 'auditioning'

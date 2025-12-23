@@ -215,6 +215,17 @@ export async function getMyAuditionSignupFormAssignments(auditionId: string): Pr
     return [];
   }
 
+  // First, get the audition's required signup forms (not callback forms)
+  const { data: audition, error: auditionError } = await supabase
+    .from('auditions')
+    .select('required_signup_forms')
+    .eq('audition_id', auditionId)
+    .single();
+
+  if (auditionError || !audition || !audition.required_signup_forms || audition.required_signup_forms.length === 0) {
+    return [];
+  }
+
   const { data: assignments, error } = await supabase
     .from('custom_form_assignments')
     .select(`
@@ -225,6 +236,7 @@ export async function getMyAuditionSignupFormAssignments(auditionId: string): Pr
     .eq('target_id', auditionId)
     .eq('required', true)
     .eq('filled_out_by', 'assignee')
+    .in('form_id', audition.required_signup_forms)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -259,20 +271,48 @@ export async function getIncompleteRequiredAuditionForms(auditionId: string): Pr
     return { incompleteAssignmentIds: [], error: authError || new Error('Not authenticated') };
   }
 
+  console.log('Checking audition signup forms for audition:', auditionId, 'user:', user.id);
+
+  // First, get the audition's required signup forms (not callback forms)
+  const { data: audition, error: auditionError } = await supabase
+    .from('auditions')
+    .select('required_signup_forms')
+    .eq('audition_id', auditionId)
+    .single();
+
+  if (auditionError || !audition) {
+    console.log('Audition error:', auditionError, 'audition:', audition);
+    return { incompleteAssignmentIds: [], error: auditionError || new Error('Audition not found') };
+  }
+
+  const requiredSignupFormIds = audition.required_signup_forms || [];
+  console.log('Required signup form IDs:', requiredSignupFormIds);
+  
+  if (requiredSignupFormIds.length === 0) {
+    console.log('No required signup forms found');
+    return { incompleteAssignmentIds: [], error: null };
+  }
+
   const { data: assignments, error: assignmentsError } = await supabase
     .from('custom_form_assignments')
-    .select('assignment_id')
+    .select('assignment_id, form_id')
     .eq('target_type', 'audition')
     .eq('target_id', auditionId)
     .eq('required', true)
-    .eq('filled_out_by', 'assignee');
+    .eq('filled_out_by', 'assignee')
+    .in('form_id', requiredSignupFormIds);
+
+  console.log('Form assignments query result:', { assignments, assignmentsError });
 
   if (assignmentsError) {
     return { incompleteAssignmentIds: [], error: assignmentsError };
   }
 
   const ids = (assignments || []).map((a: any) => a.assignment_id);
+  console.log('Assignment IDs found:', ids);
+  
   if (ids.length === 0) {
+    console.log('No assignments found for required signup forms - this might be the issue');
     return { incompleteAssignmentIds: [], error: null };
   }
 
@@ -282,12 +322,18 @@ export async function getIncompleteRequiredAuditionForms(auditionId: string): Pr
     .in('assignment_id', ids)
     .eq('respondent_user_id', user.id);
 
+  console.log('Form responses query result:', { responses, responsesError });
+
   if (responsesError) {
     return { incompleteAssignmentIds: [], error: responsesError };
   }
 
   const completed = new Set((responses || []).map((r: any) => r.assignment_id));
   const incomplete = ids.filter(id => !completed.has(id));
+  
+  console.log('Completed assignments:', Array.from(completed));
+  console.log('Incomplete assignments:', incomplete);
+  
   return { incompleteAssignmentIds: incomplete, error: null };
 }
 
@@ -1019,7 +1065,8 @@ export async function assignFormsOnCallbackInvitation(auditionId: string, userId
       .select('form_id')
       .eq('target_type', 'audition')
       .eq('target_id', auditionId)
-      .eq('filled_out_by', 'assignee');
+      .eq('filled_out_by', 'assignee')
+      .eq('created_by', userId);
 
     const existingFormIds = new Set((existingAssignments || []).map((a: any) => a.form_id));
     const newFormIds = requiredFormIds.filter((formId: string) => !existingFormIds.has(formId));
@@ -1089,8 +1136,31 @@ export async function assignFormsOnCallbackInvitation(auditionId: string, userId
 export async function getIncompleteRequiredCallbackForms(auditionId: string): Promise<{ incompleteAssignmentIds: string[]; error: any }> {
   const { user, error: authError } = await getAuthenticatedUser();
   if (authError || !user) {
+    console.log('Auth error in getIncompleteRequiredCallbackForms:', authError);
     return { incompleteAssignmentIds: [], error: authError || new Error('Not authenticated') };
   }
+
+  console.log('Checking callback forms for audition:', auditionId, 'user:', user.id);
+
+  // First, verify the user has a callback invitation for this audition
+  const { data: callbackInvitation, error: invitationError } = await supabase
+    .from('callback_invitations')
+    .select('invitation_id, status')
+    .eq('audition_id', auditionId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (invitationError || !callbackInvitation) {
+    console.log('No callback invitation found for user:', user.id, 'audition:', auditionId);
+    return { incompleteAssignmentIds: [], error: null }; // No callback invitation = no callback forms required
+  }
+
+  if (callbackInvitation.status !== 'pending') {
+    console.log('Callback invitation not pending, status:', callbackInvitation.status);
+    return { incompleteAssignmentIds: [], error: null }; // Only pending invitations need form completion
+  }
+
+  console.log('User has pending callback invitation, checking forms...');
 
   // Get audition's required callback forms
   const { data: audition, error: auditionError } = await supabase
@@ -1100,11 +1170,15 @@ export async function getIncompleteRequiredCallbackForms(auditionId: string): Pr
     .single();
 
   if (auditionError || !audition) {
+    console.log('Audition error:', auditionError, 'audition:', audition);
     return { incompleteAssignmentIds: [], error: auditionError || new Error('Audition not found') };
   }
 
   const requiredFormIds = audition.required_callback_forms || [];
+  console.log('Required callback form IDs:', requiredFormIds);
+  
   if (requiredFormIds.length === 0) {
+    console.log('No required callback forms found');
     return { incompleteAssignmentIds: [], error: null };
   }
 
@@ -1118,12 +1192,17 @@ export async function getIncompleteRequiredCallbackForms(auditionId: string): Pr
     .eq('filled_out_by', 'assignee')
     .in('form_id', requiredFormIds);
 
+  console.log('Form assignments query result:', { assignments, assignmentsError });
+
   if (assignmentsError) {
     return { incompleteAssignmentIds: [], error: assignmentsError };
   }
 
   const assignmentIds = (assignments || []).map((a: any) => a.assignment_id);
+  console.log('Assignment IDs found:', assignmentIds);
+  
   if (assignmentIds.length === 0) {
+    console.log('No assignments found for required forms - this might be the issue');
     return { incompleteAssignmentIds: [], error: null };
   }
 
@@ -1134,12 +1213,18 @@ export async function getIncompleteRequiredCallbackForms(auditionId: string): Pr
     .in('assignment_id', assignmentIds)
     .eq('respondent_user_id', user.id);
 
+  console.log('Form responses query result:', { responses, responsesError });
+
   if (responsesError) {
     return { incompleteAssignmentIds: [], error: responsesError };
   }
 
   const completed = new Set((responses || []).map((r: any) => r.assignment_id));
   const incomplete = assignmentIds.filter(id => !completed.has(id));
+  
+  console.log('Completed assignments:', Array.from(completed));
+  console.log('Incomplete assignments:', incomplete);
+  
   return { incompleteAssignmentIds: incomplete, error: null };
 }
 

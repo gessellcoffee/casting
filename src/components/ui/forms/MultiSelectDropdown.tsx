@@ -202,18 +202,18 @@ export default function MultiSelectDropdown({
                       >
                         {({ selected }) => (
                           <>
-                            <span
-                              className={`block truncate ${
-                                selected ? 'font-medium' : 'font-normal'
-                              }`}
-                            >
-                              {option}
-                            </span>
                             {selected && (
                               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#4a7bd9]">
                                 <Check className="w-4 h-4" aria-hidden="true" />
                               </span>
                             )}
+                            <span
+                              className={`block truncate ml-6 ${
+                                selected ? 'font-medium' : 'font-normal'
+                              }`}
+                            >
+                              {option}
+                            </span>
                           </>
                         )}
                       </Listbox.Option>

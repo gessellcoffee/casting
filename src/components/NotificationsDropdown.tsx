@@ -19,7 +19,8 @@ import { useClickOutside } from '@/lib/hooks/useClickOutside';
 import { formatTimeAgo, formatUSDate, formatUSTime } from '@/lib/utils/dateUtils';
 import EmptyState from '@/components/ui/feedback/EmptyState';
 import Badge from '@/components/ui/feedback/Badge';
-import CallbackResponseModal from '@/components/callbacks/CallbackResponseModal';
+import CallbackResponseModal from './callbacks/CallbackResponseModal';
+import CallbackFormsModal from './callbacks/CallbackFormsModal';
 import ConfirmationModal from './shared/ConfirmationModal';
 
 interface NotificationsDropdownProps {
@@ -34,11 +35,13 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [formsModalOpen, setFormsModalOpen] = useState(false);
   const [modalData, setModalData] = useState<{
     invitationId: string;
     notificationId: string;
     responseType: 'accept' | 'decline';
     details?: any;
+    auditionId?: string;
   } | null>(null);
   const [confirmationModalConfig, setConfirmationModalConfig] = useState({
     isOpen: false,
@@ -179,11 +182,21 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     setProcessing(modalData.notificationId);
     try {
       const status = modalData.responseType === 'accept' ? 'accepted' : 'rejected';
-      const { error } = await respondToCallbackInvitation(
+      const { error, requiresFormCompletion, auditionId } = await respondToCallbackInvitation(
         modalData.invitationId,
         status,
         comment || undefined
       );
+      
+      // If accepting and forms are required, show forms modal
+      if (requiresFormCompletion && auditionId && status === 'accepted') {
+        setModalData({ ...modalData, auditionId });
+        setModalOpen(false);
+        setFormsModalOpen(true);
+        setProcessing(null);
+        return;
+      }
+      
       if (error) throw error;
 
       // Mark notification as handled with the action taken
@@ -196,6 +209,37 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     } catch (err: any) {
       console.error('Error responding to callback:', err);
       openConfirmationModal('Error', `Failed to respond: ${err.message}`, undefined, 'OK', false);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleFormsCompleted = async () => {
+    if (!modalData) return;
+
+    setProcessing(modalData.notificationId);
+    try {
+      // Try to accept the callback again now that forms are completed
+      const { error } = await respondToCallbackInvitation(
+        modalData.invitationId,
+        'accepted',
+        undefined
+      );
+      
+      if (error) throw error;
+
+      // Mark notification as handled
+      await handleNotificationAction(modalData.notificationId, 'accepted');
+      
+      setFormsModalOpen(false);
+      setModalData(null);
+      loadNotifications();
+      loadUnreadCount();
+      
+      openConfirmationModal('Success', 'Callback accepted successfully!', undefined, 'OK', false);
+    } catch (err: any) {
+      console.error('Error accepting callback after forms completion:', err);
+      openConfirmationModal('Error', `Failed to accept callback: ${err.message}`, undefined, 'OK', false);
     } finally {
       setProcessing(null);
     }
@@ -515,7 +559,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       )}
 
       {/* Callback Response Modal - Rendered via Portal */}
-      {typeof window !== 'undefined' && modalOpen && createPortal(
+      {typeof window !== 'undefined' && modalOpen && modalData && createPortal(
         <CallbackResponseModal
           isOpen={modalOpen}
           onClose={() => {
@@ -526,6 +570,20 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           responseType={modalData?.responseType || 'accept'}
           callbackDetails={modalData?.details}
           isSubmitting={processing !== null}
+        />,
+        document.body
+      )}
+
+      {typeof window !== 'undefined' && formsModalOpen && modalData?.auditionId && createPortal(
+        <CallbackFormsModal
+          isOpen={formsModalOpen}
+          onClose={() => {
+            setFormsModalOpen(false);
+            setModalData(null);
+          }}
+          onFormsCompleted={handleFormsCompleted}
+          auditionId={modalData.auditionId}
+          callbackDetails={modalData?.details}
         />,
         document.body
       )}

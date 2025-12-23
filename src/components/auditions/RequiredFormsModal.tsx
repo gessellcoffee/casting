@@ -17,6 +17,7 @@ import { X, FileText, CheckCircle, AlertCircle, ChevronLeft, ChevronRight } from
 import FormInput from '@/components/ui/forms/FormInput';
 import FormTextarea from '@/components/ui/forms/FormTextarea';
 import FormSelect from '@/components/ui/forms/FormSelect';
+import MultiSelectDropdown from '@/components/ui/forms/MultiSelectDropdown';
 
 interface FormAssignmentWithStatus {
   assignment_id: string | null;
@@ -79,10 +80,8 @@ export default function RequiredFormsModal({
         return;
       }
 
-      const requiredFormIds = [
-        ...(audition.required_signup_forms || []),
-        ...(audition.required_callback_forms || [])
-      ];
+      // Only show signup forms during audition signup, not callback forms
+      const requiredFormIds = audition.required_signup_forms || [];
 
       if (requiredFormIds.length === 0) {
         setForms([]);
@@ -164,6 +163,15 @@ export default function RequiredFormsModal({
       );
 
       setForms(formsWithStatus);
+
+      // Initialize form responses with existing data
+      const initialResponses: Record<string, Record<string, any>> = {};
+      formsWithStatus.forEach(form => {
+        if (form.responses && Object.keys(form.responses).length > 0) {
+          initialResponses[form.form_id] = form.responses;
+        }
+      });
+      setFormResponses(initialResponses);
 
       // If all forms are completed, automatically trigger the callback
       const allCompleted = formsWithStatus.length > 0 && formsWithStatus.every(form => form.isCompleted);
@@ -466,51 +474,23 @@ export default function RequiredFormsModal({
           }
         }
         
-        // Debug logging
-        console.log('Multiselect field:', field.label, 'Options:', field.options, 'Parsed:', multiselectOptions);
-        
         const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
         
         return (
-          <div key={field.field_id}>
-            <label className="block text-sm font-medium text-neu-text-primary mb-2">
-              {field.label}
-              {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
-            </label>
-            {field.help_text && (
-              <p className="text-xs text-neu-text-primary/60 mb-2">{field.help_text}</p>
-            )}
-            {multiselectOptions.length === 0 ? (
-              <div className="neu-card-inset p-3 rounded-lg">
-                <p className="text-sm text-neu-text-primary/60">No options available for this field.</p>
-                <p className="text-xs text-neu-text-primary/40 mt-1">Raw options: {JSON.stringify(field.options)}</p>
-              </div>
-            ) : (
-              <div className="space-y-2 neu-card-inset p-3 rounded-lg max-h-48 overflow-y-auto">
-                {multiselectOptions.map((option: string, index: number) => (
-                <label key={index} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedValues.includes(option)}
-                    onChange={(e) => {
-                      const newValues = e.target.checked
-                        ? [...selectedValues, option]
-                        : selectedValues.filter((v: string) => v !== option);
-                      handleFieldChange(formId, field.field_key, newValues);
-                    }}
-                    className="w-4 h-4 rounded border-2 border-neu-border bg-neu-surface checked:bg-neu-accent-primary checked:border-neu-accent-primary focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50"
-                  />
-                  <span className="text-neu-text-primary">{option}</span>
-                </label>
-                ))}
-              </div>
-            )}
-            {selectedValues.length > 0 && (
-              <div className="mt-2 text-xs text-neu-text-primary/60">
-                {selectedValues.length} option{selectedValues.length !== 1 ? 's' : ''} selected
-              </div>
-            )}
-          </div>
+          <MultiSelectDropdown
+            key={field.field_id}
+            label={
+              <span>
+                {field.label}
+                {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
+              </span>
+            }
+            options={multiselectOptions}
+            selectedValues={selectedValues}
+            onChange={(values) => handleFieldChange(formId, field.field_key, values)}
+            helperText={field.help_text}
+            placeholder="Select options..."
+          />
         );
       case 'color':
         return (
@@ -558,44 +538,20 @@ export default function RequiredFormsModal({
       case 'role_list_multi_select':
         const selectedRoles = Array.isArray(value) ? value : (value ? [value] : []);
         return (
-          <div key={field.field_id}>
-            <label className="block text-sm font-medium text-neu-text-primary mb-2">
-              {field.label}
-              {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
-            </label>
-            {field.help_text && (
-              <p className="text-xs text-neu-text-primary/60 mb-2">{field.help_text}</p>
-            )}
-            {roleOptions.length === 0 ? (
-              <div className="neu-card-inset p-3 rounded-lg">
-                <p className="text-sm text-neu-text-primary/60">No roles available for this audition.</p>
-              </div>
-            ) : (
-              <div className="space-y-2 neu-card-inset p-3 rounded-lg max-h-48 overflow-y-auto">
-                {roleOptions.map((role: string) => (
-                  <label key={role} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedRoles.includes(role)}
-                      onChange={(e) => {
-                        const newValues = e.target.checked
-                          ? [...selectedRoles, role]
-                          : selectedRoles.filter((v: string) => v !== role);
-                        handleFieldChange(formId, field.field_key, newValues);
-                      }}
-                      className="w-4 h-4 rounded border-2 border-neu-border bg-neu-surface checked:bg-neu-accent-primary checked:border-neu-accent-primary focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50"
-                    />
-                    <span className="text-neu-text-primary">{role}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-            {selectedRoles.length > 0 && (
-              <div className="mt-2 text-xs text-neu-text-primary/60">
-                {selectedRoles.length} role{selectedRoles.length !== 1 ? 's' : ''} selected
-              </div>
-            )}
-          </div>
+          <MultiSelectDropdown
+            key={field.field_id}
+            label={
+              <span>
+                {field.label}
+                {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
+              </span>
+            }
+            options={roleOptions}
+            selectedValues={selectedRoles}
+            onChange={(values) => handleFieldChange(formId, field.field_key, values)}
+            helperText={field.help_text}
+            placeholder="Select roles..."
+          />
         );
       case 'cast_members_single_select':
         return (
@@ -617,44 +573,20 @@ export default function RequiredFormsModal({
       case 'cast_members_multi_select':
         const selectedCast = Array.isArray(value) ? value : (value ? [value] : []);
         return (
-          <div key={field.field_id}>
-            <label className="block text-sm font-medium text-neu-text-primary mb-2">
-              {field.label}
-              {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
-            </label>
-            {field.help_text && (
-              <p className="text-xs text-neu-text-primary/60 mb-2">{field.help_text}</p>
-            )}
-            {castOptions.length === 0 ? (
-              <div className="neu-card-inset p-3 rounded-lg">
-                <p className="text-sm text-neu-text-primary/60">No cast members available.</p>
-              </div>
-            ) : (
-              <div className="space-y-2 neu-card-inset p-3 rounded-lg max-h-48 overflow-y-auto">
-                {castOptions.map((member: string) => (
-                  <label key={member} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedCast.includes(member)}
-                      onChange={(e) => {
-                        const newValues = e.target.checked
-                          ? [...selectedCast, member]
-                          : selectedCast.filter((v: string) => v !== member);
-                        handleFieldChange(formId, field.field_key, newValues);
-                      }}
-                      className="w-4 h-4 rounded border-2 border-neu-border bg-neu-surface checked:bg-neu-accent-primary checked:border-neu-accent-primary focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50"
-                    />
-                    <span className="text-neu-text-primary">{member}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-            {selectedCast.length > 0 && (
-              <div className="mt-2 text-xs text-neu-text-primary/60">
-                {selectedCast.length} member{selectedCast.length !== 1 ? 's' : ''} selected
-              </div>
-            )}
-          </div>
+          <MultiSelectDropdown
+            key={field.field_id}
+            label={
+              <span>
+                {field.label}
+                {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
+              </span>
+            }
+            options={castOptions}
+            selectedValues={selectedCast}
+            onChange={(values) => handleFieldChange(formId, field.field_key, values)}
+            helperText={field.help_text}
+            placeholder="Select cast members..."
+          />
         );
       default:
         // Fallback for unknown field types
@@ -828,19 +760,18 @@ export default function RequiredFormsModal({
                   </button>
                 )}
                 
-                {!currentForm.isCompleted ? (
-                  <button
-                    onClick={handleSubmitCurrentForm}
-                    disabled={submitting}
-                    className="neu-button-primary flex items-center gap-2"
-                  >
-                    {submitting ? 'Submitting...' : 'Submit Form'}
-                    <CheckCircle className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 text-neu-accent-success">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm font-medium">Completed</span>
+                <button
+                  onClick={handleSubmitCurrentForm}
+                  disabled={submitting}
+                  className="neu-button-primary flex items-center gap-2"
+                >
+                  {submitting ? 'Submitting...' : currentForm.isCompleted ? 'Update Form' : 'Submit Form'}
+                  <CheckCircle className="w-4 h-4" />
+                </button>
+                {currentForm.isCompleted && (
+                  <div className="flex items-center gap-2 text-neu-accent-success text-xs">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Previously completed</span>
                   </div>
                 )}
               </div>

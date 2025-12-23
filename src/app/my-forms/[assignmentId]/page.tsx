@@ -8,6 +8,7 @@ import Button from '@/components/Button';
 import FormInput from '@/components/ui/forms/FormInput';
 import FormSelect from '@/components/ui/forms/FormSelect';
 import FormTextarea from '@/components/ui/forms/FormTextarea';
+import MultiSelectDropdown from '@/components/ui/forms/MultiSelectDropdown';
 import { getUser } from '@/lib/supabase/auth';
 import {
   getCustomFormFields,
@@ -59,10 +60,12 @@ function MyFormFillPageContent() {
   const searchParams = useSearchParams();
   const assignmentId = String(params.assignmentId);
   const returnTo = searchParams.get('returnTo');
+  const mode = searchParams.get('mode') || 'edit'; // 'view', 'edit', or default to 'edit'
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isViewMode, setIsViewMode] = useState(mode === 'view');
   const [assignment, setAssignment] = useState<any | null>(null);
   const [fields, setFields] = useState<CustomFormField[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -193,21 +196,60 @@ function MyFormFillPageContent() {
           </div>
 
           <div className="neu-card-raised p-6 rounded-xl mb-6">
-            <h1 className="text-3xl font-bold text-neu-text-primary mb-2">{formName}</h1>
-            <p className="text-neu-text-primary/70">Fill out the form and save when you're done.</p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-neu-text-primary mb-2">{formName}</h1>
+                <p className="text-neu-text-primary/70">
+                  {isViewMode ? 'Viewing your form response' : 'Fill out the form and save when you\'re done.'}
+                </p>
+              </div>
+              {assignment?.is_complete && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsViewMode(true)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      isViewMode 
+                        ? 'bg-neu-accent-primary text-white' 
+                        : 'bg-neu-surface text-neu-text-primary border border-neu-border'
+                    }`}
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => setIsViewMode(false)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      !isViewMode 
+                        ? 'bg-neu-accent-primary text-white' 
+                        : 'bg-neu-surface text-neu-text-primary border border-neu-border'
+                    }`}
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {error && (
             <div className="neu-card-raised p-4 rounded-xl mb-6 text-neu-accent-danger">{error}</div>
           )}
 
-          <form
-            className="neu-card-raised p-6 rounded-xl space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-          >
+          <div className={`neu-card-raised p-6 rounded-xl space-y-4 ${
+            isViewMode ? 'bg-neu-surface/50' : ''
+          }`}>
+            {isViewMode && (
+              <div className="mb-4 p-3 bg-neu-accent-primary/10 border border-neu-accent-primary/20 rounded-lg">
+                <p className="text-sm text-neu-accent-primary font-medium">
+                  📋 You are viewing your submitted response. Click "Edit" above to make changes.
+                </p>
+              </div>
+            )}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!isViewMode) handleSave();
+              }}
+            >
             {fields.map((field) => {
               const value = answers[field.field_key];
               const label = field.label;
@@ -221,7 +263,8 @@ function MyFormFillPageContent() {
                     required={field.required}
                     helperText={helperText}
                     value={String(value ?? '')}
-                    onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    onChange={isViewMode ? undefined : (e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    disabled={isViewMode}
                     rows={4}
                   />
                 );
@@ -234,8 +277,11 @@ function MyFormFillPageContent() {
                       <input
                         type="checkbox"
                         checked={Boolean(value)}
-                        onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.checked }))}
-                        className="w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 cursor-pointer transition-all"
+                        onChange={isViewMode ? undefined : (e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.checked }))}
+                        disabled={isViewMode}
+                        className={`w-5 h-5 rounded border-2 border-[#4a7bd9] bg-neu-surface checked:bg-[#5a8ff5] checked:border-[#5a8ff5] focus:outline-none focus:ring-2 focus:ring-[#5a8ff5]/50 transition-all ${
+                          isViewMode ? 'cursor-default' : 'cursor-pointer'
+                        }`}
                       />
                       <span className="text-sm font-medium text-neu-text-primary">
                         {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
@@ -257,7 +303,8 @@ function MyFormFillPageContent() {
                     required={field.required}
                     helperText={helperText}
                     value={String(value ?? '')}
-                    onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    onChange={isViewMode ? undefined : (e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    disabled={isViewMode}
                   >
                     <option value="">Select...</option>
                     {opts.map((o) => (
@@ -275,7 +322,8 @@ function MyFormFillPageContent() {
                     required={field.required}
                     helperText={helperText}
                     value={String(value ?? '')}
-                    onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    onChange={isViewMode ? undefined : (e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    disabled={isViewMode}
                   >
                     <option value="">Select a role...</option>
                     {roleOptions.map((role) => (
@@ -293,7 +341,8 @@ function MyFormFillPageContent() {
                     required={field.required}
                     helperText={helperText}
                     value={String(value ?? '')}
-                    onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    onChange={isViewMode ? undefined : (e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                    disabled={isViewMode}
                   >
                     <option value="">Select a cast member...</option>
                     {castOptions.map((member) => (
@@ -307,81 +356,60 @@ function MyFormFillPageContent() {
                 const opts = fieldOptions.get(field.field_key) || [];
                 const selected = Array.isArray(value) ? value : [];
                 return (
-                  <div key={field.field_id}>
-                    <label className="block text-sm font-medium text-neu-text-primary mb-2">
-                      {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
-                    </label>
-                    <select
-                      multiple
-                      className="neu-input w-full"
-                      value={selected.map(String)}
-                      onChange={(e) => {
-                        const selectedValues = Array.from(e.target.selectedOptions).map((o) => o.value);
-                        setAnswers((prev) => ({ ...prev, [field.field_key]: selectedValues }));
-                      }}
-                    >
-                      {opts.map((o) => (
-                        <option key={o} value={o}>{o}</option>
-                      ))}
-                    </select>
-                    {helperText && (
-                      <p className="text-neu-text-muted text-xs mt-1">{helperText}</p>
-                    )}
-                  </div>
+                  <MultiSelectDropdown
+                    key={field.field_id}
+                    label={
+                      <span>
+                        {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
+                      </span>
+                    }
+                    options={opts}
+                    selectedValues={selected}
+                    onChange={isViewMode ? () => {} : (values) => setAnswers((prev) => ({ ...prev, [field.field_key]: values }))}
+                    helperText={helperText}
+                    placeholder={isViewMode ? "No options selected" : "Select options..."}
+                    className={isViewMode ? "pointer-events-none opacity-75" : ""}
+                  />
                 );
               }
 
               if (field.field_type === 'role_list_multi_select') {
                 const selected = Array.isArray(value) ? value : [];
                 return (
-                  <div key={field.field_id}>
-                    <label className="block text-sm font-medium text-neu-text-primary mb-2">
-                      {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
-                    </label>
-                    <select
-                      multiple
-                      className="neu-input w-full"
-                      value={selected.map(String)}
-                      onChange={(e) => {
-                        const selectedValues = Array.from(e.target.selectedOptions).map((o) => o.value);
-                        setAnswers((prev) => ({ ...prev, [field.field_key]: selectedValues }));
-                      }}
-                    >
-                      {roleOptions.map((role) => (
-                        <option key={role} value={role}>{role}</option>
-                      ))}
-                    </select>
-                    {helperText && (
-                      <p className="text-neu-text-muted text-xs mt-1">{helperText}</p>
-                    )}
-                  </div>
+                  <MultiSelectDropdown
+                    key={field.field_id}
+                    label={
+                      <span>
+                        {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
+                      </span>
+                    }
+                    options={roleOptions}
+                    selectedValues={selected}
+                    onChange={isViewMode ? () => {} : (values) => setAnswers((prev) => ({ ...prev, [field.field_key]: values }))}
+                    helperText={helperText}
+                    placeholder={isViewMode ? "No roles selected" : "Select roles..."}
+                    className={isViewMode ? "pointer-events-none opacity-75" : ""}
+                  />
                 );
               }
 
               if (field.field_type === 'cast_members_multi_select') {
                 const selected = Array.isArray(value) ? value : [];
                 return (
-                  <div key={field.field_id}>
-                    <label className="block text-sm font-medium text-neu-text-primary mb-2">
-                      {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
-                    </label>
-                    <select
-                      multiple
-                      className="neu-input w-full"
-                      value={selected.map(String)}
-                      onChange={(e) => {
-                        const selectedValues = Array.from(e.target.selectedOptions).map((o) => o.value);
-                        setAnswers((prev) => ({ ...prev, [field.field_key]: selectedValues }));
-                      }}
-                    >
-                      {castOptions.map((member) => (
-                        <option key={member} value={member}>{member}</option>
-                      ))}
-                    </select>
-                    {helperText && (
-                      <p className="text-neu-text-muted text-xs mt-1">{helperText}</p>
-                    )}
-                  </div>
+                  <MultiSelectDropdown
+                    key={field.field_id}
+                    label={
+                      <span>
+                        {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
+                      </span>
+                    }
+                    options={castOptions}
+                    selectedValues={selected}
+                    onChange={isViewMode ? () => {} : (values) => setAnswers((prev) => ({ ...prev, [field.field_key]: values }))}
+                    helperText={helperText}
+                    placeholder={isViewMode ? "No cast members selected" : "Select cast members..."}
+                    className={isViewMode ? "pointer-events-none opacity-75" : ""}
+                  />
                 );
               }
 
@@ -425,14 +453,17 @@ function MyFormFillPageContent() {
               );
             })}
 
-            <div className="pt-2">
-              <Button
-                type="submit"
-                text={saving ? 'Saving...' : 'Save'}
-                disabled={saving}
-              />
-            </div>
-          </form>
+            {!isViewMode && (
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  text={saving ? 'Saving...' : 'Save'}
+                  disabled={saving}
+                />
+              </div>
+            )}
+            </form>
+          </div>
         </div>
       </div>
     </StarryContainer>

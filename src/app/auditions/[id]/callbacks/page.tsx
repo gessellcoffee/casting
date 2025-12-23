@@ -7,6 +7,7 @@ import { getUser } from '@/lib/supabase/auth';
 import { isUserProductionMember } from '@/lib/supabase/productionTeamMembers';
 import StarryContainer from '@/components/StarryContainer';
 import CallbackManagement from '@/components/callbacks/CallbackManagement';
+import CallbackFormManagement from '@/components/callbacks/CallbackFormManagement';
 import CastingOffersPanel from '@/components/casting/CastingOffersPanel';
 import { Button } from '@headlessui/react';
 
@@ -17,7 +18,7 @@ export default function CallbackManagementPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'callbacks' | 'offers'>('callbacks');
+  const [activeTab, setActiveTab] = useState<'callbacks' | 'offers' | 'forms'>('callbacks');
 
   useEffect(() => {
     loadData();
@@ -146,6 +147,17 @@ export default function CallbackManagementPage() {
             >
               🎭 Casting Offers
             </Button>
+            <Button 
+              onClick={() => setActiveTab('forms')}
+              className={`px-6 cursor-pointer py-3 rounded-xl font-semibold transition-all border ${
+                activeTab === 'forms'
+                  ? 'shadow-[inset_4px_4px_8px_var(--neu-shadow-dark)] border-neu-accent-primary text-neu-accent-primary'
+                  : 'shadow-[3px_3px_6px_var(--neu-shadow-dark)] border-neu-border text-neu-text-primary hover:border-neu-accent-primary/50'
+              }`}
+              style={{ backgroundColor: 'var(--neu-surface)' }}
+            >
+              📋 Forms
+            </Button>
           </div>
 
           {/* Content */}
@@ -161,6 +173,13 @@ export default function CallbackManagementPage() {
             <CastingOffersPanel
               auditionId={audition.audition_id}
               currentUserId={user.id}
+            />
+          )}
+
+          {activeTab === 'forms' && (
+            <CallbackFormManagement
+              auditionId={audition.audition_id}
+              auditionTitle={audition.shows?.title || 'Audition'}
             />
           )}
         </div>

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { MdClose, MdCalendarToday, MdAccessTime, MdLocationOn, MdPerson, MdDelete } from 'react-icons/md';
 import { deleteAuditionSignup } from '@/lib/supabase/auditionSignups';
+import { getMyAuditionSignupFormAssignments } from '@/lib/supabase/customForms';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface AuditionEventModalProps {
   signup: any;
@@ -17,6 +19,8 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formAssignments, setFormAssignments] = useState<any[]>([]);
+  const [loadingForms, setLoadingForms] = useState(true);
 
   const startTime = new Date(signup.audition_slots.start_time);
   const endTime = new Date(signup.audition_slots.end_time);
@@ -28,6 +32,20 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
   const slotLocation = signup.audition_slots.location;
   const auditionLocation = audition?.audition_location;
   const location = slotLocation || auditionLocation;
+
+  // Load form assignments
+  useEffect(() => {
+    const loadFormAssignments = async () => {
+      if (audition?.audition_id) {
+        setLoadingForms(true);
+        const assignments = await getMyAuditionSignupFormAssignments(audition.audition_id);
+        setFormAssignments(assignments);
+        setLoadingForms(false);
+      }
+    };
+    
+    loadFormAssignments();
+  }, [audition?.audition_id]);
 
   // Format rehearsal dates as a date range
   const formatDateRange = (dates: string | null): string => {
@@ -274,6 +292,77 @@ export default function AuditionEventModal({ signup, userId, onClose, onDelete }
                       📍 {audition.performance_location}
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Form Management */}
+          {formAssignments.length > 0 && (
+            <div className="p-4 rounded-lg bg-neu-surface-light border border-neu-border shadow-[inset_2px_2px_5px_var(--neu-shadow-dark)]">
+              <h4 className="text-sm font-semibold text-neu-accent-primary mb-3">📋 Required Forms</h4>
+              {loadingForms ? (
+                <div className="text-neu-text-primary/70 text-sm">Loading forms...</div>
+              ) : (
+                <div className="space-y-2">
+                  {formAssignments.map((assignment) => {
+                    const formName = assignment.form?.name || 'Untitled Form';
+                    const isComplete = assignment.is_complete;
+                    
+                    return (
+                      <div key={assignment.assignment_id} className="flex items-center justify-between p-2 rounded bg-neu-surface/50">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${isComplete ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+                          <span className="text-neu-text-primary text-sm font-medium">{formName}</span>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            isComplete ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'
+                          }`}>
+                            {isComplete ? 'Complete' : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          {isComplete ? (
+                            <>
+                              <Link
+                                href={`/my-forms/${assignment.assignment_id}?mode=view&returnTo=${encodeURIComponent(window.location.pathname)}`}
+                                onClick={onClose}
+                              >
+                                <button className="text-xs px-2 py-1 rounded bg-neu-surface text-neu-text-primary border border-neu-border hover:border-neu-accent-primary/50 transition-colors">
+                                  View
+                                </button>
+                              </Link>
+                              <Link
+                                href={`/my-forms/${assignment.assignment_id}?mode=edit&returnTo=${encodeURIComponent(window.location.pathname)}`}
+                                onClick={onClose}
+                              >
+                                <button className="text-xs px-2 py-1 rounded bg-neu-accent-primary text-white hover:bg-neu-accent-secondary transition-colors">
+                                  Edit
+                                </button>
+                              </Link>
+                            </>
+                          ) : (
+                            <Link
+                              href={`/my-forms/${assignment.assignment_id}?returnTo=${encodeURIComponent(window.location.pathname)}`}
+                              onClick={onClose}
+                            >
+                              <button className="text-xs px-2 py-1 rounded bg-neu-accent-primary text-white hover:bg-neu-accent-secondary transition-colors">
+                                Fill Out
+                              </button>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="mt-3 text-center">
+                    <Link
+                      href={`/my-forms?auditionId=${audition?.audition_id}&returnTo=${encodeURIComponent(window.location.pathname)}`}
+                      onClick={onClose}
+                      className="text-neu-accent-primary hover:text-neu-accent-secondary transition-colors text-xs"
+                    >
+                      View all forms →
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

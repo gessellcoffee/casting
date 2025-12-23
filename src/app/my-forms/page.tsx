@@ -91,13 +91,32 @@ function MyFormsPageContent() {
                       </div>
 
                       <div className="flex gap-2 flex-wrap">
-                        <Link
-                          href={`/my-forms/${a.assignment_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
-                        >
-                          <button className={a.is_complete ? 'n-button-secondary' : 'n-button-primary'}>
-                            {a.is_complete ? 'View' : 'Fill Out'}
-                          </button>
-                        </Link>
+                        {a.is_complete ? (
+                          <>
+                            <Link
+                              href={`/my-forms/${a.assignment_id}?mode=view${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                            >
+                              <button className="n-button-secondary">
+                                View Response
+                              </button>
+                            </Link>
+                            <Link
+                              href={`/my-forms/${a.assignment_id}?mode=edit${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                            >
+                              <button className="n-button-primary">
+                                Edit Response
+                              </button>
+                            </Link>
+                          </>
+                        ) : (
+                          <Link
+                            href={`/my-forms/${a.assignment_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                          >
+                            <button className="n-button-primary">
+                              Fill Out
+                            </button>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
