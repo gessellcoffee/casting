@@ -200,7 +200,7 @@ export function generateProductionEvents(
         
         events.push({
           type: 'rehearsal_event',
-          title: `${audition.shows.title} - Rehearsal`,
+          title: `${audition.shows.title} - ${event.is_tech_rehearsal ? 'Tech Rehearsal' : 'Rehearsal'}`,
           show: audition.shows,
           date: startTime,
           startTime,

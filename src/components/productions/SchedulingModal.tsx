@@ -52,6 +52,7 @@ export default function SchedulingModal({
     end_time: '',
     location: '',
     notes: '',
+    is_tech_rehearsal: false,
     assignToEntireCast: true,
   });
 
@@ -76,6 +77,7 @@ export default function SchedulingModal({
       end_time: '',
       location: '',
       notes: '',
+      is_tech_rehearsal: false,
       assignToEntireCast: true,
     }));
 
@@ -189,6 +191,7 @@ export default function SchedulingModal({
           date: dates[0],
           start_time: start as string,
           end_time: end as string,
+          is_tech_rehearsal: form.is_tech_rehearsal,
           location: form.location || undefined,
           notes: form.notes || undefined,
         });
@@ -204,6 +207,7 @@ export default function SchedulingModal({
           dates,
           start_time: start as string,
           end_time: end as string,
+          is_tech_rehearsal: form.is_tech_rehearsal,
           location: form.location || undefined,
           notes: form.notes || undefined,
         });
@@ -402,6 +406,21 @@ export default function SchedulingModal({
                 rows={3}
               />
             </div>
+
+            {isRehearsalType && (
+              <div className="flex items-center gap-2">
+                <input
+                  id="isTechRehearsal"
+                  type="checkbox"
+                  checked={form.is_tech_rehearsal}
+                  onChange={(e) => setForm({ ...form, is_tech_rehearsal: e.target.checked })}
+                  className="neu-checkbox"
+                />
+                <label htmlFor="isTechRehearsal" className="text-sm text-neu-text-primary">
+                  Tech rehearsal
+                </label>
+              </div>
+            )}
 
             {!isRehearsalType && (
               <div className="flex items-center gap-2">

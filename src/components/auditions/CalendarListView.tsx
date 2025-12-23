@@ -23,10 +23,11 @@ interface CalendarListViewProps {
   callbacks?: any[];
   productionEvents?: ProductionDateEvent[];
   userId: string;
+  timeZone?: string;
   onRefresh?: () => void;
 }
 
-export default function CalendarListView({ signups, callbacks = [], productionEvents = [], userId, onRefresh }: CalendarListViewProps) {
+export default function CalendarListView({ signups, callbacks = [], productionEvents = [], userId, timeZone, onRefresh }: CalendarListViewProps) {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
   const [showPersonalEventsModal, setShowPersonalEventsModal] = useState(false);
@@ -362,7 +363,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                           <div className="flex-1 min-w-0">
                             <h4 className={`text-sm sm:text-base font-semibold flex items-center gap-2 mb-1 break-words overflow-wrap-anywhere ${
                               isCallback ? 'text-purple-400 dark:text-purple-300' : 
-                              isPersonal ? 'text-green-500 dark:text-green-400' : 
+                              isPersonal ? '' : 
                               isProduction ? (
                                 event.type === 'rehearsal' ? 'text-orange-500 dark:text-orange-400' : 
                                 event.type === 'performance' ? 'text-red-500 dark:text-red-400' :
@@ -372,7 +373,8 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                                 event.type === 'production_event' ? 'text-neu-text-primary' :
                                 'text-neu-accent-primary'
                               ) : 'text-neu-accent-primary'
-                            }`}>
+                            }`}
+                            style={isPersonal ? { color: event.color || '#34d399' } : undefined}>
                               {isCallback && <span className="flex-shrink-0">📋</span>}
                               {isPersonal && <span className="flex-shrink-0">🗓️</span>}
                               {isProduction && event.type === 'rehearsal' && <span className="flex-shrink-0">🎭</span>}
@@ -435,7 +437,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neu-text-primary/70 ml-[54px] sm:ml-[72px]">
                             <div className="flex items-center gap-1">
                               <MdAccessTime className="w-3 h-3 sm:w-4 sm:h-4" />
-                              {formatUSTime(startTime)} - {formatUSTime(endTime)} ({duration} min)
+                              {formatUSTime(startTime, timeZone)} - {formatUSTime(endTime, timeZone)} ({duration} min)
                             </div>
                             {location && (
                               <div className="flex items-start gap-1 break-words overflow-wrap-anywhere">
@@ -497,7 +499,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
           onUpdate={onRefresh}
         />
       )}
-      {showPersonalEventsModal && (
+      {showPersonalEventsModal && !editingPersonalEvent && (
         <EventForm
           isOpen={showPersonalEventsModal}
           onClose={() => setShowPersonalEventsModal(false)}
@@ -511,6 +513,44 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
           }}
           selectedDate={selectedDate || undefined}
           userId={userId}
+          timeZone={timeZone}
+        />
+      )}
+      {selectedPersonalEvent && !editingPersonalEvent && (
+        <PersonalEventModal
+          event={selectedPersonalEvent}
+          userId={userId}
+          onClose={() => setSelectedPersonalEvent(null)}
+          onDelete={() => {
+            const start = new Date();
+            start.setMonth(start.getMonth() - 6);
+            const end = new Date();
+            end.setMonth(end.getMonth() + 6);
+            loadEvents(start, end);
+            setSelectedPersonalEvent(null);
+          }}
+          onEdit={(event) => {
+            setEditingPersonalEvent(event);
+            setSelectedPersonalEvent(null);
+          }}
+          timeZone={timeZone}
+        />
+      )}
+      {editingPersonalEvent && (
+        <EventForm
+          isOpen={true}
+          onClose={() => setEditingPersonalEvent(null)}
+          onSave={() => {
+            const start = new Date();
+            start.setMonth(start.getMonth() - 6);
+            const end = new Date();
+            end.setMonth(end.getMonth() + 6);
+            loadEvents(start, end);
+            setEditingPersonalEvent(null);
+          }}
+          event={editingPersonalEvent}
+          userId={userId}
+          timeZone={timeZone}
         />
       )}
     </>

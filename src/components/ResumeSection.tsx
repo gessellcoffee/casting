@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { UserResume, ResumeSource, Company, Profile } from '@/lib/supabase/types';
+import type { UserResume, ResumeSource, Company, Profile, PdfBrandingConfig, UserPreferences } from '@/lib/supabase/types';
 import {
   getUserResumes,
   createResumeEntry,
@@ -9,11 +9,13 @@ import {
 import { getUserCastingHistory } from '@/lib/supabase/castingHistory';
 import { uploadResume } from '@/lib/supabase/storage';
 import { getAllCompanies } from '@/lib/supabase/company';
+import { updateProfile } from '@/lib/supabase/profile';
 import { generateResumePDF } from '@/lib/utils/pdfGenerator';
 import ResumeEntry from './ResumeEntry';
 import Button from './Button';
 import ResumeImporter from './ResumeImporter';
 import PDFViewer from './PDFViewer';
+import PDFBrandingModal from './PDFBrandingModal';
 import type { ParsedResumeEntry } from '@/lib/utils/resumeParser';
 
 interface ResumeSectionProps {
@@ -58,6 +60,15 @@ export default function ResumeSection({
   const [useCompanyDropdown, setUseCompanyDropdown] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [showPDFViewer, setShowPDFViewer] = useState(false);
+  const [showPDFBrandingModal, setShowPDFBrandingModal] = useState(false);
+  const [pdfBrandingDefault, setPdfBrandingDefault] = useState<PdfBrandingConfig>({
+    version: 1,
+    accent: 'primary',
+    accent_hex: null,
+    logo: null,
+    watermark: { type: 'none', opacity: 0.15 },
+    footer: { text: null },
+  });
 
   const manualResumes = resumes.filter((resume) => {
     if (resume.source === 'Application') return false;
@@ -260,18 +271,13 @@ export default function ResumeSection({
       return;
     }
 
-    try {
-      await generateResumePDF({
-        profile,
-        manualResumes,
-        castingHistory: castingHistory,
-      });
-      setSuccess('Resume exported successfully!');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      console.error('Error generating PDF:', err);
-      setError('Failed to export resume');
+    const prefs = (profile.preferences as UserPreferences) || {};
+    const saved = prefs.pdf_branding_default;
+    if (saved && typeof saved === 'object') {
+      setPdfBrandingDefault(saved as PdfBrandingConfig);
     }
+
+    setShowPDFBrandingModal(true);
   };
 
   if (loading) {
@@ -642,6 +648,60 @@ export default function ResumeSection({
           fileName={`${profile?.first_name || 'User'}_${profile?.last_name || 'Resume'}.pdf`}
         />
       )}
+
+      <PDFBrandingModal
+        isOpen={showPDFBrandingModal}
+        onClose={() => setShowPDFBrandingModal(false)}
+        userId={userId}
+        initialConfig={pdfBrandingDefault}
+        onGenerate={async ({ config, saveAsDefault, saveToCompany }) => {
+          void saveToCompany;
+          if (!profile) {
+            setError('Profile data not available');
+            return;
+          }
+
+          setSaving(true);
+          setError(null);
+          try {
+            if (saveAsDefault) {
+              const currentPreferences = ((profile.preferences as UserPreferences) || {}) as Record<string, any>;
+              const { data, error: updateError } = await updateProfile(userId, {
+                preferences: {
+                  ...currentPreferences,
+                  pdf_branding_default: config,
+                },
+              });
+
+              if (updateError) {
+                throw updateError;
+              }
+
+              if (data?.preferences) {
+                setPdfBrandingDefault(((data.preferences as UserPreferences).pdf_branding_default as PdfBrandingConfig) || config);
+              }
+            }
+
+            await generateResumePDF(
+              {
+                profile,
+                manualResumes,
+                castingHistory: castingHistory,
+              },
+              config
+            );
+
+            setShowPDFBrandingModal(false);
+            setSuccess('Resume exported successfully!');
+            setTimeout(() => setSuccess(null), 3000);
+          } catch (err) {
+            console.error('Error generating PDF:', err);
+            setError('Failed to export resume');
+          } finally {
+            setSaving(false);
+          }
+        }}
+      />
     </div>
   );
 }

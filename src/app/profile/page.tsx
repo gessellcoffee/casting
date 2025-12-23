@@ -15,6 +15,7 @@ import Link from 'next/link';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import AddressInput, { type PlaceDetails } from '@/components/ui/AddressInput';
 import MediaManager from '@/components/profile/MediaManager';
+import { getBrowserTimeZone } from '@/lib/utils/dateUtils';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -45,6 +46,7 @@ export default function ProfilePage() {
   });
   const [showCastingHistory, setShowCastingHistory] = useState(true);
   const [showPhoneOnProfile, setShowPhoneOnProfile] = useState(false);
+  const [timeZonePreference, setTimeZonePreference] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,6 +81,7 @@ export default function ProfilePage() {
               prefs?.show_casting_history !== false
             );
             setShowPhoneOnProfile(prefs?.show_phone === true);
+            setTimeZonePreference(prefs?.time_zone || '');
           }
         }
       } catch (error) {
@@ -160,6 +163,7 @@ export default function ProfilePage() {
           ...((profile?.preferences as UserPreferences) || {}),
           show_casting_history: showCastingHistory,
           show_phone: showPhoneOnProfile,
+          time_zone: timeZonePreference || null,
         },
       });
 
@@ -201,6 +205,7 @@ export default function ProfilePage() {
       const prefs = profile.preferences as UserPreferences | null;
       setShowCastingHistory(prefs?.show_casting_history !== false);
       setShowPhoneOnProfile(prefs?.show_phone === true);
+      setTimeZonePreference(prefs?.time_zone || '');
     }
     setIsEditing(false);
     setError(null);
@@ -497,6 +502,37 @@ export default function ProfilePage() {
                           />
                         </div>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Time Zone Preference */}
+                {isEditing && (
+                  <div className="neu-card-raised w-full">
+                    <h3 className="text-lg font-semibold text-neu-text-primary mb-4">Time Zone</h3>
+                    <div className="space-y-2">
+                      <label htmlFor="time_zone" className="block text-sm font-medium text-neu-text-primary">
+                        Preferred time zone (optional)
+                      </label>
+                      <input
+                        id="time_zone"
+                        name="time_zone"
+                        type="text"
+                        className="neu-input w-full"
+                        placeholder={getBrowserTimeZone()}
+                        value={timeZonePreference}
+                        onChange={(e) => setTimeZonePreference(e.target.value)}
+                      />
+                      <p className="text-xs text-neu-text-primary/60">
+                        Leave blank to use your device time zone.
+                      </p>
+                      <div>
+                        <Button
+                          type="button"
+                          text="Use my device time zone"
+                          onClick={() => setTimeZonePreference('')}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

@@ -850,6 +850,7 @@ export async function getUserOwnedRehearsalEvents(userId: string): Promise<any[]
       date,
       start_time,
       end_time,
+      is_tech_rehearsal,
       location,
       notes,
       auditions!inner (
@@ -907,6 +908,7 @@ export async function getUserProductionTeamRehearsalEvents(userId: string): Prom
       date,
       start_time,
       end_time,
+      is_tech_rehearsal,
       location,
       notes,
       auditions!inner (
@@ -976,6 +978,7 @@ export async function getUserCastRehearsalEvents(userId: string): Promise<any[]>
         date,
         start_time,
         end_time,
+        is_tech_rehearsal,
         location,
         notes,
         auditions!inner (
@@ -1177,6 +1180,7 @@ export async function getUserRehearsalAgendaItems(userId: string): Promise<any[]
         date,
         start_time,
         end_time,
+        is_tech_rehearsal,
         location,
         notes,
         auditions!inner (

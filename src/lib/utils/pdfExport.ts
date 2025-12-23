@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatUSDate, formatUSTime } from './dateUtils';
+import type { PdfBrandingConfig, PdfAccent } from '@/lib/supabase/types';
 
 // Define types for jsPDF with autoTable plugin
 type jsPDFWithPlugin = jsPDF & {
@@ -25,6 +26,118 @@ export interface ShowDetails {
   workflowStatus?: string;
 }
 
+const getCssVar = (name: string) => {
+  try {
+    if (typeof window === 'undefined') return '';
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  } catch {
+    return '';
+  }
+};
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const cleaned = hex.replace('#', '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) return null;
+  const r = parseInt(cleaned.slice(0, 2), 16);
+  const g = parseInt(cleaned.slice(2, 4), 16);
+  const b = parseInt(cleaned.slice(4, 6), 16);
+  return { r, g, b };
+};
+
+const resolveAccentHex = (accent?: PdfAccent) => {
+  const token = accent || 'primary';
+  const cssVar =
+    token === 'primary'
+      ? '--neu-accent-primary'
+      : token === 'secondary'
+      ? '--neu-accent-secondary'
+      : token === 'success'
+      ? '--neu-accent-success'
+      : token === 'warning'
+      ? '--neu-accent-warning'
+      : token === 'danger'
+      ? '--neu-accent-danger'
+      : '--neu-text-primary';
+
+  const value = getCssVar(cssVar);
+  return value || '#000000';
+};
+
+const resolveBrandingAccentRgb = (branding?: PdfBrandingConfig) => {
+  const customAccentHex = typeof branding?.accent_hex === 'string' ? branding.accent_hex.trim() : '';
+  const isValidCustomAccent = /^#[0-9a-fA-F]{6}$/.test(customAccentHex);
+  const accentHex = isValidCustomAccent ? customAccentHex : resolveAccentHex(branding?.accent);
+  return hexToRgb(accentHex) || { r: 107, g: 141, b: 214 };
+};
+
+const loadImageAsDataUrl = async (url: string): Promise<string | null> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Failed to read image'));
+      reader.readAsDataURL(blob);
+    });
+    return dataUrl;
+  } catch {
+    return null;
+  }
+};
+
+const getImageFormatFromDataUrl = (dataUrl: string): 'PNG' | 'JPEG' | null => {
+  const lower = dataUrl.toLowerCase();
+  if (lower.startsWith('data:image/png')) return 'PNG';
+  if (lower.startsWith('data:image/jpeg') || lower.startsWith('data:image/jpg')) return 'JPEG';
+  return null;
+};
+
+const applyWatermarkToCurrentPage = async (doc: jsPDF, branding?: PdfBrandingConfig) => {
+  if (!branding?.watermark || branding.watermark.type === 'none') return;
+
+  try {
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+
+    const gStateCtor = (doc as any).GState;
+    const canUseGState = Boolean(gStateCtor && typeof (doc as any).setGState === 'function');
+    if (canUseGState) {
+      (doc as any).setGState(new gStateCtor({ opacity: branding.watermark.opacity }));
+    }
+
+    doc.setTextColor(200, 200, 200);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(48);
+
+    if (branding.watermark.type === 'text') {
+      const text = branding.watermark.text || 'CONFIDENTIAL';
+      doc.text(text, pageWidth / 2, pageHeight / 2, { align: 'center', angle: 35 } as any);
+    }
+
+    if (branding.watermark.type === 'logo' && branding.logo?.url) {
+      const dataUrl = await loadImageAsDataUrl(branding.logo.url);
+      if (dataUrl) {
+        const format = getImageFormatFromDataUrl(dataUrl);
+        if (format) {
+          const w = Math.min(100, pageWidth * 0.35);
+          const h = w;
+          doc.addImage(dataUrl, format, (pageWidth - w) / 2, (pageHeight - h) / 2, w, h);
+        }
+      }
+    }
+
+    if (canUseGState) {
+      (doc as any).setGState(new gStateCtor({ opacity: 1 }));
+    }
+
+    doc.setTextColor(0, 0, 0);
+  } catch {
+    doc.setTextColor(0, 0, 0);
+  }
+};
+
 /**
  * Generate a PDF calendar in grid format (monthly view)
  */
@@ -32,18 +145,40 @@ export function generateCalendarGridPDF(
   events: CalendarEvent[],
   showDetails: ShowDetails,
   actorName: string,
-  format: 'actor' | 'production' = 'actor'
+  format: 'actor' | 'production' = 'actor',
+  branding?: PdfBrandingConfig
 ): jsPDF {
   const doc = new jsPDF('landscape', 'mm', 'letter') as jsPDFWithPlugin;
+  const accentRgb = resolveBrandingAccentRgb(branding);
+  void applyWatermarkToCurrentPage(doc, branding);
   
   // Header
-  doc.setFillColor(107, 141, 214); // Blue accent
+  doc.setFillColor(accentRgb.r, accentRgb.g, accentRgb.b);
   doc.rect(0, 0, doc.internal.pageSize.width, 25, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.text(showDetails.title, 15, 12);
+
+  if (branding?.logo?.url) {
+    void (async () => {
+      const dataUrl = await loadImageAsDataUrl(branding.logo!.url);
+      if (!dataUrl) return;
+      const format = getImageFormatFromDataUrl(dataUrl);
+      if (!format) return;
+      const logoSize = 12;
+      const logoX = branding.logo!.placement === 'header_right'
+        ? doc.internal.pageSize.width - 15 - logoSize
+        : 15;
+      const logoY = (25 - logoSize) / 2;
+      try {
+        doc.addImage(dataUrl, format, logoX, logoY, logoSize, logoSize);
+      } catch {
+        // ignore
+      }
+    })();
+  }
   
   if (showDetails.author) {
     doc.setFontSize(12);
@@ -82,7 +217,7 @@ export function generateCalendarGridPDF(
     // Month header
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(107, 141, 214);
+    doc.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b);
     doc.text(monthYear, 15, yPosition);
     yPosition += 8;
     
@@ -120,7 +255,7 @@ export function generateCalendarGridPDF(
         cellPadding: 3,
       },
       headStyles: {
-        fillColor: [107, 141, 214],
+        fillColor: [accentRgb.r, accentRgb.g, accentRgb.b],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
       },
@@ -168,6 +303,16 @@ export function generateCalendarGridPDF(
     });
     
     yPosition = doc.lastAutoTable.finalY + 15;
+
+    // If a new page was added by autotable, apply watermark to that page too
+    // (autotable adds pages internally, so we apply watermark after the fact)
+    void (async () => {
+      const pageCount = (doc.internal.pages?.length || 1) - 1;
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        await applyWatermarkToCurrentPage(doc, branding);
+      }
+    })();
   });
   
   // Footer
@@ -177,7 +322,7 @@ export function generateCalendarGridPDF(
     doc.setFontSize(8);
     doc.setTextColor(128, 128, 128);
     doc.text(
-      `Generated on ${(new Date().toDateString())}`,
+      branding?.footer?.text || `Generated on ${(new Date().toDateString())}`,
       15,
       doc.internal.pageSize.height - 10
     );  
@@ -199,18 +344,40 @@ export function generateCalendarListPDF(
   events: CalendarEvent[],
   showDetails: ShowDetails,
   actorName: string,
-  format: 'actor' | 'production' = 'actor'
+  format: 'actor' | 'production' = 'actor',
+  branding?: PdfBrandingConfig
 ): jsPDF {
   const doc = new jsPDF('portrait', 'mm', 'letter') as jsPDFWithPlugin;
+  const accentRgb = resolveBrandingAccentRgb(branding);
+  void applyWatermarkToCurrentPage(doc, branding);
   
   // Header
-  doc.setFillColor(107, 141, 214);
+  doc.setFillColor(accentRgb.r, accentRgb.g, accentRgb.b);
   doc.rect(0, 0, doc.internal.pageSize.width, 30, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text(showDetails.title, 15, 12);
+
+  if (branding?.logo?.url) {
+    void (async () => {
+      const dataUrl = await loadImageAsDataUrl(branding.logo!.url);
+      if (!dataUrl) return;
+      const format = getImageFormatFromDataUrl(dataUrl);
+      if (!format) return;
+      const logoSize = 10;
+      const logoX = branding.logo!.placement === 'header_right'
+        ? doc.internal.pageSize.width - 15 - logoSize
+        : 15;
+      const logoY = (30 - logoSize) / 2;
+      try {
+        doc.addImage(dataUrl, format, logoX, logoY, logoSize, logoSize);
+      } catch {
+        // ignore
+      }
+    })();
+  }
   
   if (showDetails.author) {
     doc.setFontSize(10);
@@ -254,6 +421,7 @@ export function generateCalendarListPDF(
     // Check if we need a new page
     if (yPosition + cardHeight > 260) {
       doc.addPage();
+      void applyWatermarkToCurrentPage(doc, branding);
       yPosition = 20;
     }
     
@@ -314,7 +482,7 @@ export function generateCalendarListPDF(
     doc.setFontSize(8);
     doc.setTextColor(128, 128, 128);
     doc.text(
-      `Generated on ${formatUSDate(new Date().toISOString())}`,
+      branding?.footer?.text || `Generated on ${formatUSDate(new Date().toISOString())}`,
       15,
       doc.internal.pageSize.height - 10
     );
@@ -332,7 +500,7 @@ export function generateCalendarListPDF(
 /**
  * Generate a call sheet PDF for a specific rehearsal
  */
-export function generateCallSheetPDF(
+export async function generateCallSheetPDF(
   rehearsalEvent: {
     date: string;
     start_time: string;
@@ -352,14 +520,17 @@ export function generateCallSheetPDF(
       last_name: string;
       email: string;
       phone?: string;
-        role_name?: string;
+      role_name?: string;
     }>;
-  }>
-): jsPDF {
+  }>,
+  branding?: PdfBrandingConfig
+): Promise<jsPDF> {
   const doc = new jsPDF('portrait', 'mm', 'letter') as jsPDFWithPlugin;
+  const accentRgb = resolveBrandingAccentRgb(branding);
+  await applyWatermarkToCurrentPage(doc, branding);
   
   // Title
-  doc.setFillColor(107, 141, 214);
+  doc.setFillColor(accentRgb.r, accentRgb.g, accentRgb.b);
   doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F');
   
   doc.setTextColor(255, 255, 255);
@@ -375,6 +546,25 @@ export function generateCallSheetPDF(
     doc.setFontSize(12);
     doc.text(`by ${showDetails.author}`, doc.internal.pageSize.width / 2, 32, { align: 'center' });
   }
+
+  if (branding?.logo?.url) {
+    const dataUrl = await loadImageAsDataUrl(branding.logo.url);
+    if (dataUrl) {
+      const format = getImageFormatFromDataUrl(dataUrl);
+      if (format) {
+        const logoSize = 14;
+        const logoX = branding.logo.placement === 'header_right'
+          ? doc.internal.pageSize.width - 15 - logoSize
+          : 15;
+        const logoY = (40 - logoSize) / 2;
+        try {
+          doc.addImage(dataUrl, format, logoX, logoY, logoSize, logoSize);
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
   
   doc.setTextColor(0, 0, 0);
   
@@ -383,7 +573,9 @@ export function generateCallSheetPDF(
   // Rehearsal Details
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b);
   doc.text('REHEARSAL DETAILS', 15, yPosition);
+  doc.setTextColor(0, 0, 0);
   yPosition += 8;
   
   doc.setFontSize(11);
@@ -412,13 +604,17 @@ export function generateCallSheetPDF(
   // Agenda Items
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b);
   doc.text('AGENDA', 15, yPosition);
+  doc.setTextColor(0, 0, 0);
   yPosition += 8;
-  
-  agendaItems.forEach((item, index) => {
+
+  for (let index = 0; index < agendaItems.length; index++) {
+    const item = agendaItems[index];
     // Check for page break
     if (yPosition > 240) {
       doc.addPage();
+      await applyWatermarkToCurrentPage(doc, branding);
       yPosition = 20;
     }
     
@@ -477,7 +673,8 @@ export function generateCallSheetPDF(
       yPosition += 8;
       doc.setTextColor(0, 0, 0);
     }
-  });
+
+  }
   
   // Footer
   const pageCount = doc.internal.pages.length - 1;
@@ -486,7 +683,7 @@ export function generateCallSheetPDF(
     doc.setFontSize(8);
     doc.setTextColor(128, 128, 128);
     doc.text(
-      `Generated on ${formatUSDate(new Date().toISOString())} at ${formatUSTime(new Date().toTimeString().split(' ')[0])}`,
+      branding?.footer?.text || `Generated on ${formatUSDate(new Date().toISOString())} at ${formatUSTime(new Date().toTimeString().split(' ')[0])}`,
       15,
       doc.internal.pageSize.height - 10
     );

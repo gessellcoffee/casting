@@ -4,12 +4,14 @@ import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Edit, Trash2, Calendar, Clock, MapPin } from 'lucide-react';
 import type { CalendarEvent } from '@/lib/supabase/types';
-import { deleteEvent } from '@/lib/supabase/events';
+import { deleteEvent, deleteEventOccurrence } from '@/lib/supabase/events';
 import Button from '../Button';
+import RecurringEventActionModal from './RecurringEventActionModal';
 
 interface PersonalEventModalProps {
   event: CalendarEvent;
   userId: string;
+  timeZone?: string;
   onClose: () => void;
   onDelete?: () => void;
   onEdit?: (event: CalendarEvent) => void;
@@ -18,12 +20,14 @@ interface PersonalEventModalProps {
 export default function PersonalEventModal({
   event,
   userId,
+  timeZone,
   onClose,
   onDelete,
   onEdit,
 }: PersonalEventModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showRecurringAction, setShowRecurringAction] = useState<'edit' | 'delete' | null>(null);
 
   const startTime = new Date(event.start_time || event.start || new Date());
   const endTime = new Date(event.end_time || event.end || new Date());
@@ -52,13 +56,79 @@ export default function PersonalEventModal({
   };
 
   const handleEdit = () => {
+    // Check if this is a recurring event
+    if (event.isRecurring || event._isInstance) {
+      setShowRecurringAction('edit');
+    } else {
+      if (onEdit) {
+        onEdit(event);
+      }
+    }
+  };
+
+  const handleEditThis = () => {
+    setShowRecurringAction(null);
     if (onEdit) {
-      // Pass the original event for editing, not the instance
+      // For editing this occurrence, we'll create a new non-recurring event
+      // with the instance's date/time but mark it as an exception
+      onEdit({
+        ...event,
+        isRecurring: false,
+        recurrenceRule: null,
+        _isException: true,
+        _originalEventId: originalEventId,
+      } as CalendarEvent);
+    }
+  };
+
+  const handleEditAll = () => {
+    setShowRecurringAction(null);
+    if (onEdit) {
+      // Pass the original event for editing all occurrences
       onEdit({
         ...event,
         id: originalEventId,
       });
     }
+  };
+
+  const handleDeleteClick = () => {
+    // Check if this is a recurring event
+    if (event.isRecurring || event._isInstance) {
+      setShowRecurringAction('delete');
+    } else {
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  const handleDeleteThis = async () => {
+    setShowRecurringAction(null);
+    setIsDeleting(true);
+    
+    try {
+      if (event._isInstance && event._instanceDate) {
+        // Delete this specific occurrence by adding it to exception dates
+        await deleteEventOccurrence(originalEventId, event._instanceDate, userId);
+      } else {
+        // Fallback to deleting the entire event if not an instance
+        await deleteEvent(originalEventId, userId);
+      }
+      
+      if (onDelete) {
+        onDelete();
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error deleting event occurrence:', error);
+      alert('Failed to delete event occurrence. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    setShowRecurringAction(null);
+    await handleDelete();
   };
 
   return (
@@ -124,6 +194,7 @@ export default function PersonalEventModal({
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
+                          timeZone,
                         })}
                       </div>
                       <div className="text-sm text-neu-text-primary/70 mt-1 space-y-1">
@@ -133,6 +204,7 @@ export default function PersonalEventModal({
                             {startTime.toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
+                              timeZone,
                             })}
                           </span>
                         </div>
@@ -142,6 +214,7 @@ export default function PersonalEventModal({
                             {endTime.toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
+                              timeZone,
                             })}
                           </span>
                         </div>
@@ -235,7 +308,7 @@ export default function PersonalEventModal({
                     <Button
                       text="Delete"
                       variant="danger"
-                      onClick={() => setShowDeleteConfirm(true)}
+                      onClick={handleDeleteClick}
                       className='w-full'
                     />
                   </div>
@@ -245,6 +318,20 @@ export default function PersonalEventModal({
           </div>
         </div>
       </Dialog>
+
+      {/* Recurring Event Action Modal */}
+      {showRecurringAction && (
+        <RecurringEventActionModal
+          isOpen={true}
+          onClose={() => setShowRecurringAction(null)}
+          onEditThis={handleEditThis}
+          onEditAll={handleEditAll}
+          onDeleteThis={handleDeleteThis}
+          onDeleteAll={handleDeleteAll}
+          action={showRecurringAction}
+          eventTitle={event.title}
+        />
+      )}
     </Transition>
   );
 }

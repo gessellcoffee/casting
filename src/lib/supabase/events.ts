@@ -15,6 +15,7 @@ function mapRow(row: any): CalendarEvent {
       byMonth: row.recurrence_rules.by_month || [],
       until: row.recurrence_rules.until,
       count: row.recurrence_rules.count,
+      exdate: row.recurrence_rules.exdate || [],
     };
   }
 
@@ -30,10 +31,13 @@ function mapRow(row: any): CalendarEvent {
     start: row.start_time, // Add alias for UI compatibility
     end: row.end_time,     // Add alias for UI compatibility
     all_day: row.all_day ?? false,
+    allDay: row.all_day ?? false, // Add camelCase alias
     location: row.location ?? null,
     color: row.color ?? null,
     recurrence_rule_id: row.recurrence_rule_id ?? null,
     is_recurring: row.is_recurring ?? false,
+    isRecurring: row.is_recurring ?? false, // Add camelCase alias
+    recurrenceRule: recurrenceRule, // Add for expansion logic
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -163,6 +167,49 @@ export async function createEvent(form: EventFormData, userId: string): Promise<
     return data ? mapRow(data) : null;
   } catch (error) {
     console.error('Error in createEvent:', error);
+    throw error;
+  }
+}
+
+export async function deleteEventOccurrence(originalEventId: string, occurrenceDate: string, userId: string): Promise<void> {
+  try {
+    // Get the current event and its recurrence rule
+    const { data: currentEvent, error: fetchError } = await (supabase as any)
+      .from('events')
+      .select('*, recurrence_rules(*)')
+      .eq('id', originalEventId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching current event:', fetchError);
+      throw fetchError;
+    }
+
+    if (!currentEvent.recurrence_rule_id || !currentEvent.recurrence_rules) {
+      throw new Error('Event is not recurring');
+    }
+
+    // Add the occurrence date to the exception dates
+    const currentExdates = currentEvent.recurrence_rules.exdate || [];
+    const occurrenceDateStr = new Date(occurrenceDate).toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    if (!currentExdates.includes(occurrenceDateStr)) {
+      const updatedExdates = [...currentExdates, occurrenceDateStr];
+
+      // Update the recurrence rule with the new exception date
+      const { error: updateError } = await (supabase as any)
+        .from('recurrence_rules')
+        .update({ exdate: updatedExdates })
+        .eq('id', currentEvent.recurrence_rule_id);
+
+      if (updateError) {
+        console.error('Error updating recurrence rule with exception date:', updateError);
+        throw updateError;
+      }
+    }
+  } catch (error) {
+    console.error('Error in deleteEventOccurrence:', error);
     throw error;
   }
 }

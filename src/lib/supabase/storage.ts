@@ -75,6 +75,30 @@ export async function uploadProfilePhoto(
   return uploadFile('profiles', filePath, file);
 }
 
+export async function uploadPdfBrandingLogo(
+  userId: string,
+  file: File
+): Promise<{ url: string | null; error: any }> {
+  const { user, error: authError } = await getAuthenticatedUser();
+  
+  if (authError || !user) {
+    console.error('Error getting authenticated user:', authError);
+    return { url: null, error: authError || new Error('Not authenticated') };
+  }
+
+  if (user.id !== userId) {
+    const unauthorizedError = new Error('Unauthorized: You can only upload files to your own profile');
+    console.error('Authorization failed:', { authenticatedUserId: user.id, requestedUserId: userId });
+    return { url: null, error: unauthorizedError };
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `pdf-branding-logo-${Date.now()}.${fileExt}`;
+  const filePath = `${userId}/pdf-branding/${fileName}`;
+
+  return uploadFile('profiles', filePath, file);
+}
+
 /**
  * Upload resume document
  */

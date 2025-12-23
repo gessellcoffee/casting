@@ -433,7 +433,7 @@ export default function SchedulingPage() {
                                       <div className="flex items-center justify-between mb-0.5">
                                         <div className="font-medium truncate flex items-center gap-1">
                                           <span className="shrink-0">🎬</span>
-                                          <span className="truncate">Rehearsal</span>
+                                          <span className="truncate">{event.is_tech_rehearsal ? 'Tech Rehearsal' : 'Rehearsal'}</span>
                                         </div>
                                         {showWarning && (
                                           <div

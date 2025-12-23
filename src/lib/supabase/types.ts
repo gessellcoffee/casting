@@ -1,9 +1,31 @@
 // ============= PROFILE TYPES =============
 
+export type PdfAccent = 'primary' | 'secondary' | 'neutral' | 'success' | 'warning' | 'danger';
+
+export interface PdfBrandingConfig {
+  version: 1;
+  accent?: PdfAccent;
+  accent_hex?: string | null;
+  logo?: {
+    url: string;
+    placement: 'header_left' | 'header_right';
+  } | null;
+  watermark?: {
+    type: 'none' | 'text' | 'logo';
+    text?: string;
+    opacity: number;
+  } | null;
+  footer?: {
+    text?: string | null;
+  } | null;
+}
+
 export interface UserPreferences {
   dark_mode?: boolean;
   show_casting_history?: boolean;
   show_phone?: boolean;
+  time_zone?: string | null;
+  pdf_branding_default?: PdfBrandingConfig | null;
   tooltips?: {
     dismissed?: string[];
   };
@@ -143,6 +165,7 @@ export interface Company {
   mission: string | null;
   values: string | null;
   image_gallery: string[] | null;
+  pdf_branding?: PdfBrandingConfig | null;
   created_at: string;
   updated_at: string;
 }
@@ -165,6 +188,7 @@ export interface CompanyUpdate {
   mission?: string | null;
   values?: string | null;
   image_gallery?: string[] | null;
+  pdf_branding?: PdfBrandingConfig | null;
 }
 
 // ============= CASTING OFFER TYPES =============
@@ -816,6 +840,7 @@ export interface RehearsalEvent {
   date: string;
   start_time: string;
   end_time: string;
+  is_tech_rehearsal: boolean;
   location: string | null;
   notes: string | null;
   created_at: string;
@@ -827,6 +852,7 @@ export interface RehearsalEventInsert {
   date: string;
   start_time: string;
   end_time: string;
+  is_tech_rehearsal?: boolean;
   location?: string | null;
   notes?: string | null;
 }
@@ -835,6 +861,7 @@ export interface RehearsalEventUpdate {
   date?: string;
   start_time?: string;
   end_time?: string;
+  is_tech_rehearsal?: boolean;
   location?: string | null;
   notes?: string | null;
 }
@@ -974,9 +1001,11 @@ export interface CalendarEvent {
     byMonth: number[];
     until: string | null;
     count: number | null;
+    exdate?: string[]; // Exception dates (excluded occurrences)
   } | null;
   _isInstance?: boolean;
   _originalEventId?: string;
+  _instanceDate?: string;
 }
 
 export interface CalendarEventInsert {

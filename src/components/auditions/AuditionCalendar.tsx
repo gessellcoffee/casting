@@ -15,6 +15,7 @@ interface AuditionCalendarProps {
   callbacks?: any[];
   productionEvents?: ProductionDateEvent[];
   userId: string;
+  timeZone?: string;
   onRefresh?: () => void;
   hasOwnedAuditions?: boolean;
   hasProductionTeamAuditions?: boolean;
@@ -27,6 +28,7 @@ export default function AuditionCalendar({
   callbacks = [], 
   productionEvents = [], 
   userId, 
+  timeZone,
   onRefresh,
   hasOwnedAuditions = false,
   hasProductionTeamAuditions = false,
@@ -325,6 +327,7 @@ export default function AuditionCalendar({
             productionEvents={filteredProductionEvents}
             currentDate={currentDate}
             userId={userId}
+            timeZone={timeZone}
             onRefresh={onRefresh}
             eventFilters={eventFilters}
           />
@@ -336,6 +339,7 @@ export default function AuditionCalendar({
             productionEvents={filteredProductionEvents}
             currentDate={currentDate}
             userId={userId}
+            timeZone={timeZone}
             onRefresh={onRefresh}
             eventFilters={eventFilters}
           />
@@ -346,6 +350,7 @@ export default function AuditionCalendar({
             callbacks={showCallbacks ? filteredCallbacks : []}
             productionEvents={filteredProductionEvents}
             userId={userId}
+            timeZone={timeZone}
             onRefresh={onRefresh}
           />
         )}

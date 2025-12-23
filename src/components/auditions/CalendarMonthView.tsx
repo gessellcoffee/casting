@@ -8,7 +8,7 @@ import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
 import { useGroupedSignups } from '@/lib/hooks/useGroupedSignups';
-import { isToday } from '@/lib/utils/dateUtils';
+import { getDateKeyInTimeZone, isToday } from '@/lib/utils/dateUtils';
 import { useRouter } from 'next/navigation';
 import { MdAdd } from 'react-icons/md';
 import { Dialog, Transition } from '@headlessui/react';
@@ -25,11 +25,12 @@ interface CalendarMonthViewProps {
   productionEvents?: ProductionDateEvent[];
   currentDate: Date;
   userId: string;
+  timeZone?: string;
   onRefresh?: () => void;
   eventFilters?: EventTypeFilter;
 }
 
-export default function CalendarMonthView({ signups, callbacks = [], productionEvents = [], currentDate, userId, onRefresh, eventFilters }: CalendarMonthViewProps) {
+export default function CalendarMonthView({ signups, callbacks = [], productionEvents = [], currentDate, userId, timeZone, onRefresh, eventFilters }: CalendarMonthViewProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
@@ -173,7 +174,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   }, [currentDate]);
 
   // Group signups by date
-  const signupsByDate = useGroupedSignups(signups);
+  const signupsByDate = useGroupedSignups(signups, timeZone);
 
   // Group callbacks by date
   const callbacksByDate = useMemo(() => {
@@ -181,23 +182,23 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     callbacks.forEach(callback => {
       if (callback.callback_slots?.start_time) {
         const date = new Date(callback.callback_slots.start_time);
-        const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        const key = getDateKeyInTimeZone(date, timeZone);
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(callback);
       }
     });
     return grouped;
-  }, [callbacks]);
+  }, [callbacks, timeZone]);
 
   // Get signups for a specific date
   const getSignupsForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return signupsByDate[dateKey] || [];
   };
 
   // Get callbacks for a specific date
   const getCallbacksForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return callbacksByDate[dateKey] || [];
   };
 
@@ -218,19 +219,15 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     events.forEach(evt => {
       // Create Date from ISO string - this will be in local time
       const dt = new Date((evt as any).start);
-      // Use local date components to avoid UTC conversion issues
-      const year = dt.getFullYear();
-      const month = dt.getMonth();
-      const date = dt.getDate();
-      const key = `${year}-${month}-${date}`;
+      const key = getDateKeyInTimeZone(dt, timeZone);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
     return grouped;
-  }, [events]);
+  }, [events, timeZone]);
 
   const getPersonalForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     const personalEvents = personalByDate[dateKey] || [];
     // Filter based on eventFilters if provided
     return eventFilters?.personalEvents === false ? [] : personalEvents;
@@ -242,15 +239,15 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     productionEvents.forEach(evt => {
       // evt.date is already a Date object from calendarEvents.ts, use it directly
       const eventDate = evt.date;
-      const key = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+      const key = getDateKeyInTimeZone(eventDate, timeZone);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(evt);
     });
     return grouped;
-  }, [productionEvents]);
+  }, [productionEvents, timeZone]);
 
   const getProductionForDate = (date: Date) => {
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const dateKey = getDateKeyInTimeZone(date, timeZone);
     return productionByDate[dateKey] || [];
   };
 
@@ -433,6 +430,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           }}
           selectedDate={selectedDate || undefined}
           userId={userId}
+          timeZone={timeZone}
         />
       )}
       {editingPersonalEvent && (
@@ -451,6 +449,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           }}
           event={editingPersonalEvent}
           userId={userId}
+          timeZone={timeZone}
         />
       )}
       {selectedPersonalEvent && !editingPersonalEvent && (
@@ -467,6 +466,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
           onEdit={(event) => {
             setEditingPersonalEvent(event);
           }}
+          timeZone={timeZone}
         />
       )}
 
@@ -517,7 +517,8 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                           weekday: 'long', 
                           month: 'long', 
                           day: 'numeric',
-                          year: 'numeric'
+                          year: 'numeric',
+                          timeZone,
                         })}
                       </Dialog.Title>
                       <button
@@ -556,7 +557,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       <div className="flex-1">
                         <div className="font-semibold text-neu-text-primary mb-1">{showTitle}</div>
                         <div className="text-sm font-semibold text-[#3d6cb5] dark:text-[#6b9eff]">
-                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                         </div>
                         {signup.roles?.role_name && (
                           <div className="text-sm text-neu-text-primary/70 mt-1">Role: {signup.roles.role_name}</div>
@@ -586,7 +587,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       <div className="flex-1">
                         <div className="font-semibold text-neu-text-primary mb-1">{showTitle}</div>
                         <div className="text-sm font-semibold text-[#7c3aed] dark:text-[#a78bfa]">
-                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                         </div>
                         <div className="text-sm font-semibold text-[#7c3aed] dark:text-[#a78bfa] mt-1">Callback</div>
                       </div>
@@ -606,16 +607,31 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                       setSelectedPersonalEvent(evt);
                       setShowDayView(false);
                     }}
-                    className="w-full text-left p-4 rounded-lg bg-green-500/20 border border-green-500/50 hover:bg-green-500/30 transition-all"
+                    className="w-full text-left p-4 rounded-lg transition-all"
+                    style={{
+                      backgroundColor: `${evt.color || '#34d399'}20`,
+                      borderColor: `${evt.color || '#34d399'}80`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = `${evt.color || '#34d399'}30`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = `${evt.color || '#34d399'}20`;
+                    }}
                   >
                     <div className="flex items-start gap-3">
                       <div className="text-2xl">🗓️</div>
                       <div className="flex-1">
-                        <div className="font-semibold text-neu-text-primary mb-1">{evt.title}</div>
-                        <div className="text-sm font-semibold text-[#059669] dark:text-[#34d399]">
-                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        <div className="font-semibold text-neu-text-primary mb-1 flex items-center gap-2">
+                          {(evt.isRecurring || evt._isInstance) && (
+                            <span className="text-sm opacity-70">🔁</span>
+                          )}
+                          <span>{evt.title}</span>
                         </div>
-                        <div className="text-sm font-semibold text-[#059669] dark:text-[#34d399] mt-1">Personal Event</div>
+                        <div className="text-sm font-semibold" style={{ color: evt.color || '#34d399' }}>
+                          {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
+                        </div>
+                        <div className="text-sm font-semibold mt-1" style={{ color: evt.color || '#34d399' }}>Personal Event</div>
                       </div>
                     </div>
                   </button>
@@ -688,7 +704,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                             className={`text-sm font-semibold ${textColor}`}
                             style={evt.type === 'production_event' ? { color: evt.eventTypeColor || '#5a8ff5' } : undefined}
                           >
-                            {evt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            {evt.startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })}
                           </div>
                         )}
                         <div
