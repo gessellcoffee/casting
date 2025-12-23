@@ -233,9 +233,16 @@ export async function setProductionEventAssignments(
     return { error: null };
   }
 
+  // Remove duplicates and filter out null/undefined values
+  const uniqueUserIds = [...new Set(userIds.filter(Boolean))];
+
+  if (uniqueUserIds.length === 0) {
+    return { error: null };
+  }
+
   const { error: insertError } = await supabase
     .from('production_event_assignments')
-    .insert(userIds.map(user_id => ({ production_event_id: productionEventId, user_id })));
+    .insert(uniqueUserIds.map(user_id => ({ production_event_id: productionEventId, user_id })));
 
   if (insertError) {
     console.error('Error creating production event assignments:', insertError);
