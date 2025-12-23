@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { createAuditionSignup } from '@/lib/supabase/auditionSignups';
+import { getIncompleteRequiredAuditionForms } from '@/lib/supabase/customForms';
 import { MdClose } from 'react-icons/md';
 
 interface AuditionSignupModalProps {
@@ -24,6 +26,7 @@ export default function AuditionSignupModal({
   slotTime,
   onSuccess,
 }: AuditionSignupModalProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -101,6 +104,18 @@ export default function AuditionSignupModal({
 
       if (!authData.user) {
         throw new Error('Failed to create user account');
+      }
+
+      const { incompleteAssignmentIds, error: formsError } = await getIncompleteRequiredAuditionForms(auditionId);
+      if (formsError) {
+        throw formsError;
+      }
+
+      if (incompleteAssignmentIds.length > 0) {
+        const returnTo = `/auditions/${auditionId}`;
+        router.push(`/my-forms?auditionId=${encodeURIComponent(auditionId)}&returnTo=${encodeURIComponent(returnTo)}`);
+        onClose();
+        return;
       }
 
       // 2. Sign up for the audition slot

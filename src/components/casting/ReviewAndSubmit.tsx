@@ -60,6 +60,8 @@ export default function ReviewAndSubmit({
         pay_comments: castingData.auditionDetails.payComments || null,
         workflow_status: castingData.auditionDetails.workflowStatus,
         show_cast_publicly: castingData.auditionDetails.showCastPublicly,
+        required_signup_forms: castingData.auditionDetails.requiredSignupForms || null,
+        required_callback_forms: castingData.auditionDetails.requiredCallbackForms || null,
       });
 
       if (auditionError || !audition) {

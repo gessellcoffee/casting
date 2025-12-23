@@ -1,6 +1,7 @@
 import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from './client';
 import { getAuthenticatedUser } from './auth';
+import { getIncompleteRequiredAuditionForms } from './customForms';
 import type { AuditionSignup, AuditionSignupInsert, AuditionSignupUpdate, AuditionSignupWithDetails, UserSignupsWithDetails, Json } from './types';
 
 /**
@@ -252,6 +253,19 @@ export async function createAuditionSignup(
   if (slotError || !slotData) {
     console.error('Error fetching slot data:', slotError);
     return { data: null, error: slotError || new Error('Slot not found') };
+  }
+
+  const { incompleteAssignmentIds, error: formsError } = await getIncompleteRequiredAuditionForms(slotData.audition_id);
+  if (formsError) {
+    console.error('Error checking required audition forms:', formsError);
+    return { data: null, error: formsError };
+  }
+
+  if (incompleteAssignmentIds.length > 0) {
+    return {
+      data: null,
+      error: new Error('Please complete the required forms before signing up for this audition.'),
+    };
   }
 
   // Check if slot is full

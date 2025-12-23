@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from './auth';
 import type { CallbackInvitation, CallbackInvitationInsert, CallbackInvitationUpdate, CallbackInvitationStatus } from './types';
 import { createNotification } from './notifications';
 import { getUserByEmail, isValidEmail } from './userLookup';
+import { assignFormsOnCallbackInvitation } from './customForms';
 
 /**
  * Get a callback invitation by ID
@@ -320,10 +321,17 @@ export async function sendCallbackInvitations(
   // Create a map of slot details
   const slotMap = new Map(slots.map(slot => [slot.callback_slot_id, slot]));
 
-  // Send notifications to each invited user
+  // Send notifications and assign forms to each invited user
   const notificationPromises = invitations.map(async (invitation) => {
     const slot = slotMap.get(invitation.callback_slot_id);
     if (!slot) return;
+
+    // Automatically assign any required callback forms
+    const { error: formAssignError } = await assignFormsOnCallbackInvitation(invitation.audition_id, invitation.user_id);
+    if (formAssignError) {
+      console.warn('Failed to assign callback forms for invitation:', formAssignError);
+      // Don't block callback invitation for form assignment errors, just log them
+    }
 
     const startTime = new Date(slot.start_time);
     const formattedDate = startTime.toLocaleDateString('en-US', {

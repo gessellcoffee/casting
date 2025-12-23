@@ -10,10 +10,11 @@ import CompanySelector from '@/components/casting/CompanySelector';
 import ShowSelector from '@/components/casting/ShowSelector';
 import RoleManager from '@/components/casting/RoleManager';
 import AuditionDetailsForm from '@/components/casting/AuditionDetailsForm';
+import FormRequirementsStep from '@/components/casting/FormRequirementsStep';
 import SlotScheduler from '@/components/casting/SlotScheduler';
 import ReviewAndSubmit from '@/components/casting/ReviewAndSubmit';
 
-type CastingStep = 'company' | 'show' | 'roles' | 'details' | 'slots' | 'review';
+type CastingStep = 'company' | 'show' | 'roles' | 'details' | 'forms' | 'slots' | 'review';
 
 interface ProductionTeamMember {
   userId?: string;
@@ -48,6 +49,8 @@ interface CastingData {
     virtualAuditionsEnabled: boolean;
     virtualAuditionInstructions: string;
     showCastPublicly: boolean;
+    requiredSignupForms: string[];
+    requiredCallbackForms: string[];
   };
   slots: any[];
 }
@@ -82,6 +85,8 @@ export default function NewCastingPage() {
       virtualAuditionsEnabled: false,
       virtualAuditionInstructions: '',
       showCastPublicly: false,
+      requiredSignupForms: [],
+      requiredCallbackForms: [],
     },
     slots: [],
   });
@@ -109,6 +114,7 @@ export default function NewCastingPage() {
     { key: 'show', label: 'Show' },
     { key: 'roles', label: 'Roles' },
     { key: 'details', label: 'Details' },
+    { key: 'forms', label: 'Forms' },
     { key: 'slots', label: 'Slots' },
     { key: 'review', label: 'Review' },
   ];
@@ -290,8 +296,39 @@ export default function NewCastingPage() {
                 onNext={(details) => {
                   // Update state with fresh details
                   updateCastingData({ auditionDetails: details });
-                  // Use the fresh details to determine next step
-                  const needsSlots = details.workflowStatus === 'auditioning';
+                  // Always go to forms step next
+                  setCurrentStep('forms');
+                }}
+                onBack={handleBack}
+              />
+            )}
+
+            {currentStep === 'forms' && (
+              <FormRequirementsStep
+                requirements={{
+                  requiredSignupForms: castingData.auditionDetails.requiredSignupForms,
+                  requiredCallbackForms: castingData.auditionDetails.requiredCallbackForms,
+                }}
+                onUpdate={(requirements) => {
+                  updateCastingData({
+                    auditionDetails: {
+                      ...castingData.auditionDetails,
+                      requiredSignupForms: requirements.requiredSignupForms,
+                      requiredCallbackForms: requirements.requiredCallbackForms,
+                    },
+                  });
+                }}
+                onNext={(requirements) => {
+                  // Update state with form requirements
+                  updateCastingData({
+                    auditionDetails: {
+                      ...castingData.auditionDetails,
+                      requiredSignupForms: requirements.requiredSignupForms,
+                      requiredCallbackForms: requirements.requiredCallbackForms,
+                    },
+                  });
+                  // Determine next step based on workflow status
+                  const needsSlots = castingData.auditionDetails.workflowStatus === 'auditioning';
                   setCurrentStep(needsSlots ? 'slots' : 'review');
                 }}
                 onBack={handleBack}

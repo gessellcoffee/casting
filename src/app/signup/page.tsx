@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail } from 'lucide-react';
 import StarryContainer from '@/components/StarryContainer';
 import { supabase } from '@/lib/supabase/client';
 
-function SignupForm() {
+function SignupPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -273,11 +273,13 @@ function SignupForm() {
 export default function SignupPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-neu-text-primary">Loading...</div>
-      </div>
+      <StarryContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-neu-text-primary/70">Loading...</div>
+        </div>
+      </StarryContainer>
     }>
-      <SignupForm />
+      <SignupPageContent />
     </Suspense>
   );
 }

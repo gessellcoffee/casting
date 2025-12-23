@@ -11,6 +11,8 @@ import { formatUSDateWithFullWeekday, formatUSTime } from '@/lib/utils/dateUtils
 import Avatar from '@/components/shared/Avatar';
 import UserProfileModal from '@/components/casting/UserProfileModal';
 import AuditionSignupModal from './AuditionSignupModal';
+import { getIncompleteRequiredAuditionForms, assignFormsOnAuditionSignup } from '@/lib/supabase/customForms';
+import RequiredFormsModal from './RequiredFormsModal';
 
 interface SlotsListProps {
   slots: any[];
@@ -38,6 +40,8 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [showRequiredFormsModal, setShowRequiredFormsModal] = useState(false);
+  const [pendingSlotId, setPendingSlotId] = useState<string | null>(null);
 
   // Check if user has already signed up for this audition and get all their signups
   useEffect(() => {
@@ -237,6 +241,21 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
     setError(null);
     setSuccessMessage(null);
 
+    const { incompleteAssignmentIds, error: formsError } = await getIncompleteRequiredAuditionForms(auditionId);
+    if (formsError) {
+      setError(formsError.message || 'Unable to check required forms. Please try again.');
+      setSigningUp(null);
+      return;
+    }
+
+    if (incompleteAssignmentIds.length > 0) {
+      // Show required forms modal instead of redirecting
+      setPendingSlotId(slotId);
+      setShowRequiredFormsModal(true);
+      setSigningUp(null);
+      return;
+    }
+
     const { error: signupError } = await createAuditionSignup({
       slot_id: slotId,
       user_id: user.id,
@@ -245,6 +264,13 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
     if (signupError) {
       setError(signupError.message || 'Failed to sign up. You may have already signed up for this slot.');
     } else {
+      // Automatically assign any required forms for this audition
+      const { error: formAssignError } = await assignFormsOnAuditionSignup(auditionId, user.id);
+      if (formAssignError) {
+        console.warn('Failed to assign forms on signup:', formAssignError);
+        // Don't block signup for form assignment errors, just log them
+      }
+
       setSuccessMessage('Successfully signed up! View your audition in your calendar.');
       // Refresh user signup status and all signups
       const signup = await getUserSignupForAudition(user.id, auditionId);
@@ -257,6 +283,50 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
     }
 
     setSigningUp(null);
+  };
+
+  const handleFormsCompleted = async () => {
+    // Close the modal and proceed with signup for the pending slot
+    setShowRequiredFormsModal(false);
+    
+    if (!pendingSlotId) return;
+    
+    // Proceed with the actual signup now that forms are completed
+    setSigningUp(pendingSlotId);
+    
+    const { error: signupError } = await createAuditionSignup({
+      slot_id: pendingSlotId,
+      user_id: user.id,
+    });
+
+    if (signupError) {
+      setError(signupError.message || 'Failed to sign up. You may have already signed up for this slot.');
+    } else {
+      // Automatically assign any required forms for this audition
+      const { error: formAssignError } = await assignFormsOnAuditionSignup(auditionId, user.id);
+      if (formAssignError) {
+        console.warn('Failed to assign forms on signup:', formAssignError);
+        // Don't block signup for form assignment errors, just log them
+      }
+
+      setSuccessMessage('Successfully signed up! View your audition in your calendar.');
+      // Refresh user signup status and all signups
+      const signup = await getUserSignupForAudition(user.id, auditionId);
+      setUserSignup(signup);
+      const allSignups = await getUserSignupsWithTimes(user.id);
+      setUserSignups(allSignups);
+      onSignupSuccess();
+      // Clear success message after 10 seconds
+      setTimeout(() => setSuccessMessage(null), 10000);
+    }
+
+    setSigningUp(null);
+    setPendingSlotId(null);
+  };
+
+  const handleFormsModalClose = () => {
+    setShowRequiredFormsModal(false);
+    setPendingSlotId(null);
   };
 
   const handleCancelSignup = async () => {
@@ -543,6 +613,15 @@ export default function SlotsList({ slots, auditionId, auditionTitle, user, onSi
           }}
         />
       )}
+
+      {/* Required Forms Modal */}
+      <RequiredFormsModal
+        isOpen={showRequiredFormsModal}
+        onClose={handleFormsModalClose}
+        auditionId={auditionId}
+        auditionTitle={auditionTitle}
+        onAllFormsCompleted={handleFormsCompleted}
+      />
     </div>
   );
 }

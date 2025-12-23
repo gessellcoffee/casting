@@ -11,11 +11,12 @@ import { createAuditionRole, updateAuditionRole, deleteAuditionRole } from '@/li
 import { WorkflowStatus } from '@/lib/supabase/workflowStatus';
 import StarryContainer from '@/components/StarryContainer';
 import AuditionDetailsForm from '@/components/casting/AuditionDetailsForm';
+import FormRequirementsStep from '@/components/casting/FormRequirementsStep';
 import SlotScheduler from '@/components/casting/SlotScheduler';
 import RoleManager from '@/components/casting/RoleManager';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
-type EditStep = 'details' | 'roles' | 'slots';
+type EditStep = 'details' | 'forms' | 'roles' | 'slots';
 
 interface RoleOperation {
   type: 'create' | 'update' | 'delete';
@@ -58,6 +59,8 @@ export default function EditAuditionPage() {
     virtualAuditionsEnabled: false,
     virtualAuditionInstructions: '',
     showCastPublicly: false,
+    requiredSignupForms: [] as string[],
+    requiredCallbackForms: [] as string[],
   });
   const [slots, setSlots] = useState<any[]>([]);
 
@@ -137,6 +140,8 @@ export default function EditAuditionPage() {
       virtualAuditionsEnabled: data.virtual_auditions_enabled || false,
       virtualAuditionInstructions: data.virtual_audition_instructions || '',
       showCastPublicly: data.show_cast_publicly || false,
+      requiredSignupForms: (data.required_signup_forms as string[]) || [],
+      requiredCallbackForms: (data.required_callback_forms as string[]) || [],
     };
     
     setAuditionDetails(parsedDetails);
@@ -167,6 +172,8 @@ export default function EditAuditionPage() {
         virtual_auditions_enabled: auditionDetails.virtualAuditionsEnabled,
         virtual_audition_instructions: auditionDetails.virtualAuditionInstructions,
         show_cast_publicly: auditionDetails.showCastPublicly,
+        required_signup_forms: auditionDetails.requiredSignupForms,
+        required_callback_forms: auditionDetails.requiredCallbackForms,
       };
 
       const { data: updatedAudition, error: auditionError } = await updateAudition(params.id as string, updates);
@@ -263,6 +270,7 @@ export default function EditAuditionPage() {
 
   const steps: { key: EditStep; label: string }[] = [
     { key: 'details', label: 'Details' },
+    { key: 'forms', label: 'Forms' },
     { key: 'roles', label: 'Roles' },
     { key: 'slots', label: 'Slots' },
   ];
@@ -350,8 +358,33 @@ export default function EditAuditionPage() {
                     setSlots([]);
                   }
                 }}
-                onNext={() => setCurrentStep('roles')}
+                onNext={() => setCurrentStep('forms')}
                 onBack={() => router.push('/cast')}
+              />
+            )}
+
+            {currentStep === 'forms' && (
+              <FormRequirementsStep
+                requirements={{
+                  requiredSignupForms: auditionDetails.requiredSignupForms,
+                  requiredCallbackForms: auditionDetails.requiredCallbackForms,
+                }}
+                onUpdate={(requirements) => {
+                  setAuditionDetails({
+                    ...auditionDetails,
+                    requiredSignupForms: requirements.requiredSignupForms,
+                    requiredCallbackForms: requirements.requiredCallbackForms,
+                  });
+                }}
+                onNext={(requirements) => {
+                  setAuditionDetails({
+                    ...auditionDetails,
+                    requiredSignupForms: requirements.requiredSignupForms,
+                    requiredCallbackForms: requirements.requiredCallbackForms,
+                  });
+                  setCurrentStep('roles');
+                }}
+                onBack={() => setCurrentStep('details')}
               />
             )}
 
@@ -364,7 +397,7 @@ export default function EditAuditionPage() {
                   setRoleOperations(operations);
                 }}
                 onNext={() => setCurrentStep('slots')}
-                onBack={() => setCurrentStep('details')}
+                onBack={() => setCurrentStep('forms')}
               />
             )}
 

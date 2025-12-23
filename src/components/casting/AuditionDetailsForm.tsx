@@ -40,6 +40,8 @@ interface AuditionDetails {
   virtualAuditionsEnabled: boolean;
   virtualAuditionInstructions: string;
   showCastPublicly: boolean;
+  requiredSignupForms: string[];
+  requiredCallbackForms: string[];
 }
 
 interface AuditionDetailsFormProps {

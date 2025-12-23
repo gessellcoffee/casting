@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
 import { getUserSignupsWithDetails, getUserCastShows, getUserCastShowsFromCastMembers, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserCastRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
@@ -17,7 +17,7 @@ import { getAgendaItems, getCastMembers } from '@/lib/supabase/agendaItems';
 import { formatUSTime } from '@/lib/utils/dateUtils';
 import type { EventTypeFilter } from '@/components/auditions/CalendarLegend';
 
-export default function ShowCalendarPage() {
+function ShowCalendarPageContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -422,5 +422,19 @@ export default function ShowCalendarPage() {
         </div>
       </div>
     </StarryContainer>
+  );
+}
+
+export default function ShowCalendarPage() {
+  return (
+    <Suspense fallback={
+      <StarryContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-neu-text-primary/70">Loading calendar...</div>
+        </div>
+      </StarryContainer>
+    }>
+      <ShowCalendarPageContent />
+    </Suspense>
   );
 }
