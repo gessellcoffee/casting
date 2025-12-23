@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase, getUser } from "@/lib/supabase";
+import { checkUserFormsAccess } from "@/lib/supabase/customForms";
 import Logo from "./Logo";
 
 export default function Footer() {
 
           const [user, setUser] = useState<any>(null);
+          const [hasFormsAccess, setHasFormsAccess] = useState(false);
 
         useEffect(() => {
           // Get initial user
@@ -20,6 +22,19 @@ export default function Footer() {
 
           return () => subscription.unsubscribe();
         }, []);
+
+        useEffect(() => {
+          // Check forms access when user changes
+          if (user?.id) {
+            checkUserFormsAccess(user.id).then(({ hasAccess }) => {
+              setHasFormsAccess(hasAccess);
+            }).catch(() => {
+              setHasFormsAccess(false);
+            });
+          } else {
+            setHasFormsAccess(false);
+          }
+        }, [user]);
   return (
     <footer className="neumorphic-footer">
       <div className="footer-content">
@@ -36,6 +51,11 @@ export default function Footer() {
             <Link className='neu-link' href="/shows">
               Shows
             </Link>
+            {hasFormsAccess && (
+              <Link className='neu-link' href="/forms">
+                Forms
+              </Link>
+            )}
             <Link className='neu-link' href="/help">
               Help
             </Link>

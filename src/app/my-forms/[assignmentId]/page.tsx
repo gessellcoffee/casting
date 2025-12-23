@@ -14,6 +14,8 @@ import {
   getCustomFormResponseForAssignment,
   getFormAssignmentWithForm,
   submitCustomFormResponse,
+  getRolesForContext,
+  getCastMembersForContext
 } from '@/lib/supabase/customForms';
 import type { CustomFormField, CustomFormFieldType } from '@/lib/supabase/types';
 
@@ -40,7 +42,7 @@ function normalizeAnswers(fields: CustomFormField[], raw: Record<string, any>): 
       continue;
     }
 
-    if (field.field_type === 'multi_select') {
+    if (field.field_type === 'multi_select' || field.field_type === 'role_list_multi_select' || field.field_type === 'cast_members_multi_select') {
       result[field.field_key] = Array.isArray(value) ? value : [];
       continue;
     }
@@ -64,6 +66,8 @@ export default function MyFormFillPage() {
   const [assignment, setAssignment] = useState<any | null>(null);
   const [fields, setFields] = useState<CustomFormField[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [roleOptions, setRoleOptions] = useState<string[]>([]);
+  const [castOptions, setCastOptions] = useState<string[]>([]);
 
   const formName = assignment?.custom_forms?.name || assignment?.form?.name || 'Form';
 
@@ -95,6 +99,24 @@ export default function MyFormFillPage() {
      const existing = await getCustomFormResponseForAssignment(assignmentId);
      const initialAnswers = existing?.answers && typeof existing.answers === 'object' ? (existing.answers as any) : {};
      setAnswers(normalizeAnswers(f, initialAnswers));
+
+     // Load dynamic field options if needed
+     const hasRoleFields = f.some(field => 
+       field.field_type === 'role_list_single_select' || field.field_type === 'role_list_multi_select'
+     );
+     const hasCastFields = f.some(field => 
+       field.field_type === 'cast_members_single_select' || field.field_type === 'cast_members_multi_select'
+     );
+
+     if (hasRoleFields && a.target_type === 'audition') {
+       const { data: roles } = await getRolesForContext(a.target_id);
+       setRoleOptions(roles || []);
+     }
+
+     if (hasCastFields && a.target_type === 'production') {
+       const { data: cast } = await getCastMembersForContext(a.target_id);
+       setCastOptions(cast || []);
+     }
 
      setLoading(false);
    };
@@ -245,6 +267,42 @@ export default function MyFormFillPage() {
                 );
               }
 
+              if (field.field_type === 'role_list_single_select') {
+                return (
+                  <FormSelect
+                    key={field.field_id}
+                    label={label}
+                    required={field.required}
+                    helperText={helperText}
+                    value={String(value ?? '')}
+                    onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                  >
+                    <option value="">Select a role...</option>
+                    {roleOptions.map((role) => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </FormSelect>
+                );
+              }
+
+              if (field.field_type === 'cast_members_single_select') {
+                return (
+                  <FormSelect
+                    key={field.field_id}
+                    label={label}
+                    required={field.required}
+                    helperText={helperText}
+                    value={String(value ?? '')}
+                    onChange={(e) => setAnswers((prev) => ({ ...prev, [field.field_key]: e.target.value }))}
+                  >
+                    <option value="">Select a cast member...</option>
+                    {castOptions.map((member) => (
+                      <option key={member} value={member}>{member}</option>
+                    ))}
+                  </FormSelect>
+                );
+              }
+
               if (field.field_type === 'multi_select') {
                 const opts = fieldOptions.get(field.field_key) || [];
                 const selected = Array.isArray(value) ? value : [];
@@ -264,6 +322,60 @@ export default function MyFormFillPage() {
                     >
                       {opts.map((o) => (
                         <option key={o} value={o}>{o}</option>
+                      ))}
+                    </select>
+                    {helperText && (
+                      <p className="text-neu-text-muted text-xs mt-1">{helperText}</p>
+                    )}
+                  </div>
+                );
+              }
+
+              if (field.field_type === 'role_list_multi_select') {
+                const selected = Array.isArray(value) ? value : [];
+                return (
+                  <div key={field.field_id}>
+                    <label className="block text-sm font-medium text-neu-text-primary mb-2">
+                      {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
+                    </label>
+                    <select
+                      multiple
+                      className="neu-input w-full"
+                      value={selected.map(String)}
+                      onChange={(e) => {
+                        const selectedValues = Array.from(e.target.selectedOptions).map((o) => o.value);
+                        setAnswers((prev) => ({ ...prev, [field.field_key]: selectedValues }));
+                      }}
+                    >
+                      {roleOptions.map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                    {helperText && (
+                      <p className="text-neu-text-muted text-xs mt-1">{helperText}</p>
+                    )}
+                  </div>
+                );
+              }
+
+              if (field.field_type === 'cast_members_multi_select') {
+                const selected = Array.isArray(value) ? value : [];
+                return (
+                  <div key={field.field_id}>
+                    <label className="block text-sm font-medium text-neu-text-primary mb-2">
+                      {label}{field.required ? <span className="text-neu-accent-danger ml-1">*</span> : null}
+                    </label>
+                    <select
+                      multiple
+                      className="neu-input w-full"
+                      value={selected.map(String)}
+                      onChange={(e) => {
+                        const selectedValues = Array.from(e.target.selectedOptions).map((o) => o.value);
+                        setAnswers((prev) => ({ ...prev, [field.field_key]: selectedValues }));
+                      }}
+                    >
+                      {castOptions.map((member) => (
+                        <option key={member} value={member}>{member}</option>
                       ))}
                     </select>
                     {helperText && (

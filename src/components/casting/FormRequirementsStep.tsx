@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { getCustomForms } from '@/lib/supabase/customForms';
 import FormSelect from '@/components/ui/forms/FormSelect';
 import WizardNavigation from '@/components/ui/navigation/WizardNavigation';
-import { X } from 'lucide-react';
+import InlineFormBuilder from './InlineFormBuilder';
+import { X, Plus } from 'lucide-react';
 
 interface FormRequirement {
   formId: string;
@@ -33,6 +34,8 @@ export default function FormRequirementsStep({
   const [availableForms, setAvailableForms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFormBuilder, setShowFormBuilder] = useState(false);
+  const [buildingFormType, setBuildingFormType] = useState<'signup' | 'callback' | null>(null);
 
   useEffect(() => {
     loadForms();
@@ -104,6 +107,49 @@ export default function FormRequirementsStep({
     return availableForms.filter(form => !excludeIds.includes(form.form_id));
   };
 
+  const handleCreateNewForm = (type: 'signup' | 'callback') => {
+    setBuildingFormType(type);
+    setShowFormBuilder(true);
+  };
+
+  const handleFormCreated = (formId: string, formName: string) => {
+    // Add the new form to available forms
+    const newForm = { form_id: formId, name: formName, status: 'published' };
+    setAvailableForms(prev => [...prev, newForm]);
+
+    // Add to the appropriate requirement list
+    if (buildingFormType === 'signup') {
+      setLocalRequirements(prev => ({
+        ...prev,
+        requiredSignupForms: [...prev.requiredSignupForms, formId]
+      }));
+    } else if (buildingFormType === 'callback') {
+      setLocalRequirements(prev => ({
+        ...prev,
+        requiredCallbackForms: [...prev.requiredCallbackForms, formId]
+      }));
+    }
+
+    // Close form builder
+    setShowFormBuilder(false);
+    setBuildingFormType(null);
+
+    // Update parent component
+    const updatedRequirements = {
+      ...localRequirements,
+      [buildingFormType === 'signup' ? 'requiredSignupForms' : 'requiredCallbackForms']: 
+        buildingFormType === 'signup' 
+          ? [...localRequirements.requiredSignupForms, formId]
+          : [...localRequirements.requiredCallbackForms, formId]
+    };
+    onUpdate(updatedRequirements);
+  };
+
+  const handleCancelFormBuilder = () => {
+    setShowFormBuilder(false);
+    setBuildingFormType(null);
+  };
+
   const handleNext = () => {
     onNext(localRequirements);
   };
@@ -114,6 +160,27 @@ export default function FormRequirementsStep({
         <div className="text-center py-8">
           <div className="text-neu-text-primary/70">Loading forms...</div>
         </div>
+      </div>
+    );
+  }
+
+  // Show form builder if active
+  if (showFormBuilder) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-neu-text-primary mb-2">
+            Form Requirements
+          </h2>
+          <p className="text-neu-text-primary/70">
+            Creating a new form for {buildingFormType === 'signup' ? 'audition signups' : 'callbacks'}
+          </p>
+        </div>
+
+        <InlineFormBuilder
+          onFormCreated={handleFormCreated}
+          onCancel={handleCancelFormBuilder}
+        />
       </div>
     );
   }
@@ -168,23 +235,39 @@ export default function FormRequirementsStep({
         )}
 
         {/* Add signup form */}
-        <FormSelect
-          label="Add Required Form"
-          value=""
-          onChange={(e) => handleAddSignupForm(e.target.value)}
-          disabled={availableForms.length === 0}
-        >
-          <option value="">Select a form to require...</option>
-          {getAvailableFormsForSelect(localRequirements.requiredSignupForms).map(form => (
-            <option key={form.form_id} value={form.form_id}>
-              {form.name}
-            </option>
-          ))}
-        </FormSelect>
+        <div className="space-y-3">
+          <FormSelect
+            label="Add Required Form"
+            value=""
+            onChange={(e) => handleAddSignupForm(e.target.value)}
+            disabled={availableForms.length === 0}
+          >
+            <option value="">Select a form to require...</option>
+            {getAvailableFormsForSelect(localRequirements.requiredSignupForms).map(form => (
+              <option key={form.form_id} value={form.form_id}>
+                {form.name}
+              </option>
+            ))}
+          </FormSelect>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-neu-border"></div>
+            <span className="text-xs text-neu-text-secondary">OR</span>
+            <div className="flex-1 border-t border-neu-border"></div>
+          </div>
+
+          <button
+            onClick={() => handleCreateNewForm('signup')}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-neu-border hover:border-neu-accent-primary hover:bg-neu-accent-primary/5 text-neu-text-primary hover:text-neu-accent-primary transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create New Form for Signups
+          </button>
+        </div>
 
         {availableForms.length === 0 && (
           <p className="text-sm text-neu-text-primary/60 mt-2">
-            No published forms available. Create and publish forms first to require them for auditions.
+            No published forms available. Create your first form using the button above.
           </p>
         )}
       </div>
@@ -222,19 +305,35 @@ export default function FormRequirementsStep({
         )}
 
         {/* Add callback form */}
-        <FormSelect
-          label="Add Required Form"
-          value=""
-          onChange={(e) => handleAddCallbackForm(e.target.value)}
-          disabled={availableForms.length === 0}
-        >
-          <option value="">Select a form to require...</option>
-          {getAvailableFormsForSelect(localRequirements.requiredCallbackForms).map(form => (
-            <option key={form.form_id} value={form.form_id}>
-              {form.name}
-            </option>
-          ))}
-        </FormSelect>
+        <div className="space-y-3">
+          <FormSelect
+            label="Add Required Form"
+            value=""
+            onChange={(e) => handleAddCallbackForm(e.target.value)}
+            disabled={availableForms.length === 0}
+          >
+            <option value="">Select a form to require...</option>
+            {getAvailableFormsForSelect(localRequirements.requiredCallbackForms).map(form => (
+              <option key={form.form_id} value={form.form_id}>
+                {form.name}
+              </option>
+            ))}
+          </FormSelect>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-neu-border"></div>
+            <span className="text-xs text-neu-text-secondary">OR</span>
+            <div className="flex-1 border-t border-neu-border"></div>
+          </div>
+
+          <button
+            onClick={() => handleCreateNewForm('callback')}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-neu-border hover:border-neu-accent-primary hover:bg-neu-accent-primary/5 text-neu-text-primary hover:text-neu-accent-primary transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create New Form for Callbacks
+          </button>
+        </div>
       </div>
 
       {/* Navigation */}

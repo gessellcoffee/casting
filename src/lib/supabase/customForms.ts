@@ -714,6 +714,158 @@ export async function submitCustomFormResponse(input: {
   return { data: data as any, error: null };
 }
 
+// Context resolution functions for dynamic field types
+export async function getRolesForContext(auditionId?: string, productionId?: string): Promise<{ data: string[] | null; error: any }> {
+  try {
+    if (auditionId) {
+      // Get roles from audition_roles table
+      const { data: auditionRoles, error } = await supabase
+        .from('audition_roles')
+        .select('role_name')
+        .eq('audition_id', auditionId)
+        .order('role_name', { ascending: true });
+
+      if (error) {
+        return { data: null, error };
+      }
+
+      const roles = (auditionRoles || []).map(role => role.role_name);
+      return { data: roles, error: null };
+    }
+
+    if (productionId) {
+      // Get roles from production
+      const { data: production, error } = await supabase
+        .from('productions')
+        .select('role_list')
+        .eq('production_id', productionId)
+        .single();
+
+      if (error) {
+        return { data: null, error };
+      }
+
+      const roles = production?.role_list || [];
+      return { data: Array.isArray(roles) ? roles : [], error: null };
+    }
+
+    return { data: null, error: new Error('No audition or production context provided for role list field') };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+export async function getCastMembersForContext(productionId?: string): Promise<{ data: string[] | null; error: any }> {
+  try {
+    if (!productionId) {
+      return { data: null, error: new Error('No production context provided for cast members field') };
+    }
+
+    // Get cast members from production
+    const { data: castMembers, error } = await supabase
+      .from('cast_members')
+      .select(`
+        user_id,
+        profiles!inner(first_name, last_name)
+      `)
+      .eq('production_id', productionId);
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    const memberNames = castMembers?.map((member: any) => 
+      `${member.profiles.first_name} ${member.profiles.last_name}`.trim()
+    ) || [];
+
+    return { data: memberNames, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+// Function to validate if a form can be assigned to a specific context
+export function validateFormContextCompatibility(fields: any[], targetType: string, targetId: string): { compatible: boolean; error?: string } {
+  const dynamicFieldTypes = [
+    'role_list_single_select',
+    'role_list_multi_select', 
+    'cast_members_single_select',
+    'cast_members_multi_select'
+  ];
+
+  const hasDynamicFields = fields.some(field => dynamicFieldTypes.includes(field.field_type));
+  
+  if (!hasDynamicFields) {
+    return { compatible: true };
+  }
+
+  const hasRoleFields = fields.some(field => 
+    field.field_type === 'role_list_single_select' || field.field_type === 'role_list_multi_select'
+  );
+  
+  const hasCastFields = fields.some(field =>
+    field.field_type === 'cast_members_single_select' || field.field_type === 'cast_members_multi_select'
+  );
+
+  // Role fields require audition or production context
+  if (hasRoleFields && targetType !== 'audition' && targetType !== 'production') {
+    return { 
+      compatible: false, 
+      error: 'This form contains role selection fields and can only be assigned to auditions or productions.' 
+    };
+  }
+
+  // Cast member fields require production context
+  if (hasCastFields && targetType !== 'production') {
+    return { 
+      compatible: false, 
+      error: 'This form contains cast member selection fields and can only be assigned to productions.' 
+    };
+  }
+
+  return { compatible: true };
+}
+
+// Function to check if user has forms management access (production member or audition owner)
+export async function checkUserFormsAccess(userId: string): Promise<{ hasAccess: boolean; error: any }> {
+  try {
+    // Check if user owns any auditions
+    const { data: ownedAuditions, error: auditionError } = await supabase
+      .from('auditions')
+      .select('audition_id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (auditionError) {
+      console.error('Error checking owned auditions:', auditionError);
+      return { hasAccess: false, error: auditionError };
+    }
+
+    if (ownedAuditions && ownedAuditions.length > 0) {
+      return { hasAccess: true, error: null };
+    }
+
+    // Check if user is a production team member
+    const { data: productionMemberships, error: membershipError } = await supabase
+      .from('production_team_members')
+      .select('audition_id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (membershipError) {
+      console.error('Error checking production memberships:', membershipError);
+      return { hasAccess: false, error: membershipError };
+    }
+
+    const hasAccess = (productionMemberships && productionMemberships.length > 0);
+    return { hasAccess, error: null };
+
+  } catch (err) {
+    console.error('Error in checkUserFormsAccess:', err);
+    return { hasAccess: false, error: err };
+  }
+}
+
 // Function to get user's form responses for a specific audition
 export async function getUserFormResponsesForAudition(auditionId: string, userId: string): Promise<{ data: any[] | null; error: any }> {
   try {

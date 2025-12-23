@@ -1118,7 +1118,11 @@ export type CustomFormFieldType =
   | 'datetime'
   | 'single_select'
   | 'multi_select'
-  | 'color';
+  | 'color'
+  | 'role_list_single_select'
+  | 'role_list_multi_select'
+  | 'cast_members_single_select'
+  | 'cast_members_multi_select';
 
 export interface CustomForm {
   form_id: string;

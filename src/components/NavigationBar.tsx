@@ -13,6 +13,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { MdArrowDropDown } from "react-icons/md";
 import { supabase, signOut, getUser } from "@/lib/supabase";
 import { getProfile } from "@/lib/supabase/profile";
+import { checkUserFormsAccess } from "@/lib/supabase/customForms";
 import type { Profile } from "@/lib/supabase/types";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -27,6 +28,7 @@ export default function NavigationBar() {
       const [showProductionsDropdown, setShowProductionsDropdown] = useState(false);
       const [user, setUser] = useState<any>(null);
       const [profile, setProfile] = useState<Profile | null>(null);
+      const [hasFormsAccess, setHasFormsAccess] = useState(false);
       const router = useRouter();
       const pathname = usePathname();
       const productionsDropdownRef = useRef<HTMLDivElement>(null);
@@ -49,6 +51,19 @@ export default function NavigationBar() {
           getProfile(user.id).then(setProfile).catch(() => setProfile(null));
         } else {
           setProfile(null);
+        }
+      }, [user]);
+
+      useEffect(() => {
+        // Check forms access when user changes
+        if (user?.id) {
+          checkUserFormsAccess(user.id).then(({ hasAccess }) => {
+            setHasFormsAccess(hasAccess);
+          }).catch(() => {
+            setHasFormsAccess(false);
+          });
+        } else {
+          setHasFormsAccess(false);
         }
       }, [user]);
 
@@ -97,15 +112,16 @@ export default function NavigationBar() {
       <>
         <Link className="neu-link" href="/auditions">Audition</Link>
         
-        {/* Productions Dropdown */}
-        <div className="relative" ref={productionsDropdownRef}>
-          <span
-            onClick={() => setShowProductionsDropdown(!showProductionsDropdown)}
-            className="neu-link flex items-center gap-0.5 cursor-pointer"
-          >
-            Productions
-            <MdArrowDropDown className={`w-4 h-4 transition-transform ${showProductionsDropdown ? 'rotate-180' : ''}`} />
-          </span>
+        {/* Productions Dropdown - Only show to production members/audition owners */}
+        {hasFormsAccess && (
+          <div className="relative" ref={productionsDropdownRef}>
+            <span
+              onClick={() => setShowProductionsDropdown(!showProductionsDropdown)}
+              className="neu-link flex items-center gap-0.5 cursor-pointer"
+            >
+              Productions
+              <MdArrowDropDown className={`w-4 h-4 transition-transform ${showProductionsDropdown ? 'rotate-180' : ''}`} />
+            </span>
           
           {showProductionsDropdown && (
             <div 
@@ -134,15 +150,26 @@ export default function NavigationBar() {
               </Link>
               <Link 
                 href="/cast" 
-                className="block px-4 py-3 text-neu-text-primary hover:bg-neu-accent-primary/10 transition-colors"
+                className="block px-4 py-3 text-neu-text-primary hover:bg-neu-accent-primary/10 transition-colors border-b border-neu-border"
                 onClick={() => setShowProductionsDropdown(false)}
               >
                 <div className="font-medium">All Productions</div>
                 <div className="text-xs text-neu-text-secondary">View everything</div>
               </Link>
+              {hasFormsAccess && (
+                <Link 
+                  href="/forms" 
+                  className="block px-4 py-3 text-neu-text-primary hover:bg-neu-accent-primary/10 transition-colors"
+                  onClick={() => setShowProductionsDropdown(false)}
+                >
+                  <div className="font-medium">Forms Management</div>
+                  <div className="text-xs text-neu-text-secondary">Create & manage forms</div>
+                </Link>
+              )}
             </div>
           )}
-        </div>
+          </div>
+        )}
         
         <Link className="neu-link" href= "/users">Users</Link>
       </>

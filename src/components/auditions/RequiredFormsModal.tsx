@@ -2,7 +2,16 @@
 
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { getCustomFormAssignmentsForTarget, getCustomFormResponseForAssignment, getCustomFormFields, submitCustomFormResponse } from '@/lib/supabase/customForms';
+import { useRouter } from 'next/navigation';
+import { getUserAvailability } from '@/lib/supabase/userEvents';
+import { 
+  getCustomFormResponseForAssignment, 
+  submitCustomFormResponse,
+  getCustomFormFields,
+  getRolesForContext,
+  getCastMembersForContext,
+  getCustomFormAssignmentsForTarget
+} from '@/lib/supabase/customForms';
 import { supabase } from '@/lib/supabase/client';
 import { X, FileText, CheckCircle, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import FormInput from '@/components/ui/forms/FormInput';
@@ -44,6 +53,8 @@ export default function RequiredFormsModal({
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
   const [formResponses, setFormResponses] = useState<Record<string, Record<string, any>>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [roleOptions, setRoleOptions] = useState<string[]>([]);
+  const [castOptions, setCastOptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -94,6 +105,29 @@ export default function RequiredFormsModal({
       const userAssignments = assignments.filter(
         (assignment: any) => assignment.required && assignment.filled_out_by === 'assignee'
       );
+
+      // Load dynamic field options if needed
+      const allFields = await Promise.all(
+        forms.map(form => getCustomFormFields(form.form_id))
+      );
+      const flatFields = allFields.flat();
+      
+      const hasRoleFields = flatFields.some(field => 
+        field.field_type === 'role_list_single_select' || field.field_type === 'role_list_multi_select'
+      );
+      const hasCastFields = flatFields.some(field => 
+        field.field_type === 'cast_members_single_select' || field.field_type === 'cast_members_multi_select'
+      );
+
+      if (hasRoleFields) {
+        const { data: roles } = await getRolesForContext(auditionId);
+        setRoleOptions(roles || []);
+      }
+
+      if (hasCastFields) {
+        // Cast fields would need production context, but for audition forms we'll leave empty
+        setCastOptions([]);
+      }
 
       // Check completion status and load fields for each required form
       const formsWithStatus = await Promise.all(
@@ -502,6 +536,124 @@ export default function RequiredFormsModal({
                 className="flex-1"
               />
             </div>
+          </div>
+        );
+      case 'role_list_single_select':
+        return (
+          <FormSelect
+            key={field.field_id}
+            label={field.label}
+            value={value}
+            onChange={(e) => handleFieldChange(formId, field.field_key, e.target.value)}
+            required={field.required}
+          >
+            <option value="">Select a role...</option>
+            {roleOptions.map((role: string) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </FormSelect>
+        );
+      case 'role_list_multi_select':
+        const selectedRoles = Array.isArray(value) ? value : (value ? [value] : []);
+        return (
+          <div key={field.field_id}>
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
+              {field.label}
+              {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
+            </label>
+            {field.help_text && (
+              <p className="text-xs text-neu-text-primary/60 mb-2">{field.help_text}</p>
+            )}
+            {roleOptions.length === 0 ? (
+              <div className="neu-card-inset p-3 rounded-lg">
+                <p className="text-sm text-neu-text-primary/60">No roles available for this audition.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 neu-card-inset p-3 rounded-lg max-h-48 overflow-y-auto">
+                {roleOptions.map((role: string) => (
+                  <label key={role} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedRoles.includes(role)}
+                      onChange={(e) => {
+                        const newValues = e.target.checked
+                          ? [...selectedRoles, role]
+                          : selectedRoles.filter((v: string) => v !== role);
+                        handleFieldChange(formId, field.field_key, newValues);
+                      }}
+                      className="w-4 h-4 rounded border-2 border-neu-border bg-neu-surface checked:bg-neu-accent-primary checked:border-neu-accent-primary focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50"
+                    />
+                    <span className="text-neu-text-primary">{role}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {selectedRoles.length > 0 && (
+              <div className="mt-2 text-xs text-neu-text-primary/60">
+                {selectedRoles.length} role{selectedRoles.length !== 1 ? 's' : ''} selected
+              </div>
+            )}
+          </div>
+        );
+      case 'cast_members_single_select':
+        return (
+          <FormSelect
+            key={field.field_id}
+            label={field.label}
+            value={value}
+            onChange={(e) => handleFieldChange(formId, field.field_key, e.target.value)}
+            required={field.required}
+          >
+            <option value="">Select a cast member...</option>
+            {castOptions.map((member: string) => (
+              <option key={member} value={member}>
+                {member}
+              </option>
+            ))}
+          </FormSelect>
+        );
+      case 'cast_members_multi_select':
+        const selectedCast = Array.isArray(value) ? value : (value ? [value] : []);
+        return (
+          <div key={field.field_id}>
+            <label className="block text-sm font-medium text-neu-text-primary mb-2">
+              {field.label}
+              {field.required && <span className="text-neu-accent-danger ml-1">*</span>}
+            </label>
+            {field.help_text && (
+              <p className="text-xs text-neu-text-primary/60 mb-2">{field.help_text}</p>
+            )}
+            {castOptions.length === 0 ? (
+              <div className="neu-card-inset p-3 rounded-lg">
+                <p className="text-sm text-neu-text-primary/60">No cast members available.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 neu-card-inset p-3 rounded-lg max-h-48 overflow-y-auto">
+                {castOptions.map((member: string) => (
+                  <label key={member} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedCast.includes(member)}
+                      onChange={(e) => {
+                        const newValues = e.target.checked
+                          ? [...selectedCast, member]
+                          : selectedCast.filter((v: string) => v !== member);
+                        handleFieldChange(formId, field.field_key, newValues);
+                      }}
+                      className="w-4 h-4 rounded border-2 border-neu-border bg-neu-surface checked:bg-neu-accent-primary checked:border-neu-accent-primary focus:outline-none focus:ring-2 focus:ring-neu-accent-primary/50"
+                    />
+                    <span className="text-neu-text-primary">{member}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {selectedCast.length > 0 && (
+              <div className="mt-2 text-xs text-neu-text-primary/60">
+                {selectedCast.length} member{selectedCast.length !== 1 ? 's' : ''} selected
+              </div>
+            )}
           </div>
         );
       default:

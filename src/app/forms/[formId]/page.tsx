@@ -73,6 +73,10 @@ function getFieldTypeOptions(): Array<{ value: CustomFormFieldType; label: strin
     { value: 'single_select', label: 'Single Select' },
     { value: 'multi_select', label: 'Multi Select' },
     { value: 'color', label: 'Color' },
+    { value: 'role_list_single_select', label: 'Role List (Single)' },
+    { value: 'role_list_multi_select', label: 'Role List (Multiple)' },
+    { value: 'cast_members_single_select', label: 'Cast Members (Single)' },
+    { value: 'cast_members_multi_select', label: 'Cast Members (Multiple)' },
   ];
 }
 
