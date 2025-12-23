@@ -12,6 +12,7 @@ import PersonalEventModal from '@/components/events/PersonalEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import RehearsalEventModal from './RehearsalEventModal';
+import ProductionEventModal from './ProductionEventModal';
 import type { EventTypeFilter } from './CalendarLegend';
 
 interface CalendarWeekViewProps {
@@ -32,6 +33,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
   const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
   const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
   const [selectedRehearsalEvent, setSelectedRehearsalEvent] = useState<ProductionDateEvent | null>(null);
+  const [selectedProductionEvent, setSelectedProductionEvent] = useState<ProductionDateEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Generate week days
@@ -398,6 +400,8 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   const top = getEventPosition(startTime);
                   const height = getEventHeight(startTime, endTime);
                   const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
+                  const isProductionEvent = evt.type === 'production_event';
+                  const isClickable = isRehearsalEvent || isProductionEvent;
 
                   let bgColor, borderColor;
                   if (evt.type === 'rehearsal') {
@@ -412,7 +416,7 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                   } else if (isRehearsalEvent) {
                     bgColor = 'bg-amber-600';
                     borderColor = 'border-amber-600';
-                  } else if (evt.type === 'production_event') {
+                  } else if (isProductionEvent) {
                     bgColor = 'bg-transparent';
                     borderColor = 'border-transparent';
                   } else {
@@ -424,15 +428,15 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                                evt.type === 'performance' ? 'Performance' :
                                evt.type === 'audition_slot' ? 'Audition Slot' :
                                isRehearsalEvent ? 'Rehearsal Event' :
-                               evt.type === 'production_event' ? ((evt as any).eventTypeName || 'Production Event') :
+                               isProductionEvent ? ((evt as any).eventTypeName || 'Production Event') :
                                'Event';
 
-                  const Component = isRehearsalEvent ? 'button' : 'div';
+                  const Component = isClickable ? 'button' : 'div';
 
                   return (
                     <Component
                       key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                      className={`absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation ${bgColor} ${borderColor} ${isRehearsalEvent ? 'cursor-pointer' : 'cursor-default'}`}
+                      className={`absolute left-0.5 right-0.5 md:left-1 md:right-1 text-left px-1.5 md:px-2 py-1 md:py-1.5 rounded-md backdrop-blur-sm hover:shadow-lg active:shadow-xl transition-all duration-200 z-20 overflow-hidden touch-manipulation ${bgColor} ${borderColor} ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
@@ -443,9 +447,13 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
                             }
                           : {}),
                       }}
-                      onClick={isRehearsalEvent ? (e: any) => {
+                      onClick={isClickable ? (e: any) => {
                         e.stopPropagation();
-                        setSelectedRehearsalEvent(evt);
+                        if (isRehearsalEvent) {
+                          setSelectedRehearsalEvent(evt);
+                        } else if (isProductionEvent) {
+                          setSelectedProductionEvent(evt);
+                        }
                       } : undefined}
                     >
                       <div className="text-[9px] md:text-[10px] font-bold text-white/90 mb-0.5 truncate">
@@ -562,6 +570,14 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
             agendaItems: (selectedRehearsalEvent as any).agendaItems,
           }}
           onClose={() => setSelectedRehearsalEvent(null)}
+        />
+      )}
+
+      {/* Production Event Modal */}
+      {selectedProductionEvent && (
+        <ProductionEventModal
+          event={selectedProductionEvent}
+          onClose={() => setSelectedProductionEvent(null)}
         />
       )}
     </>

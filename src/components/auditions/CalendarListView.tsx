@@ -9,6 +9,7 @@ import Badge from '@/components/ui/feedback/Badge';
 import useEvents from '@/hooks/useEvents';
 import EventForm from '@/components/events/EventForm';
 import PersonalEventModal from '@/components/events/PersonalEventModal';
+import ProductionEventModal from './ProductionEventModal';
 import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { formatUSMonthYear, formatUSMonthShort, formatUSTime } from '@/lib/utils/dateUtils';
@@ -34,6 +35,7 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedPersonalEvent, setSelectedPersonalEvent] = useState<CalendarEvent | null>(null);
   const [editingPersonalEvent, setEditingPersonalEvent] = useState<CalendarEvent | null>(null);
+  const [selectedProductionEvent, setSelectedProductionEvent] = useState<ProductionDateEvent | null>(null);
   const [currentDay, setCurrentDay] = useState<Date>(new Date());
   const [expandedSlotGroups, setExpandedSlotGroups] = useState<Set<string>>(new Set());
   const { events, loadEvents } = useEvents(userId);
@@ -339,11 +341,13 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
                       onClick={() => {
                         if (isPersonal) {
                           setSelectedPersonalEvent(event);
+                        } else if (isProduction && event.type === 'production_event') {
+                          setSelectedProductionEvent(event);
                         } else if (!isProduction) {
                           setSelectedEvent(isCallback ? { ...event, isCallback: true } : event);
                         }
                       }}
-                      className={`w-full text-left p-3 sm:p-4 rounded-lg bg-neu-surface/50 backdrop-blur-sm border border-neu-border hover:border-neu-border-focus hover:bg-neu-surface/70 transition-all duration-200 ${isProduction ? 'cursor-default' : ''}`}
+                      className={`w-full text-left p-3 sm:p-4 rounded-lg bg-neu-surface/50 backdrop-blur-sm border border-neu-border hover:border-neu-border-focus hover:bg-neu-surface/70 transition-all duration-200 ${isProduction && event.type !== 'production_event' ? 'cursor-default' : 'cursor-pointer'}`}
                     >
                       <div className="flex items-start justify-between gap-2 sm:gap-4">
                         <div className="flex-1">
@@ -551,6 +555,14 @@ export default function CalendarListView({ signups, callbacks = [], productionEv
           event={editingPersonalEvent}
           userId={userId}
           timeZone={timeZone}
+        />
+      )}
+
+      {/* Production Event Modal */}
+      {selectedProductionEvent && (
+        <ProductionEventModal
+          event={selectedProductionEvent}
+          onClose={() => setSelectedProductionEvent(null)}
         />
       )}
     </>

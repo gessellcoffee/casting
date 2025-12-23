@@ -17,6 +17,7 @@ import type { CalendarEvent } from '@/lib/supabase/types';
 import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import type { EventTypeFilter } from './CalendarLegend';
 import RehearsalEventModal from './RehearsalEventModal';
+import ProductionEventModal from './ProductionEventModal';
 
 
 interface CalendarMonthViewProps {
@@ -41,6 +42,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
   const [showDayView, setShowDayView] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<any>({ date: null, signups: [], callbacks: [], personal: [], production: [] });
   const [selectedRehearsalEvent, setSelectedRehearsalEvent] = useState<ProductionDateEvent | null>(null);
+  const [selectedProductionEvent, setSelectedProductionEvent] = useState<ProductionDateEvent | null>(null);
   const { events, loadEvents } = useEvents(userId);
 
   // Detect mobile for vertical scrolling layout - runs only on client
@@ -271,6 +273,32 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     const today = isToday(day.fullDate);
     const totalEvents = daySignups.length + dayCallbacks.length + dayPersonal.length + dayProduction.length;
 
+    // Helper function to get production event color
+    const getProductionEventColor = (type: string, events?: any[]) => {
+      // For production_event type, check if any events have a custom eventTypeColor
+      if (type === 'production_event' && events) {
+        const productionEvent = events.find(e => e.type === 'production_event');
+        if (productionEvent && productionEvent.eventTypeColor) {
+          return productionEvent.eventTypeColor;
+        }
+      }
+      
+      switch (type) {
+        case 'rehearsal':
+        case 'rehearsal_event':
+        case 'agenda_item':
+          return '#f59e0b'; // amber-500
+        case 'performance':
+          return '#ef4444'; // red-500
+        case 'audition_slot':
+          return '#14b8a6'; // teal-500
+        case 'production_event':
+          return '#5a8ff5'; // blue-500 (matching audition signups)
+        default:
+          return '#6b7280'; // gray-500
+      }
+    };
+
     // Count events by type for dot indicators
     const hasAuditions = daySignups.length > 0;
     const hasCallbacks = dayCallbacks.length > 0;
@@ -278,6 +306,7 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
     const hasRehearsals = dayProduction.some(e => e.type === 'rehearsal' || e.type === 'rehearsal_event' || e.type === 'agenda_item');
     const hasPerformances = dayProduction.some(e => e.type === 'performance');
     const hasAuditionSlots = dayProduction.some(e => e.type === 'audition_slot');
+    const hasProductionEvents = dayProduction.some(e => e.type === 'production_event');
 
     return (
       <div
@@ -330,20 +359,30 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
               )}
               {hasRehearsals && (
                 <div 
-                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shadow-sm" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('rehearsal_event', dayProduction) }}
                   title="Rehearsals"
                 />
               )}
               {hasPerformances && (
                 <div 
-                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-red-500 shadow-sm" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('performance', dayProduction) }}
                   title="Performances"
                 />
               )}
               {hasAuditionSlots && (
                 <div 
-                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-teal-500 shadow-sm" 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('audition_slot', dayProduction) }}
                   title="Audition Slots"
+                />
+              )}
+              {hasProductionEvents && (
+                <div 
+                  className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getProductionEventColor('production_event', dayProduction) }}
+                  title="Production Events"
                 />
               )}
             </div>
@@ -642,6 +681,8 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
               {selectedDayEvents.production.map((evt: any) => {
                 let bgColor, borderColor, textColor, icon, label;
                 const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
+                const isProductionEvent = evt.type === 'production_event';
+                const isClickable = isRehearsalEvent || isProductionEvent;
                 
                 if (evt.type === 'rehearsal') {
                   bgColor = 'bg-orange-500/20';
@@ -675,12 +716,12 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                   label = evt.eventTypeName || 'Production Event';
                 }
 
-                const Component = isRehearsalEvent ? 'button' : 'div';
+                const Component = isClickable ? 'button' : 'div';
                 
                 return (
                   <Component
                     key={evt.slotId || evt.eventId || `prod-${evt.auditionId}-${evt.type}-${evt.date}`}
-                    className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor} ${isRehearsalEvent ? 'hover:bg-amber-500/30 active:bg-amber-500/40 transition-colors cursor-pointer touch-manipulation' : ''}`}
+                    className={`w-full text-left p-4 rounded-lg border ${bgColor} ${borderColor} ${isClickable ? 'transition-colors cursor-pointer touch-manipulation' : ''} ${isRehearsalEvent ? 'hover:bg-amber-500/30 active:bg-amber-500/40' : isProductionEvent ? 'hover:opacity-80 active:opacity-90' : ''}`}
                     style={
                       evt.type === 'production_event'
                         ? {
@@ -689,9 +730,13 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                           }
                         : undefined
                     }
-                    onClick={isRehearsalEvent ? (e: any) => {
+                    onClick={isClickable ? (e: any) => {
                       e.stopPropagation();
-                      setSelectedRehearsalEvent(evt);
+                      if (isRehearsalEvent) {
+                        setSelectedRehearsalEvent(evt);
+                      } else if (isProductionEvent) {
+                        setSelectedProductionEvent(evt);
+                      }
                       setShowDayView(false);
                     } : undefined}
                   >
@@ -763,6 +808,14 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
             agendaItems: (selectedRehearsalEvent as any).agendaItems,
           }}
           onClose={() => setSelectedRehearsalEvent(null)}
+        />
+      )}
+
+      {/* Production Event Modal */}
+      {selectedProductionEvent && (
+        <ProductionEventModal
+          event={selectedProductionEvent}
+          onClose={() => setSelectedProductionEvent(null)}
         />
       )}
       
