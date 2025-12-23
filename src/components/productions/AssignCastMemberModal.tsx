@@ -183,7 +183,7 @@ export default function AssignCastMemberModal({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search cast members..."
-                      className="neu-input w-full pl-10"
+                      className="neu-input w-full pl-12"
                     />
                   </div>
                 </div>

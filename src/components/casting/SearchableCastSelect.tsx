@@ -178,14 +178,14 @@ export default function SearchableCastSelect({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className="neu-input w-full pl-11 pr-8"
+          className="neu-input w-full pl-14 pr-8"
         />
-        <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-neu-text-primary/50 w-5 h-5" />
+        <MdSearch className=" absolute right-4 top-1/2 -translate-y-1/2 text-neu-text-primary/50 w-5 h-5" />
         {selectedActor && !isOpen && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-neu-text-primary/50 hover:text-neu-text-primary"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-neu-text-primary/50 hover:text-neu-text-primary"
           >
             ×
           </button>
