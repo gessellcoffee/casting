@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import StarryContainer from '@/components/StarryContainer';
@@ -53,7 +53,7 @@ function normalizeAnswers(fields: CustomFormField[], raw: Record<string, any>): 
   return result;
 }
 
-export default function MyFormFillPage() {
+function MyFormFillPageContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -436,5 +436,19 @@ export default function MyFormFillPage() {
         </div>
       </div>
     </StarryContainer>
+  );
+}
+
+export default function MyFormFillPage() {
+  return (
+    <Suspense fallback={
+      <StarryContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-neu-text-primary/70">Loading form...</div>
+        </div>
+      </StarryContainer>
+    }>
+      <MyFormFillPageContent />
+    </Suspense>
   );
 }
