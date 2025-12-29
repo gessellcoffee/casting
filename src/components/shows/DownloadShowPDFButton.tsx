@@ -24,6 +24,13 @@ export default function DownloadShowPDFButton({
   const [showOptions, setShowOptions] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const toLocalDateKey = (d: Date): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleDownload = async (layoutType: 'grid' | 'list') => {
     setDownloading(true);
     setError(null);
@@ -84,7 +91,7 @@ export default function DownloadShowPDFButton({
 
       // Convert ProductionDateEvent to CalendarEvent format
       const calendarEvents: CalendarEvent[] = eventsForExport.map(event => ({
-        date: event.date.toISOString().split('T')[0],
+        date: toLocalDateKey(event.date),
         title: event.title,
         type: getEventTypeLabel(event.type),
         time: event.startTime && event.endTime 
@@ -96,7 +103,7 @@ export default function DownloadShowPDFButton({
       }));
 
       // Sort events by date
-      calendarEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      calendarEvents.sort((a, b) => a.date.localeCompare(b.date));
 
       // Generate PDF based on layout type
       const doc = layoutType === 'grid'

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getAuditionById } from '@/lib/supabase/auditionQueries';
-import { getRehearsalEvents, canManageRehearsalEvents, deleteRehearsalEvent } from '@/lib/supabase/rehearsalEvents';
+import { canManageRehearsalEvents, deleteRehearsalEvent, getRehearsalEventsWithAgenda } from '@/lib/supabase/rehearsalEvents';
 import { getBatchConflictSummary } from '@/lib/supabase/agendaItems';
 import { getDailyConflictsForAudition } from '@/lib/supabase/dailyConflicts';
 import { getUser } from '@/lib/supabase';
@@ -14,13 +14,19 @@ import Button from '@/components/Button';
 import Avatar from '@/components/shared/Avatar';
 import ConflictsModal from '@/components/productions/ConflictsModal';
 import DailyConflictsDisplay from '@/components/productions/DailyConflictsDisplay';
+import DownloadShowPDFButton from '@/components/shows/DownloadShowPDFButton';
 import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAccessTime, MdCalendarToday, MdArrowBack, MdChevronLeft, MdChevronRight, MdWarning, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import { formatUSDate, isToday } from '@/lib/utils/dateUtils';
 import type { RehearsalEvent } from '@/lib/supabase/types';
+import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import ConfirmationModal from '@/components/shared/ConfirmationModal';
 import SchedulingModal from '@/components/productions/SchedulingModal';
 import { deleteProductionEvent, getProductionEvents } from '@/lib/supabase/productionEvents';
 import { getProductionEventConflictSummary } from '@/lib/supabase/productionEventConflicts';
+
+ type RehearsalEventWithAgenda = RehearsalEvent & {
+   rehearsal_agenda_items?: any[];
+ };
 
 function formatTimeString(timeString: string): string {
   if (!timeString) return '';
@@ -45,7 +51,7 @@ export default function SchedulingPage() {
   const params = useParams();
   const router = useRouter();
   const [audition, setAudition] = useState<any>(null);
-  const [rehearsalEvents, setRehearsalEvents] = useState<RehearsalEvent[]>([]);
+  const [rehearsalEvents, setRehearsalEvents] = useState<RehearsalEventWithAgenda[]>([]);
   const [productionEvents, setProductionEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
@@ -104,8 +110,8 @@ export default function SchedulingPage() {
     }
     setAudition(auditionData);
 
-    const { data: eventsData } = await getRehearsalEvents(params.id as string);
-    setRehearsalEvents(eventsData || []);
+    const { data: eventsData } = await getRehearsalEventsWithAgenda(params.id as string);
+    setRehearsalEvents((eventsData as any) || []);
 
     const productionEventsData = await getProductionEvents(params.id as string);
     setProductionEvents(productionEventsData || []);
@@ -238,6 +244,149 @@ export default function SchedulingPage() {
     return new Date(year, month - 1, day);
   };
 
+  const pdfEvents = useMemo((): ProductionDateEvent[] => {
+    const showTitle = audition?.show?.title || 'Production';
+    const showAuthor = audition?.show?.author;
+
+    const rehearsalPdfEvents: ProductionDateEvent[] = (rehearsalEvents || []).map((e: any) => {
+      const baseDate = parseLocalDate(e.date);
+      const [sh, sm] = String(e.start_time || '00:00').split(':');
+      const [eh, em] = String(e.end_time || '00:00').split(':');
+
+      const agendaItems = Array.isArray(e?.rehearsal_agenda_items) ? e.rehearsal_agenda_items : [];
+      const agendaLines: string[] = [];
+      agendaItems.forEach((item: any) => {
+        const start = item?.start_time ? formatTimeString(item.start_time) : '';
+        const end = item?.end_time ? formatTimeString(item.end_time) : '';
+        const timeLabel = start && end ? `${start}-${end}` : start || end;
+
+        const assignments = Array.isArray(item?.agenda_assignments) ? item.agenda_assignments : [];
+        const calledNames = assignments
+          .map((a: any) => {
+            const first = a?.profiles?.first_name || '';
+            const last = a?.profiles?.last_name || '';
+            return `${first} ${last}`.trim();
+          })
+          .filter(Boolean);
+
+        const calledLabel = calledNames.length > 0 ? `Called: ${calledNames.join(', ')}` : 'Called: (none)';
+        agendaLines.push(`${timeLabel} ${item?.title || 'Agenda Item'} — ${calledLabel}`.trim());
+      });
+
+      const agendaDescription = agendaLines.length > 0 ? `Agenda:\n${agendaLines.map((l) => `- ${l}`).join('\n')}` : undefined;
+
+      const startTime = new Date(baseDate);
+      startTime.setHours(parseInt(sh, 10), parseInt(sm, 10), 0);
+
+      const endTime = new Date(baseDate);
+      endTime.setHours(parseInt(eh, 10), parseInt(em, 10), 0);
+
+      return {
+        type: 'rehearsal_event',
+        title: `${showTitle} - ${e.is_tech_rehearsal ? 'Tech Rehearsal' : 'Rehearsal'}`,
+        show: { title: showTitle, author: showAuthor },
+        date: startTime,
+        startTime,
+        endTime,
+        location: e.location || null,
+        auditionId: params.id as string,
+        userRole: 'production_team',
+        eventId: e.rehearsal_events_id,
+        notes: e.notes,
+        description: agendaDescription,
+      } as any;
+    });
+
+    const rehearsalAgendaItemEvents: ProductionDateEvent[] = (rehearsalEvents || []).flatMap((e: any) => {
+      const agendaItems = Array.isArray(e?.rehearsal_agenda_items) ? e.rehearsal_agenda_items : [];
+      if (agendaItems.length === 0) return [];
+
+      const baseDate = parseLocalDate(e.date);
+
+      return agendaItems.map((item: any) => {
+        let startTime: Date | undefined;
+        let endTime: Date | undefined;
+
+        if (item?.start_time) {
+          const [h, m] = String(item.start_time).split(':');
+          startTime = new Date(baseDate);
+          startTime.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+        }
+
+        if (item?.end_time) {
+          const [h, m] = String(item.end_time).split(':');
+          endTime = new Date(baseDate);
+          endTime.setHours(parseInt(h, 10), parseInt(m, 10), 0);
+        }
+
+        const assignments = Array.isArray(item?.agenda_assignments) ? item.agenda_assignments : [];
+        const calledNames = assignments
+          .map((a: any) => {
+            const first = a?.profiles?.first_name || '';
+            const last = a?.profiles?.last_name || '';
+            return `${first} ${last}`.trim();
+          })
+          .filter(Boolean);
+
+        const calledLabel = calledNames.length > 0 ? `Called: ${calledNames.join(', ')}` : 'Called: (none)';
+
+        return {
+          type: 'agenda_item',
+          title: item?.title || 'Agenda Item',
+          show: { title: showTitle, author: showAuthor },
+          date: startTime || new Date(baseDate),
+          startTime,
+          endTime,
+          location: e.location || null,
+          auditionId: params.id as string,
+          userRole: 'production_team',
+          eventId: e.rehearsal_events_id,
+          agendaItemId: item?.rehearsal_agenda_items_id,
+          description: calledLabel,
+        } as any;
+      });
+    });
+
+    const productionPdfEvents: ProductionDateEvent[] = (productionEvents || []).map((e: any) => {
+      const baseDate = parseLocalDate(e.date);
+
+      let startTime: Date | undefined;
+      let endTime: Date | undefined;
+
+      if (e.start_time) {
+        const [sh, sm] = String(e.start_time).split(':');
+        startTime = new Date(baseDate);
+        startTime.setHours(parseInt(sh, 10), parseInt(sm, 10), 0);
+      }
+
+      if (e.end_time) {
+        const [eh, em] = String(e.end_time).split(':');
+        endTime = new Date(baseDate);
+        endTime.setHours(parseInt(eh, 10), parseInt(em, 10), 0);
+      }
+
+      const typeName = e.production_event_types?.name || 'Production Event';
+
+      return {
+        type: 'production_event',
+        title: `${showTitle} - ${typeName}`,
+        show: { title: showTitle, author: showAuthor },
+        date: startTime || baseDate,
+        startTime,
+        endTime,
+        location: e.location || null,
+        auditionId: params.id as string,
+        userRole: 'production_team',
+        productionEventId: e.production_event_id,
+        eventTypeName: typeName,
+        eventTypeColor: e.production_event_types?.color || null,
+        notes: e.notes,
+      } as any;
+    });
+
+    return [...rehearsalPdfEvents, ...rehearsalAgendaItemEvents, ...productionPdfEvents];
+  }, [audition?.show?.author, audition?.show?.title, params.id, productionEvents, rehearsalEvents]);
+
   const rehearsalsByDate = useMemo(() => {
     const grouped: Record<string, RehearsalEvent[]> = {};
     rehearsalEvents.forEach(event => {
@@ -333,12 +482,29 @@ export default function SchedulingPage() {
             </button>
 
             <div className="mb-8">
-              <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-4xl font-bold text-neu-text-primary">Production Schedule</h1>
-                <WorkflowStatusBadge status={audition.workflow_status} />
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-4 mb-2">
+                    <h1 className="text-4xl font-bold text-neu-text-primary">Production Schedule</h1>
+                    <WorkflowStatusBadge status={audition.workflow_status} />
+                  </div>
+                  <h2 className="text-2xl text-neu-text-secondary">{audition.show?.title || 'Untitled Show'}</h2>
+                  {audition.company && <p className="text-neu-text-secondary mt-1">{audition.company.name}</p>}
+                </div>
+
+                <div className="shrink-0">
+                  <DownloadShowPDFButton
+                    events={pdfEvents}
+                    showDetails={{
+                      title: audition.show?.title || 'Production',
+                      author: audition.show?.author,
+                      workflowStatus: audition.workflow_status,
+                    }}
+                    actorName="Production Team"
+                    format="production"
+                  />
+                </div>
               </div>
-              <h2 className="text-2xl text-neu-text-secondary">{audition.show?.title || 'Untitled Show'}</h2>
-              {audition.company && <p className="text-neu-text-secondary mt-1">{audition.company.name}</p>}
             </div>
 
             <div className="calendar-container rounded-xl">
