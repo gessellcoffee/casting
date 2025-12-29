@@ -10,6 +10,7 @@ interface AgendaItem {
   description?: string;
   start_time: string;
   end_time: string;
+  calledUsers?: Array<{ id: string; full_name: string; profile_photo_url: string | null }>;
 }
 
 interface RehearsalEventModalProps {
@@ -21,6 +22,9 @@ interface RehearsalEventModalProps {
     location?: string;
     notes?: string;
     agendaItems?: AgendaItem[];
+    calledUsers?: Array<{ id: string; full_name: string; profile_photo_url: string | null }>;
+    isFullCastCall?: boolean;
+    showEventCalledUsers?: boolean;
   };
   onClose: () => void;
 }
@@ -41,6 +45,25 @@ const getGoogleMapsLink = (address: string): string => {
 
 export default function RehearsalEventModal({ event, onClose }: RehearsalEventModalProps) {
   const hasAgendaItems = event.agendaItems && event.agendaItems.length > 0;
+  const showEventCalledUsers = event.showEventCalledUsers === true;
+
+  const eventCalledUsers = (() => {
+    if (Array.isArray(event.calledUsers) && event.calledUsers.length > 0) {
+      return event.calledUsers;
+    }
+
+    const map = new Map<string, { id: string; full_name: string; profile_photo_url: string | null }>();
+
+    if (Array.isArray(event.agendaItems)) {
+      event.agendaItems.forEach((item) => {
+        (item.calledUsers || []).forEach((u) => {
+          map.set(u.id, u);
+        });
+      });
+    }
+
+    return Array.from(map.values());
+  })();
 
   return (
     <Transition appear show={true} as={Fragment}>
@@ -180,6 +203,33 @@ export default function RehearsalEventModal({ event, onClose }: RehearsalEventMo
                                   {item.description}
                                 </p>
                               )}
+
+                              {Array.isArray(item.calledUsers) && item.calledUsers.length > 0 && (
+                                <div className="mt-3">
+                                  <div className="text-xs font-medium text-neu-text-primary/60 mb-2">
+                                    Who is called
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {item.calledUsers.map(u => (
+                                      <div
+                                        key={u.id}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neu-surface/50 border border-neu-border"
+                                      >
+                                        {u.profile_photo_url ? (
+                                          <img
+                                            src={u.profile_photo_url}
+                                            alt={u.full_name}
+                                            className="w-6 h-6 rounded-full object-cover"
+                                          />
+                                        ) : (
+                                          <div className="w-6 h-6 rounded-full bg-neu-text-primary/10" />
+                                        )}
+                                        <span className="text-sm font-medium text-neu-text-primary">{u.full_name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="text-right shrink-0">
                               <div className="text-xs font-medium text-neu-text-primary/60 mb-0.5">
@@ -193,6 +243,41 @@ export default function RehearsalEventModal({ event, onClose }: RehearsalEventMo
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Event-level Called Summary (Show Calendar only) */}
+                {showEventCalledUsers && (hasAgendaItems || eventCalledUsers.length > 0) && (
+                  <div className="mt-6">
+                    <h4 className="text-lg font-bold text-neu-text-primary mb-3 flex items-center gap-2">
+                      <span className="text-amber-500">👥</span>
+                      Called for this rehearsal
+                    </h4>
+                    {eventCalledUsers.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {eventCalledUsers.map(u => (
+                          <div
+                            key={u.id}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neu-surface border border-neu-border"
+                          >
+                            {u.profile_photo_url ? (
+                              <img
+                                src={u.profile_photo_url}
+                                alt={u.full_name}
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-neu-text-primary/10" />
+                            )}
+                            <span className="text-sm font-medium text-neu-text-primary">{u.full_name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-neu-text-primary/60">
+                        No one is assigned to any agenda items.
+                      </div>
+                    )}
                   </div>
                 )}
 

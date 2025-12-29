@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { getUser } from '@/lib/supabase/auth';
-import { getUserSignupsWithDetails, getUserCastShows, getUserCastShowsFromCastMembers, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserCastRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
+import { getUserSignupsWithDetails, getUserCastShows, getUserCastShowsFromCastMembers, getUserOwnedAuditions, getUserProductionTeamAuditions, getUserOwnedAuditionSlots, getUserProductionTeamAuditionSlots, getUserOwnedRehearsalEvents, getUserProductionTeamRehearsalEvents, getUserRehearsalAgendaItems } from '@/lib/supabase/auditionSignups';
 import { getUserAcceptedCallbacks } from '@/lib/supabase/callbackInvitations';
 import { getCastMemberWithDetails } from '@/lib/supabase/castMembers';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
@@ -14,6 +14,7 @@ import { getProductionEvents } from '@/lib/supabase/productionEvents';
 import { ArrowLeft, Download } from 'lucide-react';
 import DownloadShowPDFButton from '@/components/shows/DownloadShowPDFButton';
 import { getAgendaItems, getCastMembers } from '@/lib/supabase/agendaItems';
+import { getRehearsalEventsWithAgenda } from '@/lib/supabase/rehearsalEvents';
 import { formatUSTime } from '@/lib/utils/dateUtils';
 import type { EventTypeFilter } from '@/components/auditions/CalendarLegend';
 
@@ -71,9 +72,9 @@ function ShowCalendarPageContent() {
         productionTeamSlots,
         ownedRehearsalEvents,
         productionTeamRehearsalEvents,
-        castRehearsalEvents,
         userAgendaItems,
-        productionEventRows
+        productionEventRows,
+        rehearsalEventsWithAgenda
       ] = await Promise.all([
         getUserSignupsWithDetails(currentUser.id),
         getUserAcceptedCallbacks(currentUser.id),
@@ -85,9 +86,9 @@ function ShowCalendarPageContent() {
         getUserProductionTeamAuditionSlots(currentUser.id),
         getUserOwnedRehearsalEvents(currentUser.id),
         getUserProductionTeamRehearsalEvents(currentUser.id),
-        getUserCastRehearsalEvents(currentUser.id),
         getUserRehearsalAgendaItems(currentUser.id),
-        getProductionEvents(auditionId)
+        getProductionEvents(auditionId),
+        getRehearsalEventsWithAgenda(auditionId)
       ]);
       
       console.log('DEBUG - Calendar data loaded:', {
@@ -98,11 +99,68 @@ function ShowCalendarPageContent() {
         ownedAuditionsCount: ownedAuditions.length,
         ownedRehearsalEventsCount: ownedRehearsalEvents.length,
         productionTeamRehearsalEventsCount: productionTeamRehearsalEvents.length,
-        castRehearsalEventsCount: castRehearsalEvents.length
+        castRehearsalEventsCount: (rehearsalEventsWithAgenda as any)?.data?.length || 0
       });
       
       // Combine slots (but keep rehearsal events separate to avoid duplicates)
       const allSlots = [...ownedSlots, ...productionTeamSlots];
+
+      const { data: castData } = await getCastMembers(auditionId);
+      const fullCastUsers = (castData || [])
+        .map((m: any) => {
+          const id = m?.user_id;
+          const p = m?.profiles;
+          const full_name = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : '';
+          if (!id || !full_name) return null;
+          return { id, full_name, profile_photo_url: p?.profile_photo_url || null };
+        })
+        .filter(Boolean);
+
+      const showRehearsalEventsRaw = (rehearsalEventsWithAgenda as any)?.data || [];
+      const showRehearsalEvents = (showRehearsalEventsRaw || []).map((evt: any) => {
+        const agendaItems = Array.isArray(evt?.rehearsal_agenda_items) ? evt.rehearsal_agenda_items : [];
+
+        // If no agenda items, treat as a full-cast call in show calendar
+        if (agendaItems.length === 0) {
+          return {
+            ...evt,
+            showEventCalledUsers: true,
+            calledUsers: fullCastUsers,
+          };
+        }
+
+        const agendaWithCalled = agendaItems.map((ai: any) => {
+          const assignments = Array.isArray(ai?.agenda_assignments) ? ai.agenda_assignments : [];
+          const calledUsers = assignments
+            .map((a: any) => {
+              const id = a?.user_id;
+              const p = a?.profiles;
+              const full_name = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() : '';
+              if (!id || !full_name) return null;
+              return { id, full_name, profile_photo_url: p?.profile_photo_url || null };
+            })
+            .filter(Boolean);
+
+          return {
+            ...ai,
+            calledUsers,
+          };
+        });
+
+        const calledMap = new Map<string, any>();
+        agendaWithCalled.forEach((ai: any) => {
+          (ai.calledUsers || []).forEach((u: any) => {
+            calledMap.set(u.id, u);
+          });
+        });
+
+        return {
+          ...evt,
+          showEventCalledUsers: true,
+          calledUsers: Array.from(calledMap.values()),
+          rehearsal_agenda_items: agendaWithCalled,
+        };
+      });
       
       // Transform castShowsFromMembers to match calendar event format
       const castMemberAuditions = castShowsFromMembers
@@ -122,7 +180,7 @@ function ShowCalendarPageContent() {
       // Note: Pass rehearsal events separately to each call to avoid duplicates
       // Note: Agenda items are shown within rehearsal event modals, not as separate calendar events
       const castShowsEvents = generateProductionEvents(castShows, 'cast', undefined, []);
-      const castMemberEvents = generateProductionEvents(castMemberAuditions, 'cast', undefined, castRehearsalEvents);
+      const castMemberEvents = generateProductionEvents(castMemberAuditions, 'cast', undefined, showRehearsalEvents);
       const ownedEvents = generateProductionEvents(ownedAuditions, 'owner', allSlots, ownedRehearsalEvents);
       const teamEvents = generateProductionEvents(productionTeamAuditions, 'production_team', allSlots, productionTeamRehearsalEvents);
       
@@ -190,7 +248,6 @@ function ShowCalendarPageContent() {
       let rehearsalDescriptionByEventId = new Map<string, string>();
       const agendaItemEvents: ProductionDateEvent[] = [];
       if (rehearsalEventIds.length > 0) {
-        const { data: castData } = await getCastMembers(auditionId);
         const roleByUserId = new Map<string, string>();
 
         (castData || []).forEach((m: any) => {

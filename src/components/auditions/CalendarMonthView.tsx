@@ -18,6 +18,7 @@ import type { ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import type { EventTypeFilter } from './CalendarLegend';
 import RehearsalEventModal from './RehearsalEventModal';
 import ProductionEventModal from './ProductionEventModal';
+import Avatar from '@/components/shared/Avatar';
 
 
 interface CalendarMonthViewProps {
@@ -683,6 +684,20 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                 const isRehearsalEvent = evt.type === 'rehearsal_event' || evt.type === 'agenda_item';
                 const isProductionEvent = evt.type === 'production_event';
                 const isClickable = isRehearsalEvent || isProductionEvent;
+
+                const calledUsers = (() => {
+                  if (Array.isArray(evt?.calledUsers) && evt.calledUsers.length > 0) return evt.calledUsers;
+                  const map = new Map<string, any>();
+                  if (Array.isArray(evt?.agendaItems)) {
+                    evt.agendaItems.forEach((item: any) => {
+                      (item?.calledUsers || []).forEach((u: any) => {
+                        if (u?.id) map.set(u.id, u);
+                      });
+                    });
+                  }
+                  return Array.from(map.values());
+                })();
+                const calledPreview = calledUsers.slice(0, 3);
                 
                 if (evt.type === 'rehearsal') {
                   bgColor = 'bg-orange-500/20';
@@ -759,6 +774,31 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
                           {label}
                         </div>
                         {evt.role && <div className="text-sm text-neu-text-primary/70 mt-1">Role: {evt.role}</div>}
+
+                        {isRehearsalEvent && calledUsers.length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs text-neu-text-primary/60 mb-1">Called</div>
+                            <div className="space-y-1">
+                              {calledPreview.map((u: any) => (
+                                <div key={u.id} className="flex items-center gap-2">
+                                  <Avatar
+                                    src={u?.profile_photo_url}
+                                    alt={u?.full_name || 'User'}
+                                    size="sm"
+                                  />
+                                  <span className="text-xs text-neu-text-primary/80">
+                                    {u?.full_name}
+                                  </span>
+                                </div>
+                              ))}
+                              {calledUsers.length > calledPreview.length && (
+                                <div className="text-xs text-neu-text-primary/60">
+                                  +{calledUsers.length - calledPreview.length} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Component>
@@ -806,6 +846,9 @@ export default function CalendarMonthView({ signups, callbacks = [], productionE
             location: selectedRehearsalEvent.location || undefined,
             notes: (selectedRehearsalEvent as any).notes,
             agendaItems: (selectedRehearsalEvent as any).agendaItems,
+            calledUsers: (selectedRehearsalEvent as any).calledUsers,
+            isFullCastCall: (selectedRehearsalEvent as any).isFullCastCall,
+            showEventCalledUsers: (selectedRehearsalEvent as any).showEventCalledUsers,
           }}
           onClose={() => setSelectedRehearsalEvent(null)}
         />

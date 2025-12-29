@@ -210,7 +210,10 @@ export function generateProductionEvents(
           userRole,
           eventId: event.rehearsal_events_id,
           notes: event.notes,
-          agendaItems: event.rehearsal_agenda_items || []
+          agendaItems: event.rehearsal_agenda_items || [],
+          calledUsers: (event as any).calledUsers || [],
+          isFullCastCall: (event as any).isFullCastCall || false,
+          showEventCalledUsers: (event as any).showEventCalledUsers || false
         } as any);
       }
     });

@@ -160,6 +160,14 @@ export async function getRehearsalEventsWithAgenda(auditionId: string) {
     .from('rehearsal_events')
     .select(`
       *,
+      auditions!inner (
+        audition_id,
+        shows (
+          show_id,
+          title,
+          author
+        )
+      ),
       rehearsal_agenda_items (
         *,
         agenda_assignments (

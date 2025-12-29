@@ -568,6 +568,9 @@ export default function CalendarWeekView({ signups, callbacks = [], productionEv
             location: selectedRehearsalEvent.location || undefined,
             notes: (selectedRehearsalEvent as any).notes,
             agendaItems: (selectedRehearsalEvent as any).agendaItems,
+            calledUsers: (selectedRehearsalEvent as any).calledUsers,
+            isFullCastCall: (selectedRehearsalEvent as any).isFullCastCall,
+            showEventCalledUsers: (selectedRehearsalEvent as any).showEventCalledUsers,
           }}
           onClose={() => setSelectedRehearsalEvent(null)}
         />

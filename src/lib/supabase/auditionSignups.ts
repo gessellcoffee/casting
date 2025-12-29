@@ -983,6 +983,44 @@ export async function getUserCastRehearsalEvents(userId: string): Promise<any[]>
       return [];
     }
 
+    const { data: allCastMembers, error: allCastMembersError } = await supabase
+      .from('cast_members')
+      .select(`
+        audition_id,
+        user_id,
+        profiles!user_id (
+          id,
+          first_name,
+          last_name,
+          profile_photo_url
+        )
+      `)
+      .in('audition_id', castAuditionIds)
+      .eq('status', 'Accepted');
+
+    if (allCastMembersError) {
+      console.error('Error fetching cast members for cast rehearsal events:', allCastMembersError);
+    }
+
+    const castByAuditionId = new Map<string, Array<{ id: string; full_name: string; profile_photo_url: string | null }>>();
+    (allCastMembers || []).forEach((member: any) => {
+      const auditionId = member.audition_id;
+      if (!auditionId) return;
+
+      const profile = member.profiles;
+      const full_name = profile
+        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown User'
+        : 'Unknown User';
+
+      const list = castByAuditionId.get(auditionId) || [];
+      list.push({
+        id: member.user_id,
+        full_name,
+        profile_photo_url: profile?.profile_photo_url || null,
+      });
+      castByAuditionId.set(auditionId, list);
+    });
+
     // Get all rehearsal events for these auditions
     const { data: rehearsalEvents, error: eventsError } = await supabase
       .from('rehearsal_events')
@@ -1046,14 +1084,23 @@ export async function getUserCastRehearsalEvents(userId: string): Promise<any[]>
       return rehearsalEvents;
     }
 
-    // Get all assignments for these agenda items
+    // Get all assignments for these agenda items (include profiles so we can show "who else is called")
     const agendaItemIds = (allAgendaItems || []).map(item => item.rehearsal_agenda_items_id);
     
     let assignments: any[] = [];
     if (agendaItemIds.length > 0) {
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('agenda_assignments')
-        .select('agenda_item_id, user_id')
+        .select(`
+          agenda_item_id,
+          user_id,
+          profiles!user_id (
+            id,
+            first_name,
+            last_name,
+            profile_photo_url
+          )
+        `)
         .in('agenda_item_id', agendaItemIds);
 
       if (assignmentsError) {
@@ -1071,6 +1118,8 @@ export async function getUserCastRehearsalEvents(userId: string): Promise<any[]>
       // If no agenda items exist for this event, show it (full cast call)
       if (eventAgendaItems.length === 0) {
         console.log(`[getUserCastRehearsalEvents] Event ${event.rehearsal_events_id} has no agenda items - showing`);
+        (event as any).isFullCastCall = true;
+        (event as any).calledUsers = castByAuditionId.get(event.audition_id) || [];
         return true;
       }
 
@@ -1080,12 +1129,63 @@ export async function getUserCastRehearsalEvents(userId: string): Promise<any[]>
       // If no assignments for this event's agenda items, show it (full cast call)
       if (eventAssignments.length === 0) {
         console.log(`[getUserCastRehearsalEvents] Event ${event.rehearsal_events_id} has agenda items but no assignments - showing`);
+        (event as any).isFullCastCall = true;
+        (event as any).calledUsers = castByAuditionId.get(event.audition_id) || [];
+
+        const fullCast = castByAuditionId.get(event.audition_id) || [];
+        (event as any).rehearsal_agenda_items = ((event as any).rehearsal_agenda_items || []).map((ai: any) => ({
+          ...ai,
+          calledUsers: fullCast,
+        }));
         return true;
       }
 
       // Check if user is assigned to any agenda item in this event
       const isAssigned = eventAssignments.some(a => a.user_id === userId);
       console.log(`[getUserCastRehearsalEvents] Event ${event.rehearsal_events_id} user assigned:`, isAssigned);
+
+      if (isAssigned) {
+        const uniqueCalled = new Map<string, { id: string; full_name: string; profile_photo_url: string | null }>();
+        eventAssignments.forEach((a: any) => {
+          const profile = a.profiles;
+          const full_name = profile
+            ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown User'
+            : 'Unknown User';
+
+          uniqueCalled.set(a.user_id, {
+            id: a.user_id,
+            full_name,
+            profile_photo_url: profile?.profile_photo_url || null,
+          });
+        });
+
+        (event as any).isFullCastCall = false;
+        (event as any).calledUsers = Array.from(uniqueCalled.values());
+
+        (event as any).rehearsal_agenda_items = ((event as any).rehearsal_agenda_items || []).map((ai: any) => {
+          const calledForItem = new Map<string, { id: string; full_name: string; profile_photo_url: string | null }>();
+          eventAssignments
+            .filter((a: any) => a.agenda_item_id === ai.rehearsal_agenda_items_id)
+            .forEach((a: any) => {
+              const profile = a.profiles;
+              const full_name = profile
+                ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown User'
+                : 'Unknown User';
+
+              calledForItem.set(a.user_id, {
+                id: a.user_id,
+                full_name,
+                profile_photo_url: profile?.profile_photo_url || null,
+              });
+            });
+
+          return {
+            ...ai,
+            calledUsers: Array.from(calledForItem.values()),
+          };
+        });
+      }
+
       return isAssigned;
     });
 
