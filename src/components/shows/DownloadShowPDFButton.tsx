@@ -31,6 +31,12 @@ export default function DownloadShowPDFButton({
     return `${year}-${month}-${day}`;
   };
 
+  const parseLocalDateKey = (dateKey: string): Date => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return new Date(dateKey);
+    const [y, m, d] = dateKey.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+
   const handleDownload = async (layoutType: 'grid' | 'list') => {
     setDownloading(true);
     setError(null);
@@ -100,10 +106,18 @@ export default function DownloadShowPDFButton({
         location: event.location || undefined,
         description: event.description,
         color: getEventColor(event.type),
+        sortTimestamp: (event.startTime || event.date).getTime(),
       }));
 
-      // Sort events by date
-      calendarEvents.sort((a, b) => a.date.localeCompare(b.date));
+      // Sort events chronologically (date + time) for stable export ordering
+      calendarEvents.sort((a, b) => {
+        const aT = a.sortTimestamp ?? parseLocalDateKey(a.date).getTime();
+        const bT = b.sortTimestamp ?? parseLocalDateKey(b.date).getTime();
+        if (aT !== bT) return aT - bT;
+        const typeCmp = (a.type || '').localeCompare(b.type || '');
+        if (typeCmp !== 0) return typeCmp;
+        return (a.title || '').localeCompare(b.title || '');
+      });
 
       // Generate PDF based on layout type
       const doc = layoutType === 'grid'

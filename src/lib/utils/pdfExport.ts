@@ -16,6 +16,7 @@ export interface CalendarEvent {
   location?: string;
   description?: string;
   color?: string;
+  sortTimestamp?: number;
 }
 
 export interface ShowDetails {
@@ -25,6 +26,20 @@ export interface ShowDetails {
   isUnderstudy?: boolean;
   workflowStatus?: string;
 }
+
+function parseLocalDate(dateString: string): Date {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return new Date(dateString);
+  }
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+type MonthGroup = {
+  monthKey: string; // YYYY-MM
+  monthYear: string; // e.g. "December 2025"
+  events: CalendarEvent[];
+};
 
 const getCssVar = (name: string) => {
   try {
@@ -151,80 +166,79 @@ export function generateCalendarGridPDF(
   const doc = new jsPDF('landscape', 'mm', 'letter') as jsPDFWithPlugin;
   const accentRgb = resolveBrandingAccentRgb(branding);
   void applyWatermarkToCurrentPage(doc, branding);
-  
-  // Header
-  doc.setFillColor(accentRgb.r, accentRgb.g, accentRgb.b);
-  doc.rect(0, 0, doc.internal.pageSize.width, 25, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text(showDetails.title, 15, 12);
 
-  if (branding?.logo?.url) {
-    void (async () => {
-      const dataUrl = await loadImageAsDataUrl(branding.logo!.url);
-      if (!dataUrl) return;
-      const format = getImageFormatFromDataUrl(dataUrl);
-      if (!format) return;
-      const logoSize = 12;
-      const logoX = branding.logo!.placement === 'header_right'
-        ? doc.internal.pageSize.width - 15 - logoSize
-        : 15;
-      const logoY = (25 - logoSize) / 2;
-      try {
-        doc.addImage(dataUrl, format, logoX, logoY, logoSize, logoSize);
-      } catch {
-        // ignore
-      }
-    })();
-  }
-  
-  if (showDetails.author) {
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`by ${showDetails.author}`, 15, 19);
-  }
-  
-  // Actor/Role info on right
-  if (format === 'actor' && showDetails.roleName) {
-    doc.setFontSize(14);
+  const renderHeader = () => {
+    doc.setFillColor(accentRgb.r, accentRgb.g, accentRgb.b);
+    doc.rect(0, 0, doc.internal.pageSize.width, 25, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    const roleText = showDetails.isUnderstudy 
-      ? `Understudy - ${showDetails.roleName}`
-      : showDetails.roleName;
-    doc.text(roleText, doc.internal.pageSize.width - 15, 12, { align: 'right' });
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(actorName, doc.internal.pageSize.width - 15, 18, { align: 'right' });
-  }
-  
-  doc.setTextColor(0, 0, 0);
-  
-  // Group events by month
-  const eventsByMonth = groupEventsByMonth(events);
-  
-  let yPosition = 35;
-  
-  Object.entries(eventsByMonth).forEach(([monthYear, monthEvents], index) => {
-    // Check if we need a new page
-    if (yPosition > 170 && index > 0) {
-      doc.addPage();
-      yPosition = 20;
+    doc.text(showDetails.title, 15, 12);
+
+    if (branding?.logo?.url) {
+      void (async () => {
+        const dataUrl = await loadImageAsDataUrl(branding.logo!.url);
+        if (!dataUrl) return;
+        const imgFormat = getImageFormatFromDataUrl(dataUrl);
+        if (!imgFormat) return;
+        const logoSize = 12;
+        const logoX = branding.logo!.placement === 'header_right'
+          ? doc.internal.pageSize.width - 15 - logoSize
+          : 15;
+        const logoY = (25 - logoSize) / 2;
+        try {
+          doc.addImage(dataUrl, imgFormat, logoX, logoY, logoSize, logoSize);
+        } catch {
+          // ignore
+        }
+      })();
     }
-    
-    // Month header
+
+    if (showDetails.author) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`by ${showDetails.author}`, 15, 19);
+    }
+
+    if (format === 'actor' && showDetails.roleName) {
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      const roleText = showDetails.isUnderstudy
+        ? `Understudy - ${showDetails.roleName}`
+        : showDetails.roleName;
+      doc.text(roleText, doc.internal.pageSize.width - 15, 12, { align: 'right' });
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(actorName, doc.internal.pageSize.width - 15, 18, { align: 'right' });
+    }
+
+    doc.setTextColor(0, 0, 0);
+  };
+
+  renderHeader();
+
+  const monthGroups = groupEventsByMonth(events);
+
+  monthGroups.forEach(({ monthYear, events: monthEvents }, index: number) => {
+    if (index > 0) {
+      doc.addPage();
+      void applyWatermarkToCurrentPage(doc, branding);
+      renderHeader();
+    }
+
+    let yPosition = 35;
+
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b);
     doc.text(monthYear, 15, yPosition);
     yPosition += 8;
-    
+
     doc.setTextColor(0, 0, 0);
-    
-    // Create calendar grid
-    const tableData = monthEvents.map(event => {
+
+    const tableData = monthEvents.map((event: CalendarEvent) => {
       const row = [
         formatUSDate(event.date),
         event.time || 'All Day',
@@ -301,11 +315,7 @@ export function generateCalendarGridPDF(
         }
       },
     });
-    
-    yPosition = doc.lastAutoTable.finalY + 15;
 
-    // If a new page was added by autotable, apply watermark to that page too
-    // (autotable adds pages internally, so we apply watermark after the fact)
     void (async () => {
       const pageCount = (doc.internal.pages?.length || 1) - 1;
       for (let i = 1; i <= pageCount; i++) {
@@ -401,9 +411,11 @@ export function generateCalendarListPDF(
   let yPosition = 40;
   
   // Sort events chronologically
-  const sortedEvents = [...events].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sortedEvents = [...events].sort((a, b) => {
+    const aT = a.sortTimestamp ?? parseLocalDate(a.date).getTime();
+    const bT = b.sortTimestamp ?? parseLocalDate(b.date).getTime();
+    return aT - bT;
+  });
   
   sortedEvents.forEach((event, index) => {
     const pageWidth = doc.internal.pageSize.width;
@@ -701,26 +713,35 @@ export async function generateCallSheetPDF(
 /**
  * Helper function to group events by month
  */
-function groupEventsByMonth(events: CalendarEvent[]): Record<string, CalendarEvent[]> {
-  const grouped: Record<string, CalendarEvent[]> = {};
-  
-  events.forEach(event => {
-    const date = new Date(event.date);
-    const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    
-    if (!grouped[monthYear]) {
-      grouped[monthYear] = [];
+function groupEventsByMonth(events: CalendarEvent[]): MonthGroup[] {
+  const groups = new Map<string, MonthGroup>();
+
+  events.forEach((event) => {
+    const d = parseLocalDate(event.date);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const monthYear = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    if (!groups.has(monthKey)) {
+      groups.set(monthKey, { monthKey, monthYear, events: [] });
     }
-    
-    grouped[monthYear].push(event);
+
+    groups.get(monthKey)!.events.push(event);
   });
-  
-  // Sort events within each month
-  Object.keys(grouped).forEach(key => {
-    grouped[key].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const sortedGroups = Array.from(groups.values()).sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+
+  sortedGroups.forEach((group) => {
+    group.events.sort((a, b) => {
+      const aT = a.sortTimestamp ?? parseLocalDate(a.date).getTime();
+      const bT = b.sortTimestamp ?? parseLocalDate(b.date).getTime();
+      if (aT !== bT) return aT - bT;
+      return a.title.localeCompare(b.title);
+    });
   });
-  
-  return grouped;
+
+  return sortedGroups;
 }
 
 /**
