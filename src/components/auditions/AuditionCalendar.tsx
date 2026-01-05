@@ -20,7 +20,7 @@ interface AuditionCalendarProps {
   hasOwnedAuditions?: boolean;
   hasProductionTeamAuditions?: boolean;
   onFilteredEventsChange?: (events: ProductionDateEvent[]) => void;
-  onFilterStateChange?: (filters: EventTypeFilter, productionEventTypeFilters: Record<string, boolean>) => void;
+  onFilterStateChange?: (filters: EventTypeFilter, productionEventTypeFilters: Record<string, boolean>, showCallbacks: boolean) => void;
 }
 
 export default function AuditionCalendar({ 
@@ -167,9 +167,9 @@ export default function AuditionCalendar({
 
   useEffect(() => {
     if (onFilterStateChange) {
-      onFilterStateChange(eventFilters, productionEventTypeFilters);
+      onFilterStateChange(eventFilters, productionEventTypeFilters, showCallbacks);
     }
-  }, [eventFilters, productionEventTypeFilters, onFilterStateChange]);
+  }, [eventFilters, productionEventTypeFilters, showCallbacks, onFilterStateChange]);
 
   // Navigate to previous period
   const handlePrevious = () => {

@@ -463,7 +463,7 @@ function ShowCalendarPageContent() {
               hasOwnedAuditions={false}
               hasProductionTeamAuditions={false}
               onFilteredEventsChange={setFilteredEvents}
-              onFilterStateChange={(filters, productionEventTypeFilters) => {
+              onFilterStateChange={(filters, productionEventTypeFilters, _showCallbacks) => {
                 setActiveFilters(filters);
                 setActiveProductionEventTypeFilters(productionEventTypeFilters);
               }}

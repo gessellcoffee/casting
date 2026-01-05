@@ -9,12 +9,14 @@ import { getEvents } from '@/lib/supabase/events';
 import { getProfile } from '@/lib/supabase/profile';
 import AuditionCalendar from '@/components/auditions/AuditionCalendar';
 import DownloadMyCalendarButton from '@/components/auditions/DownloadMyCalendarButton';
+import ExportConflictsModal from '@/components/auditions/ExportConflictsModal';
 import GoogleCalendarSync from '@/components/calendar/GoogleCalendarSync';
 import { generateProductionEvents, mapProductionEventsToCalendarEvents, ProductionDateEvent } from '@/lib/utils/calendarEvents';
 import { getProductionEventsByAuditionIds, getUserAssignedProductionEvents } from '@/lib/supabase/productionEventsCalendar';
 import { getEffectiveTimeZone } from '@/lib/utils/dateUtils';
 import type { UserPreferences } from '@/lib/supabase/types';
 import { Check, X } from 'lucide-react';
+import type { EventTypeFilter } from '@/components/auditions/CalendarLegend';
 
 // Component that uses searchParams - must be wrapped in Suspense
 function ConnectionStatusHandler() {
@@ -87,11 +89,16 @@ function MyCalendarContent() {
   const [personalEvents, setPersonalEvents] = useState<any[]>([]);
   const [productionEvents, setProductionEvents] = useState<ProductionDateEvent[]>([]);
   const [filteredProductionEvents, setFilteredProductionEvents] = useState<ProductionDateEvent[]>([]);
+  const [hasFilteredProductionEvents, setHasFilteredProductionEvents] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<EventTypeFilter | null>(null);
+  const [showCallbacks, setShowCallbacks] = useState(true);
+  const [isExportConflictsOpen, setIsExportConflictsOpen] = useState(false);
   const [hasOwnedAuditions, setHasOwnedAuditions] = useState(false);
   const [hasProductionTeamAuditions, setHasProductionTeamAuditions] = useState(false);
   const [loading, setLoading] = useState(true);
   const [calendarKey, setCalendarKey] = useState(0); // Force calendar refresh
   const [effectiveTimeZone, setEffectiveTimeZone] = useState<string>('');
+  const [userFullName, setUserFullName] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -116,6 +123,9 @@ function MyCalendarContent() {
       const userPreferences = userProfile?.preferences as UserPreferences | null;
       const timeZone = getEffectiveTimeZone(userPreferences?.time_zone);
       setEffectiveTimeZone(timeZone);
+      const profileName = `${userProfile?.first_name || ''} ${userProfile?.last_name || ''}`.trim();
+      const authName = `${currentUser?.user_metadata?.first_name || ''} ${currentUser?.user_metadata?.last_name || ''}`.trim();
+      setUserFullName(profileName || authName || currentUser?.email || '');
       
       // Calculate date range for personal events (6 months back and forward)
       const now = new Date();
@@ -278,6 +288,13 @@ function MyCalendarContent() {
               callbacks={callbacks}
               productionEvents={filteredProductionEvents.length > 0 ? filteredProductionEvents : productionEvents}
             />
+            <button
+              onClick={() => setIsExportConflictsOpen(true)}
+              className="n-button-secondary"
+              type="button"
+            >
+              Export Conflicts
+            </button>
           </div>
         </div>
 
@@ -291,7 +308,27 @@ function MyCalendarContent() {
           onRefresh={loadData}
           hasOwnedAuditions={hasOwnedAuditions}
           hasProductionTeamAuditions={hasProductionTeamAuditions}
-          onFilteredEventsChange={setFilteredProductionEvents}
+          onFilteredEventsChange={(events) => {
+            setHasFilteredProductionEvents(true);
+            setFilteredProductionEvents(events);
+          }}
+          onFilterStateChange={(filters, _productionEventTypeFilters, nextShowCallbacks) => {
+            setActiveFilters(filters);
+            setShowCallbacks(nextShowCallbacks);
+          }}
+        />
+
+        <ExportConflictsModal
+          isOpen={isExportConflictsOpen}
+          onClose={() => setIsExportConflictsOpen(false)}
+          userName={userFullName}
+          timeZone={effectiveTimeZone}
+          signups={signups}
+          callbacks={callbacks}
+          personalEvents={personalEvents}
+          productionEvents={hasFilteredProductionEvents ? filteredProductionEvents : productionEvents}
+          filters={activeFilters}
+          showCallbacks={showCallbacks}
         />
       </div>
     </div>
